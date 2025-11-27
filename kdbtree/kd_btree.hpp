@@ -17,10 +17,6 @@
 
 using std::fstream, std::ios, std::string, std::vector, std::function, std::pair, std::random_device, std::mt19937, std::uniform_int_distribution;
 
-template<typename T>
-
-function<double (T &, T &)> area_func;
-
 string random_string(size_t length);
 
 enum max_min {

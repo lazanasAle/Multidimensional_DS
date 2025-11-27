@@ -49,7 +49,7 @@ template<typename T>
 
 class kd_bnode {
 public:
-        size_t minimum_fill, maximum_fill;
+        size_t minimum_fill, maximum_fill, level;
         function<pair<T, T> (vector<T> &)> make_rectangle;
 
         kd_bnode(function<pair<T, T> (vector<T> &)> make_rect);

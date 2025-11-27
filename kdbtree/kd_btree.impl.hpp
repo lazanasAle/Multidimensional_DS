@@ -34,5 +34,6 @@ template<typename T>
 kd_bnode<T>::kd_bnode(function<pair<T, T> (vector<T> &)> make_rect) {
         this->maximum_fill = BLC_LEN / sizeof(T);
         this->minimum_fill = (size_t) trunc(MIN_PERC*this->maximum_fill);
+        this->level = 0;
         this->make_rectangle = make_rect;
 }

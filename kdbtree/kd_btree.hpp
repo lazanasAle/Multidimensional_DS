@@ -51,8 +51,9 @@ class kd_bnode {
 public:
         size_t minimum_fill, maximum_fill, level;
         function<pair<T, T> (vector<T> &)> make_rectangle;
+        vector<function<int (T &, T &)>> comparators;
 
-        kd_bnode(function<pair<T, T> (vector<T> &)> make_rect);
+        kd_bnode(function<pair<T, T> (vector<T> &)> make_rect, vector<function<int (T &, T &)>> &cmp_vec);
         virtual pair<kd_bnode<T> *, kd_bnode<T> *> split_node() = 0;
 };
 
@@ -76,8 +77,6 @@ template<typename T>
 
 class kd_btree {
 private:
-        vector<function<int (T &, T &)>> comparators;
-        function<pair<T, T> (vector<T> &)> make_rectangle;
         fstream file;
         long coffset, root_offset;
         kd_bnode<T> *load_node(size_t node_offset);

@@ -31,9 +31,10 @@ region<T>::region(pair<T, T> &reg) {
 
 template<typename T>
 
-kd_bnode<T>::kd_bnode(function<pair<T, T> (vector<T> &)> make_rect) {
+kd_bnode<T>::kd_bnode(function<pair<T, T> (vector<T> &)> make_rect, vector<function<int (T &, T &)>> &cmp_vec) {
         this->maximum_fill = BLC_LEN / sizeof(T);
         this->minimum_fill = (size_t) trunc(MIN_PERC*this->maximum_fill);
         this->level = 0;
         this->make_rectangle = make_rect;
+        this->comparators = cmp_vec;
 }

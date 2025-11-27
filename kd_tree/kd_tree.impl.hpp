@@ -1,6 +1,5 @@
 // kd_node methods
 
-#include "kd_tree.h"
 template <typename T>
 
 kd_node<T>::kd_node(T key_as) {

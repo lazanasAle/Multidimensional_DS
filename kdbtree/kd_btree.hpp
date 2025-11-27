@@ -77,6 +77,8 @@ template<typename T>
 
 class kd_btree {
 private:
+        function<pair<T, T> (vector<T> &)> make_rectangle;
+        vector<function<int (T &, T &)>> comparators;
         fstream file;
         long coffset, root_offset;
         kd_bnode<T> *load_node(size_t node_offset);

@@ -22,6 +22,14 @@ using   std::fstream, std::ios, std::string, std::vector,
         std::mt19937, std::uniform_int_distribution, std::stable_sort, std::get,
         std::move;
 
+template<typename T>
+
+void read_vector(fstream file, vector<T> &vec);
+
+template<typename T>
+
+void write_vector(fstream file, vector<T> &vec);
+
 string random_string(size_t length);
 
 template<typename T>
@@ -37,13 +45,17 @@ enum max_min {
         MIN
 };
 
+enum tag {
+        POINT,
+        REGION
+};
+
 template<typename T>
 
 class point {
 public:
         string name;
         T location;
-        long parent_offset, my_offset;
 
         point(T p);
 };
@@ -53,7 +65,7 @@ template<typename T>
 class region {
 public:
         rectangle<T> region;
-        long child_offset, parent_offset, my_offset;
+        long child_offset;
 
         region(rectangle<T> &reg);
 };
@@ -63,6 +75,7 @@ template<typename T>
 class kd_bnode {
 public:
         size_t minimum_fill, maximum_fill, level, dim_len;
+        long parent_offset, my_offset;
         cmp_vector<T> *comparators;
 
         kd_bnode(cmp_vector<T> *cmp_vec);
@@ -99,10 +112,13 @@ private:
         function<rectangle<T> (vector<rectangle<T> *>)> make_region_rectangle;
         function<rectangle<T> (vector<T *>)> make_point_rectangle;
         fstream file;
-        long coffset, root_offset;
+        long coffset, root_offset, next_offset;
+
         kd_bnode<T> *load_node(size_t node_offset);
-        void range_query_rec(pair<T, T> &rect, vector<T> &vec);
-        void skyline_rec(vector<max_min> &best, vector<T> &vec);
+        void update_node_level(kd_bnode<T> &node);
+        bool store_node(size_t node_offset, kd_bnode<T> *node);
+        void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
+        void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);
 public:
         kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> region_rectangle_fn,
                 function<rectangle<T> (vector<T *>)> point_rectangle_fn);
@@ -110,6 +126,7 @@ public:
         vector<T> range_query(pair<T, T> &rect);
         void erase(T &data);
         vector<T> skyline(vector<max_min> &best);
+        bool empty();
 };
 
 #include "kd_btree.impl.hpp"

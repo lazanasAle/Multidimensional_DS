@@ -91,6 +91,7 @@ public:
 
         region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle_fn);
         pair<kd_bnode<T> *, kd_bnode<T> *> split_node() override;
+        bool into_rectangle(pair<T, T> &rect, region<T> &reg);
 };
 
 template<typename T>
@@ -102,6 +103,7 @@ public:
 
         point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *>)> make_rectangle_fn);
         pair<kd_bnode<T> *, kd_bnode<T> *> split_node() override;
+        bool into_rectangle(pair<T, T> &rect, point<T> &point);
 };
 
 template<typename T>
@@ -118,6 +120,8 @@ private:
         void update_node_level(kd_bnode<T> &node);
         bool store_node(size_t node_offset, kd_bnode<T> *node);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
+        point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
+        void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);
         void insert_rec(T &data, long subtree_root_off);
         void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);
 public:

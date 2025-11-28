@@ -118,6 +118,7 @@ private:
         void update_node_level(kd_bnode<T> &node);
         bool store_node(size_t node_offset, kd_bnode<T> *node);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
+        void insert_rec(T &data, long subtree_root_off);
         void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);
 public:
         kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> region_rectangle_fn,

@@ -2,12 +2,14 @@
 #define _KD_BTREE_HPP
 
 #include <functional>
+#include <algorithm>
 #include <typeinfo>
 #include <utility>
 #include <fstream>
 #include <string>
 #include <random>
 #include <vector>
+#include <tuple>
 #include <cmath>
 #include <ios>
 
@@ -15,9 +17,20 @@
 #define BLC_LEN 4096
 #define MIN_PERC 0.35
 
-using std::fstream, std::ios, std::string, std::vector, std::function, std::pair, std::random_device, std::mt19937, std::uniform_int_distribution;
+using   std::fstream, std::ios, std::string, std::vector,
+        std::function, std::pair, std::tuple, std::random_device,
+        std::mt19937, std::uniform_int_distribution, std::stable_sort, std::get,
+        std::move;
 
 string random_string(size_t length);
+
+template<typename T>
+
+using cmp_vector = vector<function<int (T &, T &)>>;
+
+template<typename T>
+
+using rectangle = tuple<T, T, T>;
 
 enum max_min {
         MAX,
@@ -30,7 +43,7 @@ class point {
 public:
         string name;
         T location;
-        long parent_offset;
+        long parent_offset, my_offset;
 
         point(T p);
 };
@@ -39,21 +52,20 @@ template<typename T>
 
 class region {
 public:
-        pair<T, T> region;
-        long child_offset, parent_offset;
+        rectangle<T> region;
+        long child_offset, parent_offset, my_offset;
 
-        region(pair<T, T> &reg);
+        region(rectangle<T> &reg);
 };
 
 template<typename T>
 
 class kd_bnode {
 public:
-        size_t minimum_fill, maximum_fill, level;
-        function<pair<T, T> (vector<T> &)> make_rectangle;
-        vector<function<int (T &, T &)>> comparators;
+        size_t minimum_fill, maximum_fill, level, dim_len;
+        cmp_vector<T> *comparators;
 
-        kd_bnode(function<pair<T, T> (vector<T> &)> make_rect, vector<function<int (T &, T &)>> &cmp_vec);
+        kd_bnode(cmp_vector<T> *cmp_vec);
         virtual pair<kd_bnode<T> *, kd_bnode<T> *> split_node() = 0;
 };
 
@@ -62,6 +74,9 @@ template<typename T>
 class region_kd_bnode: public kd_bnode<T> {
 public:
         vector<region<T>> regions;
+        function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle;
+
+        region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle_fn);
         pair<kd_bnode<T> *, kd_bnode<T> *> split_node() override;
 };
 
@@ -70,6 +85,9 @@ template<typename T>
 class point_kd_bnode: public kd_bnode<T> {
 public:
         vector<point<T>> points;
+        function<rectangle<T> (vector<T *>)> make_rectangle;
+
+        point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *>)> make_rectangle_fn);
         pair<kd_bnode<T> *, kd_bnode<T> *> split_node() override;
 };
 
@@ -77,15 +95,17 @@ template<typename T>
 
 class kd_btree {
 private:
-        function<pair<T, T> (vector<T> &)> make_rectangle;
-        vector<function<int (T &, T &)>> comparators;
+        cmp_vector<T> *comparators;
+        function<rectangle<T> (vector<rectangle<T> *>)> make_region_rectangle;
+        function<rectangle<T> (vector<T *>)> make_point_rectangle;
         fstream file;
         long coffset, root_offset;
         kd_bnode<T> *load_node(size_t node_offset);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec);
         void skyline_rec(vector<max_min> &best, vector<T> &vec);
 public:
-        kd_btree(vector<function<int (T &, T &)>> &comparators, function<pair<T, T> (vector<T> &)> rect_fn);
+        kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> region_rectangle_fn,
+                function<rectangle<T> (vector<T *>)> point_rectangle_fn);
         void insert(T &data);
         vector<T> range_query(pair<T, T> &rect);
         void erase(T &data);

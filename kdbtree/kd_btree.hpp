@@ -62,6 +62,10 @@ public:
 
 template<typename T>
 
+bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec);
+
+template<typename T>
+
 class region {
 public:
         rectangle<T> region;
@@ -69,6 +73,10 @@ public:
 
         region(rectangle<T> &reg);
 };
+
+template<typename T>
+
+bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec);
 
 template<typename T>
 
@@ -91,7 +99,6 @@ public:
 
         region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle_fn);
         kd_bnode<T> *split_node() override;
-        bool into_rectangle(pair<T, T> &rect, region<T> &reg);
 };
 
 template<typename T>
@@ -103,7 +110,6 @@ public:
 
         point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *>)> make_rectangle_fn);
         kd_bnode<T> *split_node() override;
-        bool into_rectangle(pair<T, T> &rect, point<T> &point);
 };
 
 template<typename T>

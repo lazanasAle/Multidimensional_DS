@@ -95,15 +95,16 @@ kd_bnode<T> *point_kd_bnode<T>::split_node() {
 
 template<typename T>
 
-bool point_kd_bnode<T>::into_rectangle(pair<T, T> &rect, point<T> &point) {
+bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec) {
         size_t smaller = 0, bigger = 0;
-        for (auto &cmp : *(this->comparators)) {
+        size_t dim_len = cmp_vec->size();
+        for (auto &cmp : *cmp_vec) {
                 if (cmp(rect.first, point) <= 0)
                         smaller++;
                 if (cmp(rect.second, point) >= 0)
                         bigger++;
         }
-        return (smaller >= this->dim_len) && (bigger >= this->dim_len);
+        return (smaller >= dim_len) && (bigger >= dim_len);
 }
 
 // region node functions
@@ -143,16 +144,17 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
 
 template<typename T>
 
-bool region_kd_bnode<T>::into_rectangle(pair<T, T> &rect, region<T> &reg) {
+bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
         rectangle<T> my_rect = reg.region;
         size_t intersects = 0;
+        size_t dim_len = cmp_vec->size();
         T my_low = get<0>(my_rect);
         T my_high = get<2>(my_rect);
-        for (auto &cmp : *(this->comparators)) {
+        for (auto &cmp : *cmp_vec) {
                 if ((cmp(my_low, rect.second) <= 0) && (cmp(my_high, rect.first) >= 0))
                         intersects++;
         }
-        return (intersects >= this->dim_len);
+        return (intersects >= dim_len);
 }
 
 //kd-btree functions
@@ -252,14 +254,14 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
                 if (typeid(*node) == typeid(point_kd_bnode<T>)) {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                         for (auto &point : pnode->points) {
-                                if (pnode->into_rectangle(rect, point))
+                                if (into_rectangle<T>(rect, point))
                                         vec.push_back(point.location);
                         }
                 }
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
                         for (auto &region : rnode->regions) {
-                                if (rnode->into_rectangle(rect, region))
+                                if (into_rectangle<T>(rect, region))
                                         range_query_rec(rect, vec, region->child_offset);
                         }
                 }
@@ -272,4 +274,29 @@ vector<T> kd_btree<T>::range_query(pair<T, T> &rect) {
         vector<T> vec;
         range_query_rec(rect, vec, root_offset);
         return vec;
+}
+
+template<typename T>
+
+point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
+        if (subtree_root_off > 0) {
+                kd_bnode<T> *curr_node = load_node(subtree_root_off);
+                if (curr_node) {
+                        if (typeid(*curr_node) == typeid(point_kd_bnode<T>)) {
+                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) curr_node;
+                                return pnode;
+                        }
+                        else {
+                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) curr_node;
+                                vector<int> enlargement(rnode->regions.size());
+                                for (region<T> &r : rnode->regions) {
+                                        pair<T, T> region_rect = make_pair(get<0>(r.region), get<2>(r.region));
+                                        if (into_rectangle<T>(region_rect, point<T>(data)))
+                                                return choose_leaf(data, r->child_offset);
+                                        else {
+                                        }
+                                }
+                        }
+                }
+        }
 }

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include "kd_tree.h"
+#include "kd_tree.hpp"
 
 using std::function, std::pair, std::vector, std::string, std::cout, std::make_pair;
 

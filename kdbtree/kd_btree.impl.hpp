@@ -418,12 +418,14 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 //now deal with the father and maybe propagate the split
                 size_t vlen = par_node->regions.size();
                 if (vlen > par_node->maximum_fill) {
-                        kd_bnode<T> *neighbour = par_node->split_node();
+                        region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) par_node->split_node();
                         store_node(par_node->my_offset, par_node);
-                        //propagate the split
-                        propagate_split(par_node, neighbour);
+                        //determine who is the father, then store it acordingly
                 }
-                else
+                else {
                         store_node(par_node->my_offset, par_node);
+                        split_org_node->parent_offset = par_node->my_offset;
+                        store_node(split_org_node->my_offset, split_org_node);
+                }
         }
 }

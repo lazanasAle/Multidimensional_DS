@@ -20,7 +20,8 @@
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::random_device,
         std::mt19937, std::uniform_int_distribution, std::stable_sort, std::get,
-        std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple;
+        std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
+        std::binary_search;
 
 template<typename T>
 

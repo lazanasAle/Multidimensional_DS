@@ -1,5 +1,5 @@
-#ifndef _KD_TREE_H
-#define _KD_TREE_H
+#ifndef _KD_TREE_HPP
+#define _KD_TREE_HPP
 #pragma once
 
 #include <functional>
@@ -69,6 +69,6 @@ public:
 
 
 
-#include "kd_tree.impl.h"
+#include "kd_tree.impl.hpp"
 
-#endif /* _KD_TREE_H */
+#endif /* _KD_TREE_HPP */

@@ -24,11 +24,11 @@ using   std::fstream, std::ios, std::string, std::vector,
 
 template<typename T>
 
-void read_vector(fstream file, vector<T> &vec);
+void read_vector(fstream file, vector<T> &vec, long it_in_blc);
 
 template<typename T>
 
-void write_vector(fstream file, vector<T> &vec);
+void write_vector(fstream file, vector<T> &vec, long it_in_blc);
 
 string random_string(size_t length);
 
@@ -124,7 +124,7 @@ private:
         function<rectangle<T> (vector<rectangle<T> *> &)> make_region_rectangle;
         function<rectangle<T> (vector<T *> &)> make_point_rectangle;
         fstream file;
-        long coffset, root_offset;
+        long coffset, next_offset, root_offset;
 
         kd_bnode<T> *load_node(size_t node_offset);
         void update_node_level(kd_bnode<T> &node);

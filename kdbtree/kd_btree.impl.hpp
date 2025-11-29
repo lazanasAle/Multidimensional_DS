@@ -1,20 +1,26 @@
 template<typename T>
 
-void read_vector(fstream file, vector<T> &vec) {
+void read_vector(fstream file, vector<T> &vec, long it_in_blc) {
         size_t vec_len;
         file.read((char *)&vec_len, sizeof(size_t));
         vec.set_size(vec_len);
         for (size_t j = 0; j < vec_len; ++j)
                 file.read((char *)&vec[j], sizeof(T));
+        int tmp;
+        for (size_t j = vec_len; j < it_in_blc; ++j)
+                file.read((char *)&tmp, sizeof(int));
 }
 
 template<typename T>
 
-void write_vector(fstream file, vector<T> &vec) {
+void write_vector(fstream file, vector<T> &vec, long it_in_blc) {
         size_t vec_len = vec.size();
         file.write((char *)&vec_len, sizeof(size_t));
         for (size_t j = 0; j < vec_len; ++j)
                 file.write((char *)&vec[j], sizeof(T));
+        int tmp = -1;
+        for (size_t j = vec_len; j < it_in_blc; ++j)
+                file.write((char *)&tmp, sizeof(int));
 }
 
 string random_string(size_t length) {
@@ -61,8 +67,6 @@ region<T>::region(rectangle<T> &reg) {
 template<typename T>
 
 kd_bnode<T>::kd_bnode(cmp_vector<T> *cmp_vec) {
-        this->maximum_fill = BLC_LEN / sizeof(T);
-        this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->level = 0;
         this->comparators = cmp_vec;
         this->dim_len = cmp_vec->size();
@@ -76,6 +80,8 @@ template<typename T>
 
 point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
+        this->maximum_fill = BLC_LEN / sizeof(point<T>);
+        this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->make_rectangle = make_rectangle_fn;
 }
 
@@ -124,6 +130,8 @@ template<typename T>
 
 region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
+        this->maximum_fill = BLC_LEN / sizeof(region<T>);
+        this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->make_rectangle = make_rectangle_fn;
 }
 
@@ -179,6 +187,7 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->make_point_rectangle = point_rectangle_fn;
         this->file = fstream("records.bin", ios::binary | ios::in | ios::out | ios::trunc);
         this->coffset = 0;
+        this->next_offset = 0;
         this->root_offset = INV_OFF;
 }
 
@@ -202,7 +211,7 @@ kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
                         this->file.read((char *)&loaded_point->parent_offset, sizeof(long));
                         loaded_point->my_offset = node_offset;
                         this->file.read((char *)&loaded_point->level, sizeof(size_t));
-                        read_vector<region<T>>(this->file, loaded_point->points);
+                        read_vector<region<T>>(this->file, loaded_point->points, loaded_point->maximum_fill);
                         loaded = loaded_point;
                 }
                 else {
@@ -211,7 +220,7 @@ kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
                         this->file.read((char *)&loaded_region->parent_offset, sizeof(long));
                         loaded_region->my_offset = node_offset;
                         this->file.read((char *)&loaded_region->level, sizeof(size_t));
-                        read_vector<region<T>>(this->file, loaded_region->regions);
+                        read_vector<region<T>>(this->file, loaded_region->regions, loaded_region->maximum_fill);
                         loaded = loaded_region;
                 }
                 return loaded;
@@ -231,7 +240,7 @@ bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
                         this->file.write((char *)&t, sizeof(tag));
                         this->file.write((char *)&pnode->parent_offset, sizeof(long));
                         this->file.write((char *)&pnode->level, sizeof(size_t));
-                        write_vector(this->file, pnode->points);
+                        write_vector(this->file, pnode->points, pnode->maximum_fill);
                 }
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
@@ -239,7 +248,7 @@ bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
                         this->file.write((char *)&t, sizeof(tag));
                         this->file.write((char *)&rnode->parent_offset, sizeof(long));
                         this->file.write((char *)&rnode->level, sizeof(size_t));
-                        write_vector(this->file, rnode->regions);
+                        write_vector(this->file, rnode->regions, rnode->maximum_fill);
                 }
                 return true;
         }
@@ -376,7 +385,7 @@ region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
 template<typename T>
 
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
-        size_t splitted_off = this->coffset;
+        size_t splitted_off = this->next_offset;
         split_org_node->my_offset = splitted_off;
         region<T> splitted_parent = make_parent_region(split_org_node);
         splitted_parent.child_offset = splitted_off;
@@ -387,7 +396,9 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 parent_node->regions = move({org_parent, splitted_parent});
                 store_node(splitted_off, split_org_node);
                 //find father offset
-                this->coffset = this->file.tellp();
+                long end_offset = this->file.tellp();
+                this->next_offset = (this->coffset != this->next_offset)? this->coffset : end_offset;
+                this->coffset = this->next_offset;
                 //put the father were you should
                 store_node(this->coffset, parent_node);
                 //inform the children where the parent is
@@ -398,7 +409,21 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 // make the parent new root
                 this->root_offset = this->coffset;
                 //move the offset to the next position
-                this->coffset = this->file.tellp();
+                this->coffset = this->next_offset = this->file.tellp();
         }
-        //if it has a parent tommorow i will do the propagation
+        else {
+                region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
+                par_node->regions.push_back(splitted_parent);
+                store_node(splitted_off, split_org_node);
+                //now deal with the father and maybe propagate the split
+                size_t vlen = par_node->regions.size();
+                if (vlen > par_node->maximum_fill) {
+                        kd_bnode<T> *neighbour = par_node->split_node();
+                        store_node(par_node->my_offset, par_node);
+                        //propagate the split
+                        propagate_split(par_node, neighbour);
+                }
+                else
+                        store_node(par_node->my_offset, par_node);
+        }
 }

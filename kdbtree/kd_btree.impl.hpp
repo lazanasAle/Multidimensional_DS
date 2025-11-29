@@ -70,7 +70,7 @@ kd_bnode<T>(cmp_vec) {
 
 template<typename T>
 
-pair<kd_bnode<T> *, kd_bnode<T> *> point_kd_bnode<T>::split_node() {
+kd_bnode<T> *point_kd_bnode<T>::split_node() {
         //sort entries in the dimension of interest
         size_t cmp_idx = this->level % this->dim_len;
         stable_sort(this->points.begin(), this->points.end(),
@@ -90,7 +90,7 @@ pair<kd_bnode<T> *, kd_bnode<T> *> point_kd_bnode<T>::split_node() {
         new_node->level = this->level;
 
         //return the splitted nodes
-        return make_pair(this, new_node);
+        return new_node;
 }
 
 template<typename T>
@@ -117,7 +117,7 @@ kd_bnode<T>(cmp_vec) {
 
 template<typename T>
 
-pair<kd_bnode<T> *, kd_bnode<T> *> region_kd_bnode<T>::split_node() {
+kd_bnode<T> *region_kd_bnode<T>::split_node() {
         //sort entries in the dimension of interest
         size_t cmp_idx = this->level % this->dim_len;
         stable_sort(this->regions.begin(), this->regions.end(),
@@ -137,7 +137,7 @@ pair<kd_bnode<T> *, kd_bnode<T> *> region_kd_bnode<T>::split_node() {
         new_node->level = this->level;
 
         //return the splitted nodes
-        return make_pair(this, new_node);
+        return new_node;
 }
 
 

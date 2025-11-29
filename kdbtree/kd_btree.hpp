@@ -79,7 +79,7 @@ public:
         cmp_vector<T> *comparators;
 
         kd_bnode(cmp_vector<T> *cmp_vec);
-        virtual pair<kd_bnode<T> *, kd_bnode<T> *> split_node() = 0;
+        virtual kd_bnode<T> *split_node() = 0;
 };
 
 template<typename T>
@@ -90,7 +90,7 @@ public:
         function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle;
 
         region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle_fn);
-        pair<kd_bnode<T> *, kd_bnode<T> *> split_node() override;
+        kd_bnode<T> *split_node() override;
         bool into_rectangle(pair<T, T> &rect, region<T> &reg);
 };
 
@@ -102,7 +102,7 @@ public:
         function<rectangle<T> (vector<T *>)> make_rectangle;
 
         point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *>)> make_rectangle_fn);
-        pair<kd_bnode<T> *, kd_bnode<T> *> split_node() override;
+        kd_bnode<T> *split_node() override;
         bool into_rectangle(pair<T, T> &rect, point<T> &point);
 };
 

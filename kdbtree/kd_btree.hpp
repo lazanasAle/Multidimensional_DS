@@ -20,7 +20,7 @@
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::random_device,
         std::mt19937, std::uniform_int_distribution, std::stable_sort, std::get,
-        std::move;
+        std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple;
 
 template<typename T>
 
@@ -34,7 +34,7 @@ string random_string(size_t length);
 
 template<typename T>
 
-using cmp_vector = vector<function<int (T &, T &)>>;
+using cmp_vector = vector<function<double (T &, T &)>>;
 
 template<typename T>
 
@@ -63,6 +63,10 @@ public:
 template<typename T>
 
 bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec);
+
+template<typename T>
+
+double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec);
 
 template<typename T>
 
@@ -95,9 +99,9 @@ template<typename T>
 class region_kd_bnode: public kd_bnode<T> {
 public:
         vector<region<T>> regions;
-        function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle;
+        function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle;
 
-        region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle_fn);
+        region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn);
         kd_bnode<T> *split_node() override;
 };
 
@@ -106,9 +110,9 @@ template<typename T>
 class point_kd_bnode: public kd_bnode<T> {
 public:
         vector<point<T>> points;
-        function<rectangle<T> (vector<T *>)> make_rectangle;
+        function<rectangle<T> (vector<T *> &)> make_rectangle;
 
-        point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *>)> make_rectangle_fn);
+        point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn);
         kd_bnode<T> *split_node() override;
 };
 
@@ -117,8 +121,8 @@ template<typename T>
 class kd_btree {
 private:
         cmp_vector<T> *comparators;
-        function<rectangle<T> (vector<rectangle<T> *>)> make_region_rectangle;
-        function<rectangle<T> (vector<T *>)> make_point_rectangle;
+        function<rectangle<T> (vector<rectangle<T> *> &)> make_region_rectangle;
+        function<rectangle<T> (vector<T *> &)> make_point_rectangle;
         fstream file;
         long coffset, root_offset, next_offset;
 
@@ -131,8 +135,8 @@ private:
         void insert_rec(T &data, long subtree_root_off);
         void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);
 public:
-        kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> region_rectangle_fn,
-                function<rectangle<T> (vector<T *>)> point_rectangle_fn);
+        kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
+                function<rectangle<T> (vector<T *> &)> point_rectangle_fn);
         void insert(T &data);
         vector<T> range_query(pair<T, T> &rect);
         void erase(T &data);

@@ -31,7 +31,18 @@ string random_string(size_t length) {
         return rand_string;
 }
 
+template<typename T>
 
+double rect_area(rectangle<T> &r, cmp_vector<T> &cmp_vec) {
+        T lower = get<0>(r);
+        T upper = get<2>(r);
+        double area = 1;
+        for (auto &cmp : cmp_vec) {
+                double dim_area = abs(cmp(lower, upper));
+                area *= dim_area;
+        }
+        return area;
+}
 
 template<typename T>
 
@@ -63,7 +74,7 @@ kd_bnode<T>::kd_bnode(cmp_vector<T> *cmp_vec) {
 
 template<typename T>
 
-point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *>)> make_rectangle_fn):
+point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
         this->make_rectangle = make_rectangle_fn;
 }
@@ -111,7 +122,7 @@ bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec) {
 
 template<typename T>
 
-region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> make_rectangle_fn):
+region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
         this->make_rectangle = make_rectangle_fn;
 }
@@ -161,8 +172,8 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
 
 template<typename T>
 
-kd_btree<T>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *>)> region_rectangle_fn,
-function<rectangle<T> (vector<T *>)> point_rectangle_fn) {
+kd_btree<T>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
+function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->comparators = cmp_vec;
         this->make_region_rectangle = region_rectangle_fn;
         this->make_point_rectangle = point_rectangle_fn;
@@ -283,20 +294,58 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                 kd_bnode<T> *curr_node = load_node(subtree_root_off);
                 if (curr_node) {
                         if (typeid(*curr_node) == typeid(point_kd_bnode<T>)) {
+                                //it's a leaf you found it
                                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) curr_node;
                                 return pnode;
                         }
-                        else {
-                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) curr_node;
-                                vector<int> enlargement(rnode->regions.size());
-                                for (region<T> &r : rnode->regions) {
-                                        pair<T, T> region_rect = make_pair(get<0>(r.region), get<2>(r.region));
-                                        if (into_rectangle<T>(region_rect, point<T>(data)))
-                                                return choose_leaf(data, r->child_offset);
-                                        else {
-                                        }
+                        //unfortunately it's a region node dig deeper
+                        region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) curr_node;
+                        vector<pair<double, bool>> enlargement(rnode->regions.size());
+                        size_t j = 0;
+                        for (region<T> &r : rnode->regions) {
+                                pair<T, T> region_rect = make_pair(get<0>(r.region), get<2>(r.region));
+                                if (into_rectangle<T>(region_rect, point<T>(data))) {
+                                        //it's in here so go to the child
+                                        return choose_leaf(data, r.child_offset);
                                 }
+                                //find the enlagement the area of this region needs to include the new point
+                                T left_side = get<0>(r.region);
+                                T right_side = get<2>(r.region);
+                                //make the new rectangles
+                                vector<T *> v1 = {&left_side, &data};
+                                vector<T *> v2 = {&right_side, &data};
+                                rectangle<T> r1 = this->make_point_rectangle(v1);
+                                rectangle<T> r2 = this->make_point_rectangle(v2);
+                                //find areas and enlargement
+                                double left_area = rect_area<T>(r1, this->comparators);
+                                double right_area = rect_area<T>(r2, this->comparators);
+                                enlargement[j] = (left_area < right_area)? make_pair(left_area, true) : make_pair(right_area, false);
+                                j++;
                         }
+                        //find which region needs minimum enlargement
+                        auto it = min_element(enlargement.begin(), enlargement.end(),
+                                [] (const auto &a, const auto &b) {
+                                        return a.first < b.first;
+                        });
+                        size_t min_idx = distance(enlargement.begin(), it);
+                        rectangle<T> new_rect;
+                        //enlarge that region
+                        if (enlargement[min_idx].second) {
+                                T right_side = get<2>(rnode->regions[min_idx].region);
+                                vector<T *> v = {&right_side, &data};
+                                new_rect = this->make_point_rectangle(v);
+                        }
+                        else {
+                                T left_side = get<0>(rnode->regions[min_idx].region);
+                                vector<T *> v = {&left_side, &data};
+                                new_rect = this->make_point_rectangle(v);
+                        }
+                        rnode->regions[min_idx].region = new_rect;
+                        store_node(subtree_root_off, rnode);
+                        //now it's in here go to the child
+                        return choose_leaf(data, rnode->regions[min_idx].child_offset);
                 }
+                return nullptr;
         }
+        return nullptr;
 }

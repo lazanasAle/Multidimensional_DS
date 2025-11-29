@@ -101,6 +101,6 @@ public:
 		
 };
 
-#include "2D_range_tree.impl.h"
+#include "2D_range_tree.impl.hpp"
 
 #endif /* _2D_RANGE_TREE_HPP */

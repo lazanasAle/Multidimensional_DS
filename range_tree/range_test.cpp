@@ -1,4 +1,4 @@
-#include "2D_range_tree.h"
+#include "2D_range_tree.hpp"
 #include <string>
 #include <vector>
 #include <utility>

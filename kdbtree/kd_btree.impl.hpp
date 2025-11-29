@@ -179,7 +179,6 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->make_point_rectangle = point_rectangle_fn;
         this->file = fstream("records.bin", ios::binary | ios::in | ios::out | ios::trunc);
         this->coffset = 0;
-        this->next_offset = this->coffset;
         this->root_offset = INV_OFF;
 }
 
@@ -348,4 +347,58 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                 return nullptr;
         }
         return nullptr;
+}
+
+template<typename T>
+
+region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
+        rectangle<T> my_new_rect;
+        if (typeid(*node) == typeid(point_kd_bnode<T>)) {
+                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                //make the new vector of points
+                vector<T *> point_locs;
+                for (point<T> &p : pnode->points)
+                        point_locs.push_back(&p.location);
+                my_new_rect = this->make_point_rectangle(point_locs);
+        }
+        else {
+                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                //make the new vector of regions
+                vector<rectangle<T> *> my_regs;
+                for (region<T> &r : rnode->regions)
+                        my_regs.push_back(&r.region);
+                my_new_rect = this->make_region_rectangle(my_regs);
+        }
+        region<T> splitted_parent(my_new_rect);
+        return splitted_parent;
+}
+
+template<typename T>
+
+void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
+        size_t splitted_off = this->coffset;
+        split_org_node->my_offset = splitted_off;
+        region<T> splitted_parent = make_parent_region(split_org_node);
+        splitted_parent.child_offset = splitted_off;
+        if (org_node->parent_offset < 0) {
+                region<T> org_parent = make_parent_region(org_node);
+                org_parent.child_offset = org_node->my_offset;
+                region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
+                parent_node->regions = move({org_parent, splitted_parent});
+                store_node(splitted_off, split_org_node);
+                //find father offset
+                this->coffset = this->file.tellp();
+                //put the father were you should
+                store_node(this->coffset, parent_node);
+                //inform the children where the parent is
+                org_node->parent_offset = this->coffset;
+                split_org_node->parent_offset = this->coffset;
+                store_node(org_node->my_offset, org_node);
+                store_node(split_org_node->my_offset, split_org_node);
+                // make the parent new root
+                this->root_offset = this->coffset;
+                //move the offset to the next position
+                this->coffset = this->file.tellp();
+        }
+        //if it has a parent tommorow i will do the propagation
 }

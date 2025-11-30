@@ -5,24 +5,38 @@
 #include "kd_btree.hpp"
 #include "../movie_utils.hpp"
 
-cmp_vector<movie> movie_comp = {
-        compare_id, compare_title, compare_org_lang,
-        compare_org_country, compare_release_dates,
-        compare_genre_names, compare_prod_comp_names,
-        compare_budget, compare_revenue, compare_runtime,
-        compare_popularity, compare_vote_avg, compare_vote_count
-};
-
-
-rectangle<movie> make_movie_region_rectangle(vector<rectangle<movie> *> &movie_regions) {
-        movie minimum, median, maximum;
-        return make_tuple(minimum, median, maximum);
+static inline void set_movie_str(vector<string> &str_fields, movie &mv) {
+        mv.title = str_fields[0];
+        mv.org_lang = str_fields[1];
+        mv.org_country = str_fields[2];
+        mv.genre_names = str_fields[3];
+        mv.prod_comp_names = str_fields[4];
 }
 
-rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
-        movie minimum, median, maximum;
-        return make_tuple(minimum, median, maximum);
+static inline void set_movie_dec(vector<size_t> &dec_fields, movie &mv) {
+        mv.id = dec_fields[0];
+        mv.runtime = dec_fields[1];
+        mv.vote_count = dec_fields[2];
 }
+
+static inline void set_movie_double(vector<double> &double_fields, movie &mv) {
+        mv.budget = double_fields[0];
+        mv.revenue = double_fields[1];
+        mv.popularity = double_fields[2];
+        mv.vote_avg = double_fields[3];
+}
+
+static inline void set_movie_date(year_month_day &ymda, movie &mv) {
+        mv.release_date = ymda;
+}
+
+vector<string> get_min_strings_regions(vector<rectangle<movie> *> &movie_regions);
+
+vector<string> get_max_strings_regions(vector<rectangle<movie> *> &movie_regions);
+
+rectangle<movie> make_movie_region_rectangle(vector<rectangle<movie> *> &movie_regions);
+
+rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points);
 
 
 #endif /* _MOVIES_KD_BTREE_HPP */

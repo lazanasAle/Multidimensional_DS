@@ -18,7 +18,7 @@ struct movie {
         bool adult;
 };
 
-double compare_str(const string &a, const string &b) {
+static double compare_str(const string &a, const string &b) {
         size_t len1 = a.size();
         size_t len2 = b.size();
         size_t min_len = min(len1, len2);

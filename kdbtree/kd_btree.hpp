@@ -23,8 +23,6 @@ using   std::fstream, std::ios, std::string, std::vector,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
         std::binary_search;
 
-long end_pos(fstream &file);
-
 template<typename T>
 
 void read_vector(fstream &file, vector<T> &vec, long it_in_blc);
@@ -32,8 +30,6 @@ void read_vector(fstream &file, vector<T> &vec, long it_in_blc);
 template<typename T>
 
 void write_vector(fstream &file, vector<T> &vec, long it_in_blc);
-
-string random_string(size_t length);
 
 template<typename T>
 

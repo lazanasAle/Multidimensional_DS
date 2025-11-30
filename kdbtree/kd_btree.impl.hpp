@@ -1,9 +1,8 @@
-long end_pos(fstream &file) {
+static long end_pos(fstream &file) {
         file.seekp(0, ios::end);
         long end_p = file.tellp();
         return end_p;
 }
-
 
 template<typename T>
 
@@ -30,7 +29,7 @@ void write_vector(fstream &file, vector<T> &vec, long it_in_blc) {
                 file.write((char *)&tmp, sizeof(T));
 }
 
-string random_string(size_t length) {
+static string random_string(size_t length) {
         const string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         random_device rand_dev;
         mt19937 generator(rand_dev());

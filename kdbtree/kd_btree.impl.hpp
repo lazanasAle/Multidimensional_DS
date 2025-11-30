@@ -7,7 +7,7 @@ long end_pos(fstream &file) {
 
 template<typename T>
 
-void read_vector(fstream file, vector<T> &vec, long it_in_blc) {
+void read_vector(fstream &file, vector<T> &vec, long it_in_blc) {
         size_t vec_len;
         file.read((char *)&vec_len, sizeof(size_t));
         vec.set_size(vec_len);
@@ -20,7 +20,7 @@ void read_vector(fstream file, vector<T> &vec, long it_in_blc) {
 
 template<typename T>
 
-void write_vector(fstream file, vector<T> &vec, long it_in_blc) {
+void write_vector(fstream &file, vector<T> &vec, long it_in_blc) {
         size_t vec_len = vec.size();
         file.write((char *)&vec_len, sizeof(size_t));
         for (size_t j = 0; j < vec_len; ++j)

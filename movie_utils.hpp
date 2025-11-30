@@ -18,28 +18,10 @@ struct movie {
         bool adult;
 };
 
-static double compare_str(const string &a, const string &b) {
-        size_t len1 = a.size();
-        size_t len2 = b.size();
-        size_t min_len = min(len1, len2);
-
-        for (size_t j = 0; j < min_len; ++j) {
-                if(a[j] != b[j])
-                        return (a[j] - b[j]);
-        }
-        return (len1 - len2);
-}
-
-static inline double compare_title(const movie &a, const movie &b) {return compare_str(a.title, b.title);}
-static inline double compare_org_lang(const movie &a, const movie &b) {return compare_str(a.org_lang, b.org_lang);}
-static inline double compare_org_country(const movie &a, const movie &b) {return compare_str(a.org_country, b.org_country);}
-static inline double compare_genre_names(const movie &a, const movie &b) {return compare_str(a.genre_names, b.genre_names);}
-static inline double compare_prod_comp_names(const movie &a, const movie &b) {return compare_str(a.prod_comp_names, b.prod_comp_names);}
 static inline double compare_budget(const movie &a, const movie &b) {return (a.budget - b.budget);}
 static inline double compare_revenue(const movie &a, const movie &b) {return (a.revenue - b.revenue);}
 static inline double compare_popularity(const movie &a, const movie &b) {return (a.popularity - b.popularity);}
 static inline double compare_vote_avg(const movie &a, const movie &b) {return (a.vote_avg - b.vote_avg);}
-static inline double compare_id(const movie &a, const movie &b) {return (a.id - b.id);}
 static inline double compare_runtime(const movie &a, const movie &b) {return (a.runtime - b.runtime);}
 static inline double compare_vote_count(const movie &a, const movie &b) {return (a.vote_count - b.vote_count);}
 

@@ -2,11 +2,9 @@
 
 
 cmp_vector<movie> movie_comp = {
-        compare_id, compare_title, compare_org_lang,
-        compare_org_country, compare_release_dates,
-        compare_genre_names, compare_prod_comp_names,
-        compare_budget, compare_revenue, compare_runtime,
-        compare_popularity, compare_vote_avg, compare_vote_count
+        compare_release_dates, compare_budget, compare_revenue,
+        compare_runtime, compare_popularity, compare_vote_avg,
+        compare_vote_count
 };
 
 

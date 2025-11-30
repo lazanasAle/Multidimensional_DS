@@ -66,7 +66,7 @@ point<T>::point(T p) {
 
 template<typename T>
 
-region<T>::region(rectangle<T> &reg) {
+region<T>::region(rectangle<T> reg) {
         this->region = reg;
         this->child_offset = INV_OFF;
 }
@@ -268,6 +268,7 @@ void kd_btree<T>::update_node_level(kd_bnode<T> &node) {
         if (node->parent_offset > 0) {
                 kd_bnode<T> *parent = load_node(node->parent_offset);
                 node->level = parent->level + 1;
+                delete(parent);
                 return;
         }
         node->level = 0;
@@ -292,6 +293,7 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
                                         range_query_rec(rect, vec, region->child_offset);
                         }
                 }
+                delete(node);
         }
 }
 
@@ -358,6 +360,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         }
                         rnode->regions[min_idx].region = new_rect;
                         store_node(subtree_root_off, rnode);
+                        delete(curr_node);
                         //now it's in here go to the child
                         return choose_leaf(data, rnode->regions[min_idx].child_offset);
                 }
@@ -392,6 +395,17 @@ region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
 
 template<typename T>
 
+void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
+        for (region<T> &reg : node->regions) {
+                kd_bnode<T> *chld_node = load_node(reg.child_offset);
+                update_node_level(chld_node);
+                store_node(chld_node->my_offset, chld_node);
+                delete(chld_node);
+        }
+}
+
+template<typename T>
+
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
         size_t splitted_off = this->next_offset;
         split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
@@ -420,6 +434,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 this->root_offset = this->coffset;
                 //move the offset to the next position
                 this->coffset = this->next_offset = end_pos(this->file);
+                delete(parent_node);
         }
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
@@ -433,6 +448,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                         store_node(par_node->my_offset, par_node);
                         //store the neighbour
                         this->coffset = end_pos(this->file);
+                        neighbour->my_offset = this->coffset;
                         store_node(this->coffset, neighbour);
                         //determine who is the father, then store it acordingly
                         bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
@@ -442,7 +458,11 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                         });
                         split_org_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
                         propagate_split(par_node, neighbour);
-                        // for all children update the levels accordingly
+                        //update the level in all children
+                        update_chld_levels(par_node);
+                        //do the same for the neighbour
+                        update_chld_levels(neighbour);
+                        delete(neighbour);
                 }
                 else {
                         store_node(par_node->my_offset, par_node);
@@ -450,5 +470,40 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                         update_node_level(split_org_node);
                         store_node(split_org_node->my_offset, split_org_node);
                 }
+                delete(par_node);
         }
+        this->coffset = end_pos(this->file);
+}
+
+
+template<typename T>
+
+void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
+        point_kd_bnode<T> *leaf = choose_leaf(data, subtree_root_off);
+        leaf->points.push_back(data);
+        store_node(leaf->my_offset, leaf);
+        size_t vlen = leaf->points.size();
+        if (vlen > leaf->maximum_fill) {
+                point_kd_bnode<T> *neighbour =  (point_kd_bnode<T> *) leaf->split_node();
+                store_node(leaf->my_offset, leaf);
+                propagate_split(leaf, neighbour);
+        }
+        delete(leaf);
+}
+
+
+template<typename T>
+
+void kd_btree<T>::insert(T &data) {
+        if (this->root_offset > 0)
+                insert_rec(data, this->root_offset);
+        else {
+                point_kd_bnode<T> new_root(this->comparators, this->make_point_rectangle);
+                new_root.points.push_back(data);
+                update_node_level(&new_root);
+                new_root.my_offset = this->next_offset;
+                store_node(new_root.my_offset, &new_root);
+                this->root_offset = new_root.my_offset;
+        }
+        this->coffset = this->next_offset = end_pos(this->file);
 }

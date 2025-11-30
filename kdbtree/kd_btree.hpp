@@ -79,7 +79,7 @@ public:
         rectangle<T> region;
         long child_offset;
 
-        region(rectangle<T> &reg);
+        region(rectangle<T> reg);
         region();
 };
 
@@ -137,6 +137,7 @@ private:
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
         region<T> make_parent_region(kd_bnode<T> *node);
+        void update_chld_levels(region_kd_bnode<T> *node);
         void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);
         void insert_rec(T &data, long subtree_root_off);
         void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);

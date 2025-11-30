@@ -37,7 +37,7 @@ string random_string(size_t length);
 
 template<typename T>
 
-using cmp_vector = vector<function<double (T &, T &)>>;
+using cmp_vector = vector<function<double (const T &, const T &)>>;
 
 template<typename T>
 

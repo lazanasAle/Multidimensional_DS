@@ -23,6 +23,8 @@ using   std::fstream, std::ios, std::string, std::vector,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
         std::binary_search;
 
+long end_pos(fstream &file);
+
 template<typename T>
 
 void read_vector(fstream file, vector<T> &vec, long it_in_blc);
@@ -59,6 +61,7 @@ public:
         T location;
 
         point(T p);
+        point();
 };
 
 template<typename T>
@@ -77,6 +80,7 @@ public:
         long child_offset;
 
         region(rectangle<T> &reg);
+        region();
 };
 
 template<typename T>

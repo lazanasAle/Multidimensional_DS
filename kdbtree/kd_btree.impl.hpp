@@ -1,3 +1,10 @@
+long end_pos(fstream &file) {
+        file.seekp(0, ios::end);
+        long end_p = file.tellp();
+        return end_p;
+}
+
+
 template<typename T>
 
 void read_vector(fstream file, vector<T> &vec, long it_in_blc) {
@@ -6,9 +13,9 @@ void read_vector(fstream file, vector<T> &vec, long it_in_blc) {
         vec.set_size(vec_len);
         for (size_t j = 0; j < vec_len; ++j)
                 file.read((char *)&vec[j], sizeof(T));
-        int tmp;
+        T tmp;
         for (size_t j = vec_len; j < it_in_blc; ++j)
-                file.read((char *)&tmp, sizeof(int));
+                file.read((char *)&tmp, sizeof(T));
 }
 
 template<typename T>
@@ -18,9 +25,9 @@ void write_vector(fstream file, vector<T> &vec, long it_in_blc) {
         file.write((char *)&vec_len, sizeof(size_t));
         for (size_t j = 0; j < vec_len; ++j)
                 file.write((char *)&vec[j], sizeof(T));
-        int tmp = -1;
+        T tmp;
         for (size_t j = vec_len; j < it_in_blc; ++j)
-                file.write((char *)&tmp, sizeof(int));
+                file.write((char *)&tmp, sizeof(T));
 }
 
 string random_string(size_t length) {
@@ -261,6 +268,7 @@ void kd_btree<T>::update_node_level(kd_bnode<T> &node) {
         if (node->parent_offset > 0) {
                 kd_bnode<T> *parent = load_node(node->parent_offset);
                 node->level = parent->level + 1;
+                return;
         }
         node->level = 0;
 }
@@ -386,7 +394,7 @@ template<typename T>
 
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
         size_t splitted_off = this->next_offset;
-        split_org_node->my_offset = splitted_off;
+        split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
         region<T> splitted_parent = make_parent_region(split_org_node);
         splitted_parent.child_offset = splitted_off;
         if (org_node->parent_offset < 0) {
@@ -394,9 +402,9 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 org_parent.child_offset = org_node->my_offset;
                 region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
                 parent_node->regions = move({org_parent, splitted_parent});
-                store_node(splitted_off, split_org_node);
+                store_node(split_org_node->my_offset, split_org_node);
                 //find father offset
-                long end_offset = this->file.tellp();
+                long end_offset = end_pos(this->file);
                 this->next_offset = (this->coffset != this->next_offset)? this->coffset : end_offset;
                 this->coffset = this->next_offset;
                 //put the father were you should
@@ -404,27 +412,42 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 //inform the children where the parent is
                 org_node->parent_offset = this->coffset;
                 split_org_node->parent_offset = this->coffset;
+                update_node_level(org_node);
+                update_node_level(split_org_node);
                 store_node(org_node->my_offset, org_node);
                 store_node(split_org_node->my_offset, split_org_node);
                 // make the parent new root
                 this->root_offset = this->coffset;
                 //move the offset to the next position
-                this->coffset = this->next_offset = this->file.tellp();
+                this->coffset = this->next_offset = end_pos(this->file);
         }
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
                 par_node->regions.push_back(splitted_parent);
-                store_node(splitted_off, split_org_node);
+                store_node(split_org_node->my_offset, split_org_node);
                 //now deal with the father and maybe propagate the split
                 size_t vlen = par_node->regions.size();
+                size_t dlen = this->comparators->size();
                 if (vlen > par_node->maximum_fill) {
                         region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) par_node->split_node();
                         store_node(par_node->my_offset, par_node);
+                        //store the neighbour
+                        this->coffset = end_pos(this->file);
+                        store_node(this->coffset, neighbour);
                         //determine who is the father, then store it acordingly
+                        bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
+                                [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
+                                        int res = *(this->comparators)[par_node->level % dlen](a, b);
+                                        return (res < 0);
+                        });
+                        split_org_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
+                        propagate_split(par_node, neighbour);
+                        // for all children update the levels accordingly
                 }
                 else {
                         store_node(par_node->my_offset, par_node);
                         split_org_node->parent_offset = par_node->my_offset;
+                        update_node_level(split_org_node);
                         store_node(split_org_node->my_offset, split_org_node);
                 }
         }

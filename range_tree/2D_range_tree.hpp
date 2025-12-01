@@ -23,7 +23,7 @@ public:
 	T key;
 	set<T, CMP> secondary;
 	two_d_key(T key_as);
-	
+
 	void insert_in(T &element);
 	void remove_from(T &element);
 };
@@ -38,7 +38,7 @@ public:
 	two_d_range_node<T, CMP> *parent;
 	int32_t height;
 	two_d_range_node(two_d_key<T, CMP> *ks);
-	
+
 	int32_t balance_factor();
 	void update_height();
 	void left_rotation();
@@ -46,7 +46,7 @@ public:
 	void left_right_rotation();
 	void right_left_rotation();
 	~two_d_range_node();
-	
+
 };
 
 generic2(T, CMP)
@@ -70,7 +70,7 @@ class two_d_range_tree {
 private:
 	two_d_range_node<T, CMP2> *root;
 	CMP1 comparator;
-	
+
 	two_d_range_node<T, CMP2> *&search(T &elem, two_d_range_node<T, CMP2> *&subtree_root);
 	void clear_collect_update1(two_d_range_node<T, CMP2> *&node);
 	void clear_collect_update2(two_d_range_node<T, CMP2> *&node1, two_d_range_node<T, CMP2> *&node2);
@@ -87,7 +87,7 @@ public:
 	two_d_range_node_iterator<T, CMP2> find(T &elem);
 	two_d_range_node_iterator<T, CMP2> upper_bound(T &elem);
 	two_d_range_node_iterator<T, CMP2> lower_bound(T &elem);
-	vector<T> two_d_range_search(pair<T, T> &interval); 
+	vector<T> two_d_range_search(pair<T, T> &interval);
 	bool empty();
 	two_d_key<T, CMP2> get_root();
 	void insert(T &elem);
@@ -98,7 +98,7 @@ public:
 	vector<two_d_key<T, CMP2>> inorder();
 	vector<two_d_key<T, CMP2>> postorder();
 	~two_d_range_tree();
-		
+
 };
 
 #include "2D_range_tree.impl.hpp"

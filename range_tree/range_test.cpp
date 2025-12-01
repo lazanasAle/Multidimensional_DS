@@ -11,7 +11,7 @@ struct test_record {
 	int key1;
 	int key2;
 	string name;
-	
+
 	test_record(int key1, int key2, string name) {
 		this->key1 = key1;
 		this->key2 = key2;
@@ -35,7 +35,7 @@ struct comparator_sec {
 	bool operator ()(const test_record &a, const test_record &b) const {
 		return (a.key2 < b.key2);
 	}
-}; 
+};
 
 int main() {
         two_d_range_tree<test_record, comparator_first, comparator_sec> rt;
@@ -48,7 +48,7 @@ int main() {
     	}
     	vector<two_d_key<test_record, comparator_sec>> pr = rt.preorder();
     	vector<two_d_key<test_record, comparator_sec>> in = rt.inorder();
-    	
+
     	cout<<"preorder:\n";
     	for (auto &rec : pr) {
     		cout<<rec.key;
@@ -57,7 +57,7 @@ int main() {
     	for (auto &rec : in) {
     		cout<<rec.key;
     	}
-    	
+
     	test_record ts(6, 3, "Jim");
     	two_d_range_node_iterator<test_record, comparator_sec> six = rt.find(ts);
     	two_d_range_node_iterator<test_record, comparator_sec> seven = six.next();
@@ -75,28 +75,27 @@ int main() {
         cout<<upper.context();
         cout<<"next to the bound is\n";
         cout<<upper.next().context();
-        
+
         two_d_range_node_iterator<test_record, comparator_sec> lower = rt.lower_bound(test_r);
     	cout<<"lower bound of 8 is\n";
         cout<<lower.context();
         cout<<"prev to the bound is\n";
         cout<<lower.prev().context();
-        
+
         test_record three(3, 4, "Janani");
         test_record second(8, 8, "Maya");
-        
+
         pair<test_record, test_record> interval = make_pair(three, second);
-        
+
         vector<test_record> ve = rt.two_d_range_search(interval);
-        
+
         cout<<"range_search result\n";
-        
+
         for (auto &rec : ve) {
         		cout<<rec;
         }
-        
+
     	for (auto &rec : in)
     	    rt.erase(rec.key);
     	cout<<rt.empty()<<"\n";
 }
-

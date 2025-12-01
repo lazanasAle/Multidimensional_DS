@@ -6,12 +6,14 @@
 #include <chrono>
 #include <algorithm>
 
+#define N 100
+
 using   std::string, std::chrono::year_month_day, std::chrono::sys_days,
         std::chrono::days, std::min;
 
 struct movie {
-        string title, org_lang, org_country,
-                genre_names, prod_comp_names;
+        char title[N], org_lang[N], org_country[N],
+                genre_names[N], prod_comp_names[N];
         year_month_day release_date;
         double budget, revenue, popularity, vote_avg;
         size_t id, runtime, vote_count;

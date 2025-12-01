@@ -25,11 +25,11 @@ using   std::fstream, std::ios, std::string, std::vector,
 
 template<typename T>
 
-void read_vector(fstream &file, vector<T> &vec, long it_in_blc);
+void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc);
 
 template<typename T>
 
-void write_vector(fstream &file, vector<T> &vec, long it_in_blc);
+void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc);
 
 template<typename T>
 
@@ -57,7 +57,7 @@ public:
         T location;
 
         point(T p);
-        point();
+        point() {}
 };
 
 template<typename T>
@@ -72,11 +72,11 @@ template<typename T>
 
 class region {
 public:
-        rectangle<T> region;
+        rectangle<T> region_rec;
         long child_offset;
 
         region(rectangle<T> reg);
-        region();
+        region() {}
 };
 
 template<typename T>
@@ -93,6 +93,7 @@ public:
 
         kd_bnode(cmp_vector<T> *cmp_vec);
         virtual kd_bnode<T> *split_node() = 0;
+        virtual ~kd_bnode() {}
 };
 
 template<typename T>
@@ -128,7 +129,7 @@ private:
         long coffset, next_offset, root_offset;
 
         kd_bnode<T> *load_node(size_t node_offset);
-        void update_node_level(kd_bnode<T> &node);
+        void update_node_level(kd_bnode<T> *node);
         bool store_node(size_t node_offset, kd_bnode<T> *node);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);

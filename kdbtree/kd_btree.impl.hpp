@@ -6,27 +6,29 @@ static long end_pos(fstream &file) {
 
 template<typename T>
 
-void read_vector(fstream &file, vector<T> &vec, long it_in_blc) {
+void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         size_t vec_len;
         file.read((char *)&vec_len, sizeof(size_t));
-        vec.set_size(vec_len);
+        vec.resize(vec_len);
         for (size_t j = 0; j < vec_len; ++j)
                 file.read((char *)&vec[j], sizeof(T));
-        T tmp;
+        size_t type_len = sizeof(T);
+        char invalid[type_len] = "0";
         for (size_t j = vec_len; j < it_in_blc; ++j)
-                file.read((char *)&tmp, sizeof(T));
+                file.read(invalid, type_len);
 }
 
 template<typename T>
 
-void write_vector(fstream &file, vector<T> &vec, long it_in_blc) {
+void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         size_t vec_len = vec.size();
         file.write((char *)&vec_len, sizeof(size_t));
         for (size_t j = 0; j < vec_len; ++j)
                 file.write((char *)&vec[j], sizeof(T));
-        T tmp;
+        size_t type_len = sizeof(T);
+        char invalid[type_len] = "0";
         for (size_t j = vec_len; j < it_in_blc; ++j)
-                file.write((char *)&tmp, sizeof(T));
+                file.write(invalid, type_len);
 }
 
 static string random_string(size_t length) {
@@ -45,11 +47,11 @@ static string random_string(size_t length) {
 
 template<typename T>
 
-double rect_area(rectangle<T> &r, cmp_vector<T> &cmp_vec) {
+double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec) {
         T lower = get<0>(r);
         T upper = get<2>(r);
         double area = 1;
-        for (auto &cmp : cmp_vec) {
+        for (auto &cmp : *cmp_vec) {
                 double dim_area = abs(cmp(lower, upper));
                 area *= dim_area;
         }
@@ -66,7 +68,7 @@ point<T>::point(T p) {
 template<typename T>
 
 region<T>::region(rectangle<T> reg) {
-        this->region = reg;
+        this->region_rec = reg;
         this->child_offset = INV_OFF;
 }
 
@@ -122,11 +124,12 @@ bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec) {
         size_t smaller = 0, bigger = 0;
         size_t dim_len = cmp_vec->size();
         for (auto &cmp : *cmp_vec) {
-                if (cmp(rect.first, point) <= 0)
+                if (cmp(rect.first, point.location) <= 0)
                         smaller++;
-                if (cmp(rect.second, point) >= 0)
+                if (cmp(rect.second, point.location) >= 0)
                         bigger++;
         }
+
         return (smaller >= dim_len) && (bigger >= dim_len);
 }
 
@@ -148,7 +151,7 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
         size_t cmp_idx = this->level % this->dim_len;
         stable_sort(this->regions.begin(), this->regions.end(),
                 [this, cmp_idx] (const region<T> &r1, const region<T> &r2) {
-                        int res = (*this->comparators)[cmp_idx](get<1>(r1.region, get<1>(r2.region)));
+                        int res = (*this->comparators)[cmp_idx](get<1>(r1.region_rec), get<1>(r2.region_rec));
                         return (res < 0);
         });
         //find the median
@@ -170,7 +173,7 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
 template<typename T>
 
 bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
-        rectangle<T> my_rect = reg.region;
+        rectangle<T> my_rect = reg.region_rec;
         size_t intersects = 0;
         size_t dim_len = cmp_vec->size();
         T my_low = get<0>(my_rect);
@@ -217,7 +220,7 @@ kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
                         this->file.read((char *)&loaded_point->parent_offset, sizeof(long));
                         loaded_point->my_offset = node_offset;
                         this->file.read((char *)&loaded_point->level, sizeof(size_t));
-                        read_vector<region<T>>(this->file, loaded_point->points, loaded_point->maximum_fill);
+                        read_vector<point<T>>(this->file, loaded_point->points, loaded_point->maximum_fill);
                         loaded = loaded_point;
                 }
                 else {
@@ -263,7 +266,7 @@ bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
 
 template<typename T>
 
-void kd_btree<T>::update_node_level(kd_bnode<T> &node) {
+void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
         if (node->parent_offset > 0) {
                 kd_bnode<T> *parent = load_node(node->parent_offset);
                 node->level = parent->level + 1;
@@ -276,23 +279,22 @@ void kd_btree<T>::update_node_level(kd_bnode<T> &node) {
 template<typename T>
 
 void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off) {
-        if (subtree_root_off > 0) {
+        if (subtree_root_off >= 0) {
                 kd_bnode<T> *node = load_node(subtree_root_off);
                 if (typeid(*node) == typeid(point_kd_bnode<T>)) {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                         for (auto &point : pnode->points) {
-                                if (into_rectangle<T>(rect, point))
+                                if (into_rectangle<T>(rect, point, this->comparators))
                                         vec.push_back(point.location);
                         }
                 }
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
                         for (auto &region : rnode->regions) {
-                                if (into_rectangle<T>(rect, region))
-                                        range_query_rec(rect, vec, region->child_offset);
+                                if (into_rectangle<T>(rect, region, this->comparators))
+                                        range_query_rec(rect, vec, region.child_offset);
                         }
                 }
-                delete(node);
         }
 }
 
@@ -320,14 +322,15 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         vector<pair<double, bool>> enlargement(rnode->regions.size());
                         size_t j = 0;
                         for (region<T> &r : rnode->regions) {
-                                pair<T, T> region_rect = make_pair(get<0>(r.region), get<2>(r.region));
-                                if (into_rectangle<T>(region_rect, point<T>(data))) {
+                                pair<T, T> region_rect = make_pair(get<0>(r.region_rec), get<2>(r.region_rec));
+                                point<T> pt(data);
+                                if (into_rectangle<T>(region_rect, pt, this->comparators)) {
                                         //it's in here so go to the child
                                         return choose_leaf(data, r.child_offset);
                                 }
                                 //find the enlagement the area of this region needs to include the new point
-                                T left_side = get<0>(r.region);
-                                T right_side = get<2>(r.region);
+                                T left_side = get<0>(r.region_rec);
+                                T right_side = get<2>(r.region_rec);
                                 //make the new rectangles
                                 vector<T *> v1 = {&left_side, &data};
                                 vector<T *> v2 = {&right_side, &data};
@@ -348,16 +351,16 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         rectangle<T> new_rect;
                         //enlarge that region
                         if (enlargement[min_idx].second) {
-                                T right_side = get<2>(rnode->regions[min_idx].region);
+                                T right_side = get<2>(rnode->regions[min_idx].region_rec);
                                 vector<T *> v = {&right_side, &data};
                                 new_rect = this->make_point_rectangle(v);
                         }
                         else {
-                                T left_side = get<0>(rnode->regions[min_idx].region);
+                                T left_side = get<0>(rnode->regions[min_idx].region_rec);
                                 vector<T *> v = {&left_side, &data};
                                 new_rect = this->make_point_rectangle(v);
                         }
-                        rnode->regions[min_idx].region = new_rect;
+                        rnode->regions[min_idx].region_rec = new_rect;
                         store_node(subtree_root_off, rnode);
                         delete(curr_node);
                         //now it's in here go to the child
@@ -385,7 +388,7 @@ region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
                 //make the new vector of regions
                 vector<rectangle<T> *> my_regs;
                 for (region<T> &r : rnode->regions)
-                        my_regs.push_back(&r.region);
+                        my_regs.push_back(&r.region_rec);
                 my_new_rect = this->make_region_rectangle(my_regs);
         }
         region<T> splitted_parent(my_new_rect);
@@ -414,7 +417,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 region<T> org_parent = make_parent_region(org_node);
                 org_parent.child_offset = org_node->my_offset;
                 region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
-                parent_node->regions = move({org_parent, splitted_parent});
+                parent_node->regions.assign({org_parent, splitted_parent});
                 store_node(split_org_node->my_offset, split_org_node);
                 //find father offset
                 long end_offset = end_pos(this->file);
@@ -452,7 +455,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                         //determine who is the father, then store it acordingly
                         bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
                                 [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
-                                        int res = *(this->comparators)[par_node->level % dlen](a, b);
+                                        int res = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(b.region_rec));
                                         return (res < 0);
                         });
                         split_org_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;

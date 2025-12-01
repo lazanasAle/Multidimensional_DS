@@ -295,6 +295,7 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
                                         range_query_rec(rect, vec, region.child_offset);
                         }
                 }
+                delete(node);
         }
 }
 

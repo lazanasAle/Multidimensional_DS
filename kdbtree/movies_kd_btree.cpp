@@ -7,105 +7,66 @@ cmp_vector<movie> movie_comp = {
 };
 
 
+
+template<size_t corner, typename field>
+
+field get_field(rectangle<movie> *r, field movie:: *member) {
+        return (get<corner>(*r).*member);
+}
+
+template<typename field>
+
+pair<field, field> compute_min_max(vector<rectangle<movie> *> &movie_regions, field movie:: *member,
+        function<double (const movie &, const movie &)> compare) {
+                auto min_it = min_element(movie_regions.begin(), movie_regions.end(),
+                        [compare](const auto &a, const auto &b) {
+                                double res = compare(get<0>(*a), get<0>(*b));
+                                return (res < 0);
+                });
+                auto max_it = max_element(movie_regions.begin(), movie_regions.end(),
+                        [compare](const auto &a, const auto &b) {
+                                double res = compare(get<2>(*a), get<2>(*b));
+                                return (res < 0);
+                });
+                field minv = get_field<0>(*min_it, member);
+                field maxv = get_field<0>(*max_it, member);
+
+                return make_pair(minv, maxv);
+}
+
 rectangle<movie> make_movie_region_rectangle(vector<rectangle<movie> *> &movie_regions) {
         movie minimum, median, maximum;
         //assigning the double fields
         //assigning the budget
-        auto min_budget_it = min_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_budget(get<0>(*a), get<0>(*b));
-                        return (res < 0);
-        });
-        auto max_budget_it = max_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_budget(get<2>(*a), get<2>(*b));
-                        return (res < 0);
-        });
-        rectangle<movie> *min_budget_reg = *min_budget_it;
-        rectangle<movie> *max_budget_reg = *max_budget_it;
-        minimum.budget = get<0>(*min_budget_reg).budget;
-        maximum.budget = get<2>(*max_budget_reg).budget;
+        pair<double, double> budget_values = compute_min_max(movie_regions, &movie::budget, compare_budget);
+        minimum.budget = budget_values.first;
+        maximum.budget = budget_values.second;
         median.budget = (minimum.budget + maximum.budget) / 2;
         //assign the revenue
-        auto min_revenue_it = min_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_revenue(get<0>(*a), get<0>(*b));
-                        return (res < 0);
-        });
-        auto max_revenue_it = max_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_revenue(get<2>(*a), get<2>(*b));
-                        return (res < 0);
-        });
-        rectangle<movie> *min_revenue_reg = *min_revenue_it;
-        rectangle<movie> *max_revenue_reg = *max_revenue_it;
-        minimum.revenue = get<0>(*min_revenue_reg).revenue;
-        maximum.revenue = get<2>(*max_revenue_reg).revenue;
+        pair<double, double> revenue_values = compute_min_max(movie_regions, &movie::revenue, compare_revenue);
+        minimum.revenue = revenue_values.first;
+        maximum.revenue = revenue_values.second;
         median.revenue = (minimum.revenue + maximum.revenue) / 2;
         //assign popularity
-        auto min_pop_it = min_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_popularity(get<0>(*a), get<0>(*b));
-                        return (res < 0);
-        });
-        auto max_pop_it = max_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_popularity(get<2>(*a), get<2>(*b));
-                        return (res < 0);
-        });
-        rectangle<movie> *min_pop_reg = *min_pop_it;
-        rectangle<movie> *max_pop_reg = *max_pop_it;
-        minimum.popularity = get<0>(*min_pop_reg).popularity;
-        maximum.popularity = get<2>(*max_pop_reg).popularity;
+        pair<double, double> popularity_values = compute_min_max(movie_regions, &movie::popularity, compare_popularity);
+        minimum.popularity = popularity_values.first;
+        maximum.popularity = popularity_values.second;
         median.popularity = (minimum.popularity + maximum.popularity) / 2;
         //assign vote average
-        auto min_vote_avg_it = min_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_vote_avg(get<0>(*a), get<0>(*b));
-                        return (res < 0);
-        });
-        auto max_vote_avg_it = max_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_vote_avg(get<2>(*a), get<2>(*b));
-                        return (res < 0);
-        });
-        rectangle<movie> *min_vote_avg_reg = *min_vote_avg_it;
-        rectangle<movie> *max_vote_avg_reg = *max_vote_avg_it;
-        minimum.vote_avg = get<0>(*min_vote_avg_reg).vote_avg;
-        maximum.vote_avg = get<2>(*max_vote_avg_reg).vote_avg;
+        pair<double, double> vote_avg_values = compute_min_max(movie_regions, &movie::vote_avg, compare_vote_avg);
+        minimum.vote_avg = vote_avg_values.first;
+        maximum.vote_avg = vote_avg_values.second;
         median.vote_avg = (minimum.vote_avg + maximum.vote_avg) / 2;
         //done with double fields now integer fields
         //assign runtime
-        auto min_runtime_it = min_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_runtime(get<0>(*a), get<0>(*b));
-                        return (res < 0);
-        });
-        auto max_runtime_it = max_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_runtime(get<2>(*a), get<2>(*b));
-                        return (res < 0);
-        });
-        rectangle<movie> *min_runtime_reg = *min_runtime_it;
-        rectangle<movie> *max_runtime_reg = *max_runtime_it;
-        minimum.runtime = get<0>(*min_runtime_reg).runtime;
-        maximum.runtime = get<2>(*max_runtime_reg).runtime;
+        pair<size_t, size_t> runtime_values = compute_min_max(movie_regions, &movie::runtime, compare_runtime);
+        minimum.runtime = runtime_values.first;
+        maximum.runtime = runtime_values.second;
         median.runtime = (minimum.runtime + maximum.runtime) / 2;
         //assign vote_cnt
-        auto min_vote_it = min_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_vote_count(get<0>(*a), get<0>(*b));
-                        return (res < 0);
-        });
-        auto max_vote_it = max_element(movie_regions.begin(), movie_regions.end(),
-                [](const auto &a, const auto &b) {
-                        double res = compare_vote_count(get<2>(*a), get<2>(*b));
-                        return (res < 0);
-        });
-        rectangle<movie> *min_vote_reg = *min_vote_it;
-        rectangle<movie> *max_vote_reg = *max_vote_it;
-        minimum.vote_count = get<0>(*min_vote_reg).vote_count;
-        maximum.vote_count = get<2>(*max_vote_reg).vote_count;
+        pair<size_t, size_t> vote_cnt_values = compute_min_max(movie_regions, &movie::vote_count, compare_vote_count);
+        minimum.vote_count = vote_cnt_values.first;
+        maximum.vote_count = vote_cnt_values.second;
         median.vote_count = (minimum.vote_count + maximum.vote_count) / 2;
 
         return make_tuple(minimum, median, maximum);

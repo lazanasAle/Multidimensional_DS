@@ -6,7 +6,7 @@
 #include <chrono>
 #include <algorithm>
 
-#define N 100
+#define N 1000
 
 using   std::string, std::chrono::year_month_day, std::chrono::sys_days,
         std::chrono::days, std::min;

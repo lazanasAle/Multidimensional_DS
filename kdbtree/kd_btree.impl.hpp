@@ -494,7 +494,7 @@ void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
 template<typename T>
 
 void kd_btree<T>::insert(T &data) {
-        if (this->root_offset > 0)
+        if (this->root_offset >= 0)
                 insert_rec(data, this->root_offset);
         else {
                 point_kd_bnode<T> new_root(this->comparators, this->make_point_rectangle);

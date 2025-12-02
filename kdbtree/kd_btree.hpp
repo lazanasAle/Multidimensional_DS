@@ -11,12 +11,14 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <iostream>
 #include <cstring>
 #include <ios>
 
 #define INV_OFF -1
 #define BLC_LEN 4096
 #define MIN_PERC 0.35
+#define EIGHT 8
 
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::random_device,
@@ -40,6 +42,14 @@ template<typename T>
 
 using rectangle = tuple<T, T, T>;
 
+template<typename T>
+
+void write_rectangle(rectangle<T> &rect, fstream &file);
+
+template<typename T>
+
+void read_rectangle(rectangle<T> &rect, fstream &file);
+
 enum max_min {
         MAX,
         MIN
@@ -54,11 +64,13 @@ template<typename T>
 
 class point {
 public:
-        char name[8];
+        char name[EIGHT];
         T location;
 
         point(T p);
         point() {}
+        void write(fstream &file);
+        void read(fstream &file);
 };
 
 template<typename T>
@@ -78,6 +90,8 @@ public:
 
         region(rectangle<T> reg);
         region() {}
+        void write(fstream &file);
+        void read(fstream &file);
 };
 
 template<typename T>

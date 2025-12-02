@@ -9,10 +9,11 @@ template<typename T>
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         size_t vec_len;
         file.read((char *)&vec_len, sizeof(size_t));
+        std::cout<<"vector length is: "<<vec_len<<"items in block are: "<<it_in_blc<<"\n";
         vec_len = (vec_len > it_in_blc)? it_in_blc : vec_len;
         vec.resize(vec_len);
         for (size_t j = 0; j < vec_len; ++j)
-                file.read((char *)&vec[j], sizeof(T));
+                vec[j].read(file);
         size_t type_len = sizeof(T);
         char invalid[type_len] = "0";
         for (size_t j = vec_len; j < it_in_blc; ++j)
@@ -25,11 +26,27 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         size_t vec_len = vec.size();
         file.write((char *)&vec_len, sizeof(size_t));
         for (size_t j = 0; j < vec_len; ++j)
-                file.write((char *)&vec[j], sizeof(T));
+                vec[j].write(file);
         size_t type_len = sizeof(T);
         char invalid[type_len] = "0";
         for (size_t j = vec_len; j < it_in_blc; ++j)
                 file.write(invalid, type_len);
+}
+
+template<typename T>
+
+void read_rectangle(rectangle<T> &rect, fstream &file) {
+        get<0>(rect).read(file);
+        get<1>(rect).read(file);
+        get<2>(rect).read(file);
+}
+
+template<typename T>
+
+void write_rectangle(rectangle<T> &rect, fstream &file) {
+        get<0>(rect).write(file);
+        get<1>(rect).write(file);
+        get<2>(rect).write(file);
 }
 
 static string random_string(size_t length) {
@@ -68,9 +85,37 @@ point<T>::point(T p) {
 
 template<typename T>
 
+void point<T>::read(fstream &file) {
+        file.read(this->name, EIGHT);
+        location.read(file);
+}
+
+template<typename T>
+
+void point<T>::write(fstream &file) {
+        file.write(this->name, EIGHT);
+        location.write(file);
+}
+
+template<typename T>
+
 region<T>::region(rectangle<T> reg) {
         this->region_rec = reg;
         this->child_offset = INV_OFF;
+}
+
+template<typename T>
+
+void region<T>::read(fstream &file) {
+        file.read((char *)&this->child_offset, sizeof(long));
+        read_rectangle(this->region_rec, file);
+}
+
+template<typename T>
+
+void region<T>::write(fstream &file) {
+        file.write((char *)&this->child_offset, sizeof(long));
+        write_rectangle(this->region_rec, file);
 }
 
 template<typename T>

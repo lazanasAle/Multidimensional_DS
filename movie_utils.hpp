@@ -4,15 +4,17 @@
 
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <string>
 #include <chrono>
+#include <charconv>
 #include <algorithm>
 
 #define N 50
 
 using   std::string, std::chrono::year_month_day, std::chrono::sys_days,
         std::chrono::days, std::min, std::strncpy, std::chrono::year,
-        std::chrono::month, std::chrono::day;
+        std::chrono::month, std::chrono::day, std::fstream, std::format;
 
 typedef char name[N];
 
@@ -23,6 +25,10 @@ struct movie {
         double budget, revenue, popularity, vote_avg;
         size_t id, runtime, vote_count;
         bool adult;
+
+        //serialization for file io
+        void read(fstream &file);
+        void write(fstream &file);
 };
 
 static inline double compare_budget(const movie &a, const movie &b) {return (a.budget - b.budget);}

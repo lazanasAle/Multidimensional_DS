@@ -8,7 +8,7 @@ void movie::read(fstream &file) {
         file.read(this->genre_names, N);
         file.read(this->prod_comp_names, N);
         //date field
-        char rel_date[12];
+        char rel_date[N];
         file.read(rel_date, 12);
         string str_reldate(rel_date);
         this->release_date = parse_date(str_reldate);
@@ -33,7 +33,7 @@ void movie::write(fstream &file) {
         file.write(this->genre_names, N);
         file.write(this->prod_comp_names, N);
         //date field
-        char rel_date[12];
+        char rel_date[N];
         string s = format("{}", this->release_date);
         strcpy(rel_date, s.c_str());
         file.write(rel_date, 12);

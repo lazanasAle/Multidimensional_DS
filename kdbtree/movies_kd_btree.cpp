@@ -1,4 +1,6 @@
 #include "movies_kd_btree.hpp"
+#include "kd_btree.hpp"
+#include <cstdint>
 
 
 cmp_vector<movie> movie_comp = {
@@ -130,4 +132,39 @@ rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
         median.vote_count = (minimum.vote_count + maximum.vote_count) / 2;
 
         return make_tuple(minimum, median, maximum);
+}
+
+
+void read_csv(kd_btree<movie> &movies_kdb) {
+        rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
+        size_t row_len = movies_csv.GetRowCount();
+
+        vector<string> int_columns = {"id", "runtime", "vote_count"};
+        vector<size_t movie:: *> int_fields = {&movie::id, &movie::runtime, &movie::vote_count};
+
+        vector<string> double_columns = {"budget", "popularity", "revenue", "vote_average"};
+        vector<double movie:: *> double_fields = {&movie::budget, &movie::popularity, &movie::revenue, &movie::vote_avg};
+
+        vector<string> str_columns = {"title", "original_language", "origin_country", "genre_names", "production_company_names"};
+        vector<name movie:: *> str_fields = {&movie::title, &movie::org_lang, &movie::org_country, &movie::genre_names, &movie::prod_comp_names};
+
+        for (size_t j = 0; j < row_len; ++j) {
+                movie m;
+                //integer fields
+                size_t int_f_c = int_fields.size();
+                for (size_t i = 0; i < int_f_c; ++i)
+                        m.*int_fields[i] = movies_csv.GetCell<uint64_t>(int_columns[i], j);
+                //double fields
+                size_t double_f_c = double_fields.size();
+                for (size_t i = 0; i < double_f_c; ++i)
+                        m.*double_fields[i] = movies_csv.GetCell<double>(double_columns[i], j);
+                //string fields
+                size_t str_f_c = str_fields.size();
+                for (size_t i = 0; i < str_f_c; ++i)
+                        copy_to_char_array(m.*str_fields[i], movies_csv.GetCell<string>(str_columns[i], j));
+                m.adult = (movies_csv.GetCell<string>("adult", j).compare("TRUE") == 0);
+                m.release_date = parse_date(movies_csv.GetCell<string>("release_date", j));
+
+                movies_kdb.insert(m);
+        }
 }

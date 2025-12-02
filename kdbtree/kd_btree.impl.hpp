@@ -9,6 +9,7 @@ template<typename T>
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         size_t vec_len;
         file.read((char *)&vec_len, sizeof(size_t));
+        vec_len = (vec_len > it_in_blc)? it_in_blc : vec_len;
         vec.resize(vec_len);
         for (size_t j = 0; j < vec_len; ++j)
                 file.read((char *)&vec[j], sizeof(T));
@@ -61,7 +62,7 @@ double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec) {
 template<typename T>
 
 point<T>::point(T p) {
-        this->name = random_string(7);
+        strncpy(this->name, random_string(7).c_str(), 7);
         this->location = p;
 }
 
@@ -267,7 +268,7 @@ bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
 template<typename T>
 
 void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
-        if (node->parent_offset > 0) {
+        if (node->parent_offset >= 0) {
                 kd_bnode<T> *parent = load_node(node->parent_offset);
                 node->level = parent->level + 1;
                 delete(parent);
@@ -310,7 +311,7 @@ vector<T> kd_btree<T>::range_query(pair<T, T> &rect) {
 template<typename T>
 
 point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
-        if (subtree_root_off > 0) {
+        if (subtree_root_off >= 0) {
                 kd_bnode<T> *curr_node = load_node(subtree_root_off);
                 if (curr_node) {
                         if (typeid(*curr_node) == typeid(point_kd_bnode<T>)) {
@@ -491,7 +492,7 @@ void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
                 store_node(leaf->my_offset, leaf);
                 propagate_split(leaf, neighbour);
         }
-        delete(leaf);
+        //delete(leaf);
 }
 
 

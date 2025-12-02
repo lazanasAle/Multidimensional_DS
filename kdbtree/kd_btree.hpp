@@ -11,6 +11,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <cstring>
 #include <ios>
 
 #define INV_OFF -1
@@ -21,7 +22,7 @@ using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::random_device,
         std::mt19937, std::uniform_int_distribution, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::binary_search;
+        std::binary_search, std::strncpy;
 
 template<typename T>
 
@@ -53,7 +54,7 @@ template<typename T>
 
 class point {
 public:
-        string name;
+        char name[8];
         T location;
 
         point(T p);
@@ -146,6 +147,7 @@ public:
         void erase(T &data);
         vector<T> skyline(vector<max_min> &best);
         bool empty();
+        ~kd_btree() {this->file.close();}
 };
 
 #include "kd_btree.impl.hpp"

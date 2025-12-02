@@ -8,12 +8,11 @@
 #include <chrono>
 #include <algorithm>
 
-#define N 1000
+#define N 50
 
 using   std::string, std::chrono::year_month_day, std::chrono::sys_days,
         std::chrono::days, std::min, std::strncpy, std::chrono::year,
         std::chrono::month, std::chrono::day;
-
 
 typedef char name[N];
 

@@ -9,8 +9,6 @@ template<typename T>
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         size_t vec_len;
         file.read((char *)&vec_len, sizeof(size_t));
-        std::cout<<"vector length is: "<<vec_len<<"items in block are: "<<it_in_blc<<"\n";
-        vec_len = (vec_len > it_in_blc)? it_in_blc : vec_len;
         vec.resize(vec_len);
         for (size_t j = 0; j < vec_len; ++j)
                 vec[j].read(file);

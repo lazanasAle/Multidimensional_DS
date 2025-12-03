@@ -34,6 +34,8 @@ void test_basic_ops() //testing basic operations
     //tree.insert(i4);
     //tree.insert(i5);
     //tree.insert(i6);
+    // cout<< "Inserted 6 intervals"<<endl;
+
 
     
 

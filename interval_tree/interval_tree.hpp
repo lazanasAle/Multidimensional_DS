@@ -76,6 +76,7 @@ class interval_tree
 {
     public:
         void insert(interval<T> &inter); //insert an interval into the tree
+        void erase(interval<T>) &inter
     ~interval_tree(); //destructor to clean the tree memory
 
 };

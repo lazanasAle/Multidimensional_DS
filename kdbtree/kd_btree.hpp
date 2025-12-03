@@ -21,8 +21,7 @@
 #define EIGHT 8
 
 using   std::fstream, std::ios, std::string, std::vector,
-        std::function, std::pair, std::tuple, std::random_device,
-        std::mt19937, std::uniform_int_distribution, std::stable_sort, std::get,
+        std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
         std::binary_search, std::strncpy;
 
@@ -64,7 +63,6 @@ template<typename T>
 
 class point {
 public:
-        char name[EIGHT];
         T location;
 
         point(T p);
@@ -109,6 +107,7 @@ public:
 
         kd_bnode(cmp_vector<T> *cmp_vec);
         virtual kd_bnode<T> *split_node() = 0;
+        void read_common(fstream &file, long node_offset);
         virtual ~kd_bnode() {}
 };
 

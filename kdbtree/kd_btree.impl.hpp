@@ -1,3 +1,4 @@
+
 static long end_pos(fstream &file) {
         file.seekp(0, ios::end);
         long end_p = file.tellp();
@@ -11,7 +12,6 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         if (off >= 0) {
                 size_t vec_len;
                 if (file.read((char *)&vec_len, sizeof(size_t))) {
-                        vec_len = (vec_len > it_in_blc)? it_in_blc : vec_len;
                         vec.resize(vec_len);
                         for (size_t j = 0; j < vec_len; ++j)
                                 vec[j].read(file);
@@ -53,19 +53,6 @@ void write_rectangle(rectangle<T> &rect, fstream &file) {
         get<2>(rect).write(file);
 }
 
-static string random_string(size_t length) {
-        const string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-        random_device rand_dev;
-        mt19937 generator(rand_dev());
-        uniform_int_distribution<> distribution(0, characters.size() - 1);
-
-        string rand_string;
-        for (size_t j = 0; j < length; ++j) {
-                size_t index = distribution(generator);
-                rand_string += characters[index];
-        }
-        return rand_string;
-}
 
 template<typename T>
 
@@ -83,21 +70,18 @@ double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec) {
 template<typename T>
 
 point<T>::point(T p) {
-        strncpy(this->name, random_string(7).c_str(), 7);
         this->location = p;
 }
 
 template<typename T>
 
 void point<T>::read(fstream &file) {
-        file.read(this->name, EIGHT);
         location.read(file);
 }
 
 template<typename T>
 
 void point<T>::write(fstream &file) {
-        file.write(this->name, EIGHT);
         location.write(file);
 }
 
@@ -131,7 +115,13 @@ kd_bnode<T>::kd_bnode(cmp_vector<T> *cmp_vec) {
         this->parent_offset = this->my_offset = INV_OFF;
 }
 
+template<typename T>
 
+void kd_bnode<T>::read_common(fstream &file, long node_offset) {
+        file.read((char *)&this->parent_offset, sizeof(long));
+        this->my_offset = node_offset;
+        file.read((char *)&this->level, sizeof(size_t));
+}
 // point node functions
 
 template<typename T>
@@ -231,9 +221,12 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
         T my_low = get<0>(my_rect);
         T my_high = get<2>(my_rect);
         for (auto &cmp : *cmp_vec) {
-                if ((cmp(my_low, rect.second) <= 0) && (cmp(my_high, rect.first) >= 0))
+                if ((cmp(my_low, rect.second) <= 0) && (cmp(my_high, rect.first) >= 0)) {
+                        std::cout<<"i am inside\n";
                         intersects++;
+                }
         }
+        std::cout<<"length is: "<<dim_len<<"intersects is: "<<intersects<<"\n";
         return (intersects >= dim_len);
 }
 
@@ -265,25 +258,24 @@ kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
                 this->file.seekg(node_offset, ios::beg);
                 tag t;
                 this->file.read((char *)&t, sizeof(tag));
+                // here i cannot do it (read the common and then differentiate) it is unsafe
                 kd_bnode<T> *loaded;
                 if (t == POINT) {
                         point_kd_bnode<T> *loaded_point = new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
                         // read characteristics of node
-                        this->file.read((char *)&loaded_point->parent_offset, sizeof(long));
-                        loaded_point->my_offset = node_offset;
-                        this->file.read((char *)&loaded_point->level, sizeof(size_t));
+                        loaded_point->read_common(this->file, node_offset);
                         read_vector<point<T>>(this->file, loaded_point->points, loaded_point->maximum_fill);
                         loaded = loaded_point;
                 }
-                else {
+                else if (t == REGION){
                         region_kd_bnode<T> *loaded_region = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
                         //read characteristics of node
-                        this->file.read((char *)&loaded_region->parent_offset, sizeof(long));
-                        loaded_region->my_offset = node_offset;
-                        this->file.read((char *)&loaded_region->level, sizeof(size_t));
+                        loaded_region->read_common(this->file, node_offset);
                         read_vector<region<T>>(this->file, loaded_region->regions, loaded_region->maximum_fill);
                         loaded = loaded_region;
                 }
+                else
+                        return nullptr;
                 return loaded;
         }
         return nullptr;
@@ -294,19 +286,18 @@ template<typename T>
 bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
         if (this->file.is_open()) {
                 node->my_offset = node_offset;
+                //write the common fields
                 this->file.seekp(node_offset, ios::beg);
+                this->file.write((char *)&node->t, sizeof(tag));
+                this->file.write((char *)&node->parent_offset, sizeof(long));
+                this->file.write((char *)&node->level, sizeof(size_t));
+                //diferentiate
                 if (node->t == POINT) {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
-                        this->file.write((char *)&pnode->t, sizeof(tag));
-                        this->file.write((char *)&pnode->parent_offset, sizeof(long));
-                        this->file.write((char *)&pnode->level, sizeof(size_t));
                         write_vector<point<T>>(this->file, pnode->points, pnode->maximum_fill);
                 }
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
-                        this->file.write((char *)&rnode->t, sizeof(tag));
-                        this->file.write((char *)&rnode->parent_offset, sizeof(long));
-                        this->file.write((char *)&rnode->level, sizeof(size_t));
                         write_vector<region<T>>(this->file, rnode->regions, rnode->maximum_fill);
                 }
                 return true;
@@ -319,8 +310,10 @@ template<typename T>
 void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
         if (node->parent_offset >= 0) {
                 kd_bnode<T> *parent = load_node(node->parent_offset);
-                node->level = parent->level + 1;
-                delete(parent);
+                if (parent) {
+                        node->level = parent->level + 1;
+                        delete(parent);
+                }
                 return;
         }
         node->level = 0;
@@ -331,21 +324,25 @@ template<typename T>
 void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off) {
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *node = load_node(subtree_root_off);
-                if (node->t == POINT) {
-                        point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
-                        for (auto &point : pnode->points) {
-                                if (into_rectangle<T>(rect, point, this->comparators))
-                                        vec.push_back(point.location);
+                if (node) {
+                        if (node->t == POINT) {
+                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                                for (auto &point : pnode->points) {
+                                        if (into_rectangle<T>(rect, point, this->comparators))
+                                                vec.push_back(point.location);
+                                }
                         }
-                }
-                else {
-                        region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
-                        for (auto &region : rnode->regions) {
-                                if (into_rectangle<T>(rect, region, this->comparators))
-                                        range_query_rec(rect, vec, region.child_offset);
+                        else {
+                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                                for (auto &region : rnode->regions) {
+                                        if (into_rectangle<T>(rect, region, this->comparators)) {
+                                                std::cout<<"here\n";
+                                                range_query_rec(rect, vec, region.child_offset);
+                                        }
+                                }
                         }
+                        delete(node);
                 }
-                delete(node);
         }
 }
 
@@ -450,9 +447,11 @@ template<typename T>
 void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
         for (region<T> &reg : node->regions) {
                 kd_bnode<T> *chld_node = load_node(reg.child_offset);
-                update_node_level(chld_node);
-                store_node(chld_node->my_offset, chld_node);
-                delete(chld_node);
+                if (chld_node) {
+                        update_node_level(chld_node);
+                        store_node(chld_node->my_offset, chld_node);
+                        delete(chld_node);
+                }
         }
 }
 
@@ -490,39 +489,41 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
         }
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
-                par_node->regions.push_back(splitted_parent);
-                store_node(split_org_node->my_offset, split_org_node);
-                //now deal with the father and maybe propagate the split
-                size_t vlen = par_node->regions.size();
-                size_t dlen = this->comparators->size();
-                if (vlen > par_node->maximum_fill) {
-                        region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) par_node->split_node();
-                        store_node(par_node->my_offset, par_node);
-                        //store the neighbour
-                        this->coffset = end_pos(this->file);
-                        neighbour->my_offset = this->coffset;
-                        store_node(this->coffset, neighbour);
-                        //determine who is the father, then store it acordingly
-                        bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
-                                [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
-                                        int res = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(b.region_rec));
-                                        return (res < 0);
-                        });
-                        split_org_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
-                        propagate_split(par_node, neighbour);
-                        //update the level in all children
-                        update_chld_levels(par_node);
-                        //do the same for the neighbour
-                        update_chld_levels(neighbour);
-                        delete(neighbour);
-                }
-                else {
-                        store_node(par_node->my_offset, par_node);
-                        split_org_node->parent_offset = par_node->my_offset;
-                        update_node_level(split_org_node);
+                if (par_node) {
+                        par_node->regions.push_back(splitted_parent);
                         store_node(split_org_node->my_offset, split_org_node);
+                        //now deal with the father and maybe propagate the split
+                        size_t vlen = par_node->regions.size();
+                        size_t dlen = this->comparators->size();
+                        if (vlen > par_node->maximum_fill) {
+                                region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) par_node->split_node();
+                                store_node(par_node->my_offset, par_node);
+                                //store the neighbour
+                                this->coffset = end_pos(this->file);
+                                neighbour->my_offset = this->coffset;
+                                store_node(this->coffset, neighbour);
+                                //determine who is the father, then store it acordingly
+                                bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
+                                        [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
+                                                int res = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(b.region_rec));
+                                                return (res < 0);
+                                        });
+                                split_org_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
+                                propagate_split(par_node, neighbour);
+                                //update the level in all children
+                                update_chld_levels(par_node);
+                                //do the same for the neighbour
+                                update_chld_levels(neighbour);
+                                delete(neighbour);
+                        }
+                        else {
+                                store_node(par_node->my_offset, par_node);
+                                split_org_node->parent_offset = par_node->my_offset;
+                                update_node_level(split_org_node);
+                                store_node(split_org_node->my_offset, split_org_node);
+                        }
+                        delete(par_node);
                 }
-                delete(par_node);
         }
         this->coffset = end_pos(this->file);
 }

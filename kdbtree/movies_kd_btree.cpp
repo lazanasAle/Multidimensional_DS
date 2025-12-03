@@ -31,7 +31,7 @@ pair<field, field> compute_min_max(vector<rectangle<movie> *> &movie_regions, fi
                                 return (res < 0);
                 });
                 field minv = get_field<0>(*min_it, member);
-                field maxv = get_field<0>(*max_it, member);
+                field maxv = get_field<2>(*max_it, member);
 
                 return make_pair(minv, maxv);
 }

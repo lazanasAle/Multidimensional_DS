@@ -1,5 +1,28 @@
 #include "movie_utils.hpp"
 
+
+
+void read_date(fstream &file, year_month_day &ymd) {
+        int32_t y;
+        uint8_t m, d;
+
+        file.read((char *)&y, sizeof(int32_t));
+        file.read((char *)&m, sizeof(uint8_t));
+        file.read((char *)&d, sizeof(uint8_t));
+
+        ymd = year_month_day{year{y}, month{m}, day{d}};
+}
+
+void write_date(fstream &file, year_month_day &ymd) {
+        int32_t y = (int) ymd.year();
+        uint8_t m = (unsigned) unsigned(ymd.month());
+        uint8_t d = (unsigned) unsigned(ymd.day());
+
+        file.write((char *)&y, sizeof(int32_t));
+        file.write((char *)&m, sizeof(uint8_t));
+        file.write((char *)&d, sizeof(uint8_t));
+}
+
 void movie::read(fstream &file) {
         //char * fields
         file.read(this->title, N);
@@ -8,10 +31,7 @@ void movie::read(fstream &file) {
         file.read(this->genre_names, N);
         file.read(this->prod_comp_names, N);
         //date field
-        char rel_date[N];
-        file.read(rel_date, 12);
-        string str_reldate(rel_date);
-        this->release_date = parse_date(str_reldate);
+        read_date(file, this->release_date);
         //double fields
         file.read((char *)&this->budget, sizeof(double));
         file.read((char *)&this->revenue, sizeof(double));
@@ -33,10 +53,7 @@ void movie::write(fstream &file) {
         file.write(this->genre_names, N);
         file.write(this->prod_comp_names, N);
         //date field
-        char rel_date[N];
-        string s = format("{}", this->release_date);
-        strcpy(rel_date, s.c_str());
-        file.write(rel_date, 12);
+        write_date(file, this->release_date);
         //double fields
         file.write((char *)&this->budget, sizeof(double));
         file.write((char *)&this->revenue, sizeof(double));

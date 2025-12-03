@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <chrono>
+#include <cstdint>
 #include <charconv>
 #include <algorithm>
 
@@ -14,7 +15,7 @@
 
 using   std::string, std::chrono::year_month_day, std::chrono::sys_days,
         std::chrono::days, std::min, std::strncpy, std::chrono::year,
-        std::chrono::month, std::chrono::day, std::fstream, std::format;
+        std::chrono::month, std::chrono::day, std::fstream, std::format, std::int32_t;
 
 typedef char name[N];
 

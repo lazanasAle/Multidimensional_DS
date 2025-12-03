@@ -27,6 +27,7 @@ struct movie {
         size_t id, runtime, vote_count;
         bool adult;
 
+        movie();
         //serialization for file io
         void read(fstream &file);
         void write(fstream &file);

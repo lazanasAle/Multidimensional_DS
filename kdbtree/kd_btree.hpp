@@ -11,6 +11,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <iostream>
 #include <cstring>
 #include <ios>
 
@@ -104,6 +105,7 @@ public:
         size_t minimum_fill, maximum_fill, level, dim_len;
         long parent_offset, my_offset;
         cmp_vector<T> *comparators;
+        tag t;
 
         kd_bnode(cmp_vector<T> *cmp_vec);
         virtual kd_bnode<T> *split_node() = 0;

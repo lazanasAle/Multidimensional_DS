@@ -1,6 +1,18 @@
 #include "movie_utils.hpp"
 
+movie::movie() {
+        strcpy(this->title, "UN");
+        strcpy(this->org_lang, "UN");
+        strcpy(this->org_country, "UN");
+        strcpy(this->genre_names, "UN");
+        strcpy(this->prod_comp_names, "UN");
 
+        this->release_date = year_month_day{year{2022}, month{10}, day{3}};
+        this->adult = true;
+
+        this->budget = this->revenue = this->popularity = this->vote_avg = -1;
+        this->id = this->runtime = this->vote_count = 0;
+}
 
 void read_date(fstream &file, year_month_day &ymd) {
         int32_t y;

@@ -7,28 +7,34 @@ static long end_pos(fstream &file) {
 template<typename T>
 
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
-        size_t vec_len;
-        file.read((char *)&vec_len, sizeof(size_t));
-        vec.resize(vec_len);
-        for (size_t j = 0; j < vec_len; ++j)
-                vec[j].read(file);
-        size_t type_len = sizeof(T);
-        char invalid[type_len] = "0";
-        for (size_t j = vec_len; j < it_in_blc; ++j)
-                file.read(invalid, type_len);
+        long off = file.tellg();
+        if (off >= 0) {
+                size_t vec_len;
+                if (file.read((char *)&vec_len, sizeof(size_t))) {
+                        vec_len = (vec_len > it_in_blc)? it_in_blc : vec_len;
+                        vec.resize(vec_len);
+                        for (size_t j = 0; j < vec_len; ++j)
+                                vec[j].read(file);
+                        T inv;
+                        for (size_t j = vec_len; j < it_in_blc; ++j)
+                                inv.read(file);
+                }
+        }
 }
 
 template<typename T>
 
 void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
-        size_t vec_len = vec.size();
-        file.write((char *)&vec_len, sizeof(size_t));
-        for (size_t j = 0; j < vec_len; ++j)
-                vec[j].write(file);
-        size_t type_len = sizeof(T);
-        char invalid[type_len] = "0";
-        for (size_t j = vec_len; j < it_in_blc; ++j)
-                file.write(invalid, type_len);
+        long off = file.tellp();
+        if (off >= 0) {
+                size_t vec_len = vec.size();
+                file.write((char *)&vec_len, sizeof(size_t));
+                for (size_t j = 0; j < vec_len; ++j)
+                        vec[j].write(file);
+                T inv;
+                for (size_t j = vec_len; j < it_in_blc; ++j)
+                        inv.write(file);
+        }
 }
 
 template<typename T>
@@ -132,6 +138,7 @@ template<typename T>
 
 point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
+        this->t = POINT;
         this->maximum_fill = BLC_LEN / sizeof(point<T>);
         this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->make_rectangle = make_rectangle_fn;
@@ -183,6 +190,7 @@ template<typename T>
 
 region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
+        this->t = REGION;
         this->maximum_fill = BLC_LEN / sizeof(region<T>);
         this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->make_rectangle = make_rectangle_fn;
@@ -254,7 +262,7 @@ template<typename T>
 
 kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
         if (this->file.is_open()) {
-                this->file.seekp(node_offset, ios::beg);
+                this->file.seekg(node_offset, ios::beg);
                 tag t;
                 this->file.read((char *)&t, sizeof(tag));
                 kd_bnode<T> *loaded;
@@ -287,21 +295,19 @@ bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
         if (this->file.is_open()) {
                 node->my_offset = node_offset;
                 this->file.seekp(node_offset, ios::beg);
-                if (typeid(*node) == typeid(point_kd_bnode<T>)) {
+                if (node->t == POINT) {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
-                        tag t = POINT;
-                        this->file.write((char *)&t, sizeof(tag));
+                        this->file.write((char *)&pnode->t, sizeof(tag));
                         this->file.write((char *)&pnode->parent_offset, sizeof(long));
                         this->file.write((char *)&pnode->level, sizeof(size_t));
-                        write_vector(this->file, pnode->points, pnode->maximum_fill);
+                        write_vector<point<T>>(this->file, pnode->points, pnode->maximum_fill);
                 }
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
-                        tag t = REGION;
-                        this->file.write((char *)&t, sizeof(tag));
+                        this->file.write((char *)&rnode->t, sizeof(tag));
                         this->file.write((char *)&rnode->parent_offset, sizeof(long));
                         this->file.write((char *)&rnode->level, sizeof(size_t));
-                        write_vector(this->file, rnode->regions, rnode->maximum_fill);
+                        write_vector<region<T>>(this->file, rnode->regions, rnode->maximum_fill);
                 }
                 return true;
         }
@@ -325,7 +331,7 @@ template<typename T>
 void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off) {
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *node = load_node(subtree_root_off);
-                if (typeid(*node) == typeid(point_kd_bnode<T>)) {
+                if (node->t == POINT) {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                         for (auto &point : pnode->points) {
                                 if (into_rectangle<T>(rect, point, this->comparators))
@@ -357,7 +363,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *curr_node = load_node(subtree_root_off);
                 if (curr_node) {
-                        if (typeid(*curr_node) == typeid(point_kd_bnode<T>)) {
+                        if (curr_node->t == POINT) {
                                 //it's a leaf you found it
                                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) curr_node;
                                 return pnode;
@@ -417,10 +423,9 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
 }
 
 template<typename T>
-
 region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
         rectangle<T> my_new_rect;
-        if (typeid(*node) == typeid(point_kd_bnode<T>)) {
+        if (node->t == POINT) {
                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                 //make the new vector of points
                 vector<T *> point_locs;

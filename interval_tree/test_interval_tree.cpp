@@ -13,12 +13,12 @@ int int_compare(int &a, int &b)
 
 }
 
-
 void test_basic_ops() //testing basic operations
 {
     cout << "---Basic Operations Test ---" <<endl;
 
-    interval_tree<int> tree(int_compare);
+    //interval_tree<int> tree(int_compare);
+
     //static data for now just to check(will change later)
     //for example:
     interval<int> i1(15,20);
@@ -28,16 +28,14 @@ void test_basic_ops() //testing basic operations
     interval<int> i5(12,15);
     interval<int> i6(30,40);
 
-    tree.insert(i1);
-    tree.insert(i2);
-    tree.insert(i3);
-    tree.insert(i4);
-    tree.insert(i5);
-    tree.insert(i6);
+    //tree.insert(i1);
+    //tree.insert(i2);
+    //tree.insert(i3);
+    //tree.insert(i4);
+    //tree.insert(i5);
+    //tree.insert(i6);
 
     
-
-
 
 }
 

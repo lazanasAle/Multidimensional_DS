@@ -1,4 +1,4 @@
-
+//Interval methods
 template <typename T>
 interval<T>::interval(T l, T h)
 {
@@ -20,12 +20,54 @@ bool interval<T>::contains(T point)
 
 }
 
+//Methods for interval nodes
 
-//will implement these here soon
-       // void update_height(); //update the height of the tree based on the children' heights
-       // void update_max_end(); //update max_end based on children and its own interal
-       // void left_rotation();
-       // void right_rotation();
-       // void left_right_rotation();
-       /// void right_left_rotation();
-// will also add comments to make it clear what each piece of code represents.
+template<typename T>
+interval_node<T>::interval_node(interval<T> *i)
+{
+    this->max_end=i->high;
+    this->left= this->right =  this->parent =nullptr;
+    this->height=0;
+    this->inter=i;
+}
+
+template<typename T>
+void interval_node<T>::update_height()
+{
+
+}
+
+template<typename T>
+void interval_node<T>::update_max_end()
+{
+    
+}
+
+template<typename T>
+void interval_node<T>::left_rotation()
+{
+    
+}
+
+template<typename T>
+void interval_node<T>::right_rotation()
+{
+    
+}
+
+template<typename T>
+void interval_node<T>::left_right_rotation()
+{
+    
+}
+
+template<typename T>
+void interval_node<T>::right_left_rotation()
+{
+    
+}
+
+
+
+// will add comments to make it clear what each piece of code represents.
+//template<typename T>

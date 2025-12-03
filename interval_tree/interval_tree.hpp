@@ -6,6 +6,7 @@
 #include <functional>
 #include <vector> 
 #include <algorithm>
+#include <cstdint> 
 
 using std::vector, std::max, std::function, std::pair, std::sort;
 
@@ -30,6 +31,12 @@ template <typename T>
 class interval_node
 {
     public:
+        interval<T> *inter; //Pointer to the interval stored inside this node
+        T max_end; // max endpoint in this subtree (θα ειναι χρησιμο για το κλάδεμα)
+        int32_t height; //might change later (AVL..)
+
+        interval_node(interval<T> *i); //constructor with interval pointer
+        int32_t balance_factor(); //left-right height
 
         //pointers to left, right (children) and parent nodes
         interval_node<T> *left;
@@ -38,20 +45,30 @@ class interval_node
 
         void update_height(); //update the height of the tree based on the children' heights
         void update_max_end(); //update max_end based on children and its own interal
-        void left_rotation();
-        void right_rotation();
+        void left_rotation(); 
+        void right_rotation(); 
         void left_right_rotation();
         void right_left_rotation();
+        //The rotations are useful for balanc
         //will implement these functionms inside interval_tree.impl,hpp file 
-        
         
         ~interval_node(); //destructor to clean up memory
 };
 
 template <typename T>
-class interval_node_iterator
+class interval_node_iterator //this is a useful class for traversing the interval teee
 {
+    private:
+        interval_node<T> *node; //pointer to the current node
+    
 
+    public:
+        interval_node_iterator(interval_node<T> *n); //constructor with a node pointer
+        bool is_null(); //check if the iterator points to sth null
+        interval<T> *context(); //get the interval at the current position
+
+        interval_node_iterator<T> next(); //move to the next node - inorder traversal
+        interval_node_iterator<T> prev(); // same as above but previous node
 };
 
 template <typename T>

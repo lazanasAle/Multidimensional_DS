@@ -19,7 +19,8 @@ int main() {
         mv.popularity = 3.4255; mv.vote_avg = 6.1; mv.vote_count = 55;
 
         pair<movie, movie> mv_pair = make_pair(mv, mv);
-        mv_pair.second.budget+=15;mv_pair.second.revenue+=15;mv_pair.second.runtime+=4;
+        mv_pair.second.budget += 1500; mv_pair.second.revenue += 1500; mv_pair.second.runtime +=4 ;
+        mv_pair.second.popularity += 3; mv_pair.second.vote_avg += 9; mv_pair.second.vote_count += 9;
         vector<movie> mv_vec = movies_kdb.range_query(mv_pair);
         cout<<mv_vec.size()<<"\n";
         cout<<movies_kdb.n_items()<<"\n";

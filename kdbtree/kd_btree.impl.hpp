@@ -225,6 +225,7 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
                         intersects++;
                 }
         }
+        std::cout<<" intersects in: "<<intersects<<" total is: "<<dim_len<<"\n";
         return (intersects >= dim_len);
 }
 

@@ -220,13 +220,11 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
         size_t dim_len = cmp_vec->size();
         T my_low = get<0>(my_rect);
         T my_high = get<2>(my_rect);
-        for (auto &cmp : *cmp_vec) {
-                if ((cmp(my_low, rect.second) <= 0) && (cmp(my_high, rect.first) >= 0)) {
-                        std::cout<<"i am inside\n";
+        for (size_t j = 0; j < dim_len; ++j) {
+                if (((*cmp_vec)[j](my_low, rect.second) <= 0) && ((*cmp_vec)[j](my_high, rect.first) >= 0)) {
                         intersects++;
                 }
         }
-        std::cout<<"length is: "<<dim_len<<"intersects is: "<<intersects<<"\n";
         return (intersects >= dim_len);
 }
 
@@ -236,6 +234,7 @@ template<typename T>
 
 kd_btree<T>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
 function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
+        this->nitems = 0;
         this->comparators = cmp_vec;
         this->make_region_rectangle = region_rectangle_fn;
         this->make_point_rectangle = point_rectangle_fn;
@@ -254,7 +253,7 @@ bool kd_btree<T>::empty() {
 template<typename T>
 
 kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
-        if (this->file.is_open()) {
+        if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
                 tag t;
                 this->file.read((char *)&t, sizeof(tag));
@@ -284,7 +283,7 @@ kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
 template<typename T>
 
 bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
-        if (this->file.is_open()) {
+        if (this->file.is_open() && node_offset >= 0) {
                 node->my_offset = node_offset;
                 //write the common fields
                 this->file.seekp(node_offset, ios::beg);
@@ -336,7 +335,6 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
                                 region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
                                 for (auto &region : rnode->regions) {
                                         if (into_rectangle<T>(rect, region, this->comparators)) {
-                                                std::cout<<"here\n";
                                                 range_query_rec(rect, vec, region.child_offset);
                                         }
                                 }
@@ -385,9 +383,10 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                                 rectangle<T> r1 = this->make_point_rectangle(v1);
                                 rectangle<T> r2 = this->make_point_rectangle(v2);
                                 //find areas and enlargement
+                                double curr_area = rect_area<T>(r.region_rec, this->comparators);
                                 double left_area = rect_area<T>(r1, this->comparators);
                                 double right_area = rect_area<T>(r2, this->comparators);
-                                enlargement[j] = (left_area < right_area)? make_pair(left_area, true) : make_pair(right_area, false);
+                                enlargement[j] = (left_area < right_area)? make_pair(right_area - curr_area, true) : make_pair(left_area - curr_area, false);
                                 j++;
                         }
                         //find which region needs minimum enlargement
@@ -473,6 +472,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                 this->next_offset = (this->coffset != this->next_offset)? this->coffset : end_offset;
                 this->coffset = this->next_offset;
                 //put the father were you should
+                parent_node->my_offset = this->coffset;
                 store_node(this->coffset, parent_node);
                 //inform the children where the parent is
                 org_node->parent_offset = this->coffset;
@@ -558,5 +558,6 @@ void kd_btree<T>::insert(T &data) {
                 store_node(new_root.my_offset, &new_root);
                 this->root_offset = new_root.my_offset;
         }
+        this->nitems++;
         this->coffset = this->next_offset = end_pos(this->file);
 }

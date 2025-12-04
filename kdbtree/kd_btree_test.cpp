@@ -15,10 +15,12 @@ int main() {
         mv.adult = false; strcpy(mv.org_lang, "en");
         strcpy(mv.org_country, "['US']"); mv.release_date = year_month_day{year{1900}, month{5}, day{21}};
         strcpy(mv.genre_names, "[]"); strcpy(mv.prod_comp_names, "[]");
-        mv.budget = 2426.7031427901; mv.revenue = 3322.06597655286; mv.runtime = 1;
-        mv.popularity = 6.3707; mv.vote_avg = 4; mv.vote_count = 4;
+        mv.budget = 1486.88423469876; mv.revenue = 1605.98597870523; mv.runtime = 2;
+        mv.popularity = 3.4255; mv.vote_avg = 6.1; mv.vote_count = 55;
 
         pair<movie, movie> mv_pair = make_pair(mv, mv);
+        mv_pair.second.budget+=15;mv_pair.second.revenue+=15;mv_pair.second.runtime+=4;
         vector<movie> mv_vec = movies_kdb.range_query(mv_pair);
         cout<<mv_vec.size()<<"\n";
+        cout<<movies_kdb.n_items()<<"\n";
 }

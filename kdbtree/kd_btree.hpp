@@ -11,7 +11,6 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
-#include <iostream>
 #include <cstring>
 #include <ios>
 
@@ -23,7 +22,7 @@
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::binary_search, std::strncpy;
+        std::binary_search, std::strncpy, std::find;
 
 template<typename T>
 
@@ -142,6 +141,7 @@ private:
         function<rectangle<T> (vector<T *> &)> make_point_rectangle;
         fstream file;
         long coffset, next_offset, root_offset;
+        size_t nitems;
 
         kd_bnode<T> *load_node(size_t node_offset);
         void update_node_level(kd_bnode<T> *node);
@@ -161,6 +161,7 @@ public:
         void erase(T &data);
         vector<T> skyline(vector<max_min> &best);
         bool empty();
+        size_t n_items() {return this->nitems;}
         ~kd_btree() {this->file.close();}
 };
 

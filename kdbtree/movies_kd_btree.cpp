@@ -148,7 +148,7 @@ void read_csv(kd_btree<movie> &movies_kdb) {
         vector<string> str_columns = {"title", "original_language", "origin_country", "genre_names", "production_company_names"};
         vector<name movie:: *> str_fields = {&movie::title, &movie::org_lang, &movie::org_country, &movie::genre_names, &movie::prod_comp_names};
 
-        for (size_t j = 0; j < row_len; ++j) {
+        for (size_t j = 0; j < 14/*row_len*/; ++j) {
                 movie m;
                 //integer fields
                 size_t int_f_c = int_fields.size();

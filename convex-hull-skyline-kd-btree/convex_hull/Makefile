@@ -1,10 +1,12 @@
-CC=g++
-CFLAGS=-std=c++23 -Wall -Iinclude
+CPP = g++
+CFLAGS = -std=gnu++23 -Wall -O2 -Iinclude
 
-all: ConvexHull
+TARGET = convex_hull
 
-ConvexHull: Quest_3a.cpp
-	$(CC) $(CFLAGS) -o ConvexHull Quest_3a.cpp ConvexHull.cpp
+all: $(TARGET)
+
+convex_hull: Quest_3a.cpp
+	$(CPP) $(CFLAGS) -o ConvexHull Quest_3a.cpp ConvexHull.cpp
 
 clean:
-	rm -f ConvexHull
+	rm -rf ConvexHull

@@ -1,10 +1,10 @@
 CPP = g++
 CFLAGS = -Wall -O2 -std=gnu++23
-PROG = kd_btree_test
+TARGET = kdbtree
 
-all: $(PROG)
+all: $(TARGET)
 
-kd_btree_test: kd_btree_test.cpp
+kdbtree: kd_btree_test.cpp
 	$(CPP) $(CFLAGS) -o kd_btree_test kd_btree_test.cpp movies_kd_btree.cpp ../movie_utils.cpp
 
 clean:

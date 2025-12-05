@@ -1,6 +1,8 @@
 #include "movies_kd_btree.hpp"
 #include "kd_btree.hpp"
 #include <cstdint>
+#include <iostream>
+
 
 
 cmp_vector<movie> movie_comp = {
@@ -39,6 +41,7 @@ pair<field, field> compute_min_max(vector<rectangle<movie> *> &movie_regions, fi
 
         field minv = get<0>(*movie_regions[min_idx]).*member;
         field maxv = get<2>(*movie_regions[max_idx]).*member;
+        std::cout<<"minimum = "<<minv<<" maximum = "<<maxv<<"\n";
 
         return make_pair(minv, maxv);
 }
@@ -67,6 +70,8 @@ pair<field, field> compute_point_min_max(vector<movie *> &movie_pt, field movie:
 
         field minv = (*movie_pt[min_idx]).*member;
         field maxv = (*movie_pt[max_idx]).*member;
+
+        std::cout<<"minimum = "<<minv<<" maximum = "<<maxv<<"\n";
 
         return make_pair(minv, maxv);
 }

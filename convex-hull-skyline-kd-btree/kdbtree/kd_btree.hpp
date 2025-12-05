@@ -146,13 +146,22 @@ private:
         kd_bnode<T> *load_node(size_t node_offset);
         void update_node_level(kd_bnode<T> *node);
         bool store_node(size_t node_offset, kd_bnode<T> *node);
-        void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
+
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
+        void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);
+
         region<T> make_parent_region(kd_bnode<T> *node);
         void update_chld_levels(region_kd_bnode<T> *node);
-        void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);
+        void make_and_store_parent(region<T> &org_parent, region<T> &splitted_par,
+                kd_bnode<T> *org_node, kd_bnode<T> *splitted_node);
+        void assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &new_region_rect, long searching_off);
+        void store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
+                size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node);
+
+
         void insert_rec(T &data, long subtree_root_off);
         void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);
+        void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
 public:
         kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
                 function<rectangle<T> (vector<T *> &)> point_rectangle_fn);

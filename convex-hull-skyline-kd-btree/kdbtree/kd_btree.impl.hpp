@@ -442,6 +442,63 @@ void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
 
 template<typename T>
 
+void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitted_par,
+        kd_bnode<T> *org_node, kd_bnode<T> *splitted_node) {
+                region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
+                parent_node->regions.push_back(org_parent);
+                parent_node->regions.push_back(splitted_par);
+                store_node(splitted_node->my_offset, splitted_node);
+                //find father offset
+                long end_offset = end_pos(this->file);
+                this->next_offset = (this->coffset != this->next_offset)? this->coffset : end_offset;
+                this->coffset = this->next_offset;
+                //put the father were you should
+                parent_node->my_offset = this->coffset;
+                store_node(this->coffset, parent_node);
+                //inform the children where the parent is
+                org_node->parent_offset = this->coffset;
+                splitted_node->parent_offset = this->coffset;
+                //update the changes to the file
+                update_node_level(org_node);
+                update_node_level(splitted_node);
+                store_node(org_node->my_offset, org_node);
+                store_node(splitted_node->my_offset, splitted_node);
+                // make the parent new root
+                this->root_offset = this->coffset;
+                //move the offset to the next position
+                this->coffset = this->next_offset = end_pos(this->file);
+                delete(parent_node);
+        }
+
+template<typename T>
+
+void kd_btree<T>::assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &new_region_rect, long searching_off) {
+        for (region<T> &r : par_node->regions) {
+                if (r.child_offset == searching_off)
+                        r.region_rec = new_region_rect;
+        }
+        //store potential changes to the parent node
+        store_node(par_node->my_offset, par_node);
+}
+
+template<typename T>
+
+void kd_btree<T>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
+        size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node) {
+                this->coffset = end_pos(this->file);
+                neighbour->my_offset = this->coffset;
+                store_node(this->coffset, neighbour);
+                //determine who is the father, then store it acordingly
+                bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
+                        [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
+                                int res = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(b.region_rec));
+                                return (res < 0);
+                        });
+                splitted_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
+}
+
+template<typename T>
+
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
         size_t splitted_off = this->next_offset;
         split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
@@ -453,39 +510,14 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
         //if there is no parent node we make one
         if (org_node->parent_offset < 0) {
                 org_parent.child_offset = org_node->my_offset;
-                region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
-                parent_node->regions.assign({org_parent, splitted_parent});
-                store_node(split_org_node->my_offset, split_org_node);
-                //find father offset
-                long end_offset = end_pos(this->file);
-                this->next_offset = (this->coffset != this->next_offset)? this->coffset : end_offset;
-                this->coffset = this->next_offset;
-                //put the father were you should
-                parent_node->my_offset = this->coffset;
-                store_node(this->coffset, parent_node);
-                //inform the children where the parent is
-                org_node->parent_offset = this->coffset;
-                split_org_node->parent_offset = this->coffset;
-                update_node_level(org_node);
-                update_node_level(split_org_node);
-                store_node(org_node->my_offset, org_node);
-                store_node(split_org_node->my_offset, split_org_node);
-                // make the parent new root
-                this->root_offset = this->coffset;
-                //move the offset to the next position
-                this->coffset = this->next_offset = end_pos(this->file);
-                delete(parent_node);
+                make_and_store_parent(org_parent, splitted_parent,
+                        org_node, split_org_node);
         }
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
                 if (par_node) {
                         //since there is a parent node we must find the original's parent and update it
-                        for (region<T> &r : par_node->regions) {
-                                if (r.child_offset == org_node->my_offset)
-                                        r.region_rec = org_parent.region_rec;
-                        }
-                        //store potential changes to the parent node
-                        store_node(par_node->my_offset, par_node);
+                        assign_new_region(par_node, org_parent.region_rec, org_node->my_offset);
                         //insert the new parent region found
                         par_node->regions.push_back(splitted_parent);
                         store_node(split_org_node->my_offset, split_org_node);
@@ -496,16 +528,9 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                                 region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) par_node->split_node();
                                 store_node(par_node->my_offset, par_node);
                                 //store the neighbour
-                                this->coffset = end_pos(this->file);
-                                neighbour->my_offset = this->coffset;
-                                store_node(this->coffset, neighbour);
-                                //determine who is the father, then store it acordingly
-                                bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
-                                        [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
-                                                int res = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(b.region_rec));
-                                                return (res < 0);
-                                        });
-                                split_org_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
+                                store_neighbour_after_split(neighbour, par_node, dlen,
+                                        splitted_parent, split_org_node);
+                                //upward the split
                                 propagate_split(par_node, neighbour);
                                 //update the level in all children
                                 update_chld_levels(par_node);

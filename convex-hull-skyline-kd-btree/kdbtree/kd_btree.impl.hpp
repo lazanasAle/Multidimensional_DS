@@ -148,7 +148,7 @@ kd_bnode<T> *point_kd_bnode<T>::split_node() {
         size_t median_idx = (this->points.size() - 1) / 2;
         auto median_it = this->points.begin() + median_idx;
         //now split from the median
-        vector<point<T>> new_left(this->points.begin(), median_it + 1);
+        vector<point<T>> new_left(this->points.begin(), median_it);
         vector<point<T>> new_right(median_it + 1, this->points.end());
         this->points = move(new_left);
         point_kd_bnode<T> *new_node = new point_kd_bnode<T>(this->comparators, this->make_rectangle);
@@ -200,7 +200,7 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
         size_t median_idx = (this->regions.size() - 1) / 2;
         auto median_it = this->regions.begin() + median_idx;
         //split from the median
-        vector<region<T>> left_regions(this->regions.begin(), median_it + 1);
+        vector<region<T>> left_regions(this->regions.begin(), median_it);
         vector<region<T>> right_regions(median_it + 1, this->regions.end());
         this->regions = move(left_regions);
         region_kd_bnode<T> *new_node = new region_kd_bnode<T>(this->comparators, this->make_rectangle);
@@ -225,7 +225,6 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
                         intersects++;
                 }
         }
-        std::cout<<" intersects in: "<<intersects<<" total is: "<<dim_len<<"\n";
         return (intersects >= dim_len);
 }
 
@@ -366,7 +365,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         }
                         //unfortunately it's a region node dig deeper
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) curr_node;
-                        vector<pair<double, bool>> enlargement(rnode->regions.size());
+                        vector<pair<double, rectangle<T>>> enlargement(rnode->regions.size());
                         size_t j = 0;
                         for (region<T> &r : rnode->regions) {
                                 pair<T, T> region_rect = make_pair(get<0>(r.region_rec), get<2>(r.region_rec));
@@ -379,15 +378,12 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                                 T left_side = get<0>(r.region_rec);
                                 T right_side = get<2>(r.region_rec);
                                 //make the new rectangles
-                                vector<T *> v1 = {&left_side, &data};
-                                vector<T *> v2 = {&right_side, &data};
-                                rectangle<T> r1 = this->make_point_rectangle(v1);
-                                rectangle<T> r2 = this->make_point_rectangle(v2);
+                                vector<T *> v = {&left_side, &data, &right_side};
+                                rectangle<T> r_new = this->make_point_rectangle(v);
                                 //find areas and enlargement
                                 double curr_area = rect_area<T>(r.region_rec, this->comparators);
-                                double left_area = rect_area<T>(r1, this->comparators);
-                                double right_area = rect_area<T>(r2, this->comparators);
-                                enlargement[j] = (left_area < right_area)? make_pair(right_area - curr_area, true) : make_pair(left_area - curr_area, false);
+                                double new_area = rect_area<T>(r_new, this->comparators);
+                                enlargement[j] = make_pair(new_area - curr_area, r_new);
                                 j++;
                         }
                         //find which region needs minimum enlargement
@@ -396,19 +392,8 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                                         return a.first < b.first;
                         });
                         size_t min_idx = distance(enlargement.begin(), it);
-                        rectangle<T> new_rect;
-                        //enlarge that region
-                        if (enlargement[min_idx].second) {
-                                T right_side = get<2>(rnode->regions[min_idx].region_rec);
-                                vector<T *> v = {&right_side, &data};
-                                new_rect = this->make_point_rectangle(v);
-                        }
-                        else {
-                                T left_side = get<0>(rnode->regions[min_idx].region_rec);
-                                vector<T *> v = {&left_side, &data};
-                                new_rect = this->make_point_rectangle(v);
-                        }
-                        rnode->regions[min_idx].region_rec = new_rect;
+                        //enlarge it
+                        rnode->regions[min_idx].region_rec = enlargement[min_idx].second;
                         store_node(subtree_root_off, rnode);
                         delete(curr_node);
                         //now it's in here go to the child
@@ -460,10 +445,13 @@ template<typename T>
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
         size_t splitted_off = this->next_offset;
         split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
+        //find the new parent region after the splitting (for the new node)
         region<T> splitted_parent = make_parent_region(split_org_node);
         splitted_parent.child_offset = splitted_off;
+        //find the new parent region after the splitting (for the orignal node)
+        region<T> org_parent = make_parent_region(org_node);
+        //if there is no parent node we make one
         if (org_node->parent_offset < 0) {
-                region<T> org_parent = make_parent_region(org_node);
                 org_parent.child_offset = org_node->my_offset;
                 region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
                 parent_node->regions.assign({org_parent, splitted_parent});
@@ -491,6 +479,14 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
                 if (par_node) {
+                        //since there is a parent node we must find the original's parent and update it
+                        for (region<T> &r : par_node->regions) {
+                                if (r.child_offset == org_node->my_offset)
+                                        r.region_rec = org_parent.region_rec;
+                        }
+                        //store potential changes to the parent node
+                        store_node(par_node->my_offset, par_node);
+                        //insert the new parent region found
                         par_node->regions.push_back(splitted_parent);
                         store_node(split_org_node->my_offset, split_org_node);
                         //now deal with the father and maybe propagate the split
@@ -515,6 +511,8 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                                 update_chld_levels(par_node);
                                 //do the same for the neighbour
                                 update_chld_levels(neighbour);
+                                store_node(par_node->my_offset, par_node);
+                                store_node(split_org_node->my_offset, split_org_node);
                                 delete(neighbour);
                         }
                         else {

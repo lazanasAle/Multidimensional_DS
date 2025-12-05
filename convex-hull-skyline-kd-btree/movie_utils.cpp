@@ -1,4 +1,5 @@
 #include "movie_utils.hpp"
+#include <string>
 
 movie::movie() {
         strcpy(this->title, "UN");
@@ -77,4 +78,16 @@ void movie::write(fstream &file) {
         file.write((char *)&this->vote_count, sizeof(size_t));
         //bool field
         file.write((char *)&this->adult, sizeof(bool));
+}
+
+string movie::print_interesting() {
+        string ret = "<";
+        ret += to_string(this->budget) + ", ";
+        ret += to_string(this->revenue) + ", ";
+        ret += to_string(this->runtime) + ", ";
+        ret += to_string(this->popularity) + ", ";
+        ret += to_string(this->vote_avg) + ", ";
+        ret += to_string(this->vote_count) + ">";
+
+        return ret;
 }

@@ -511,7 +511,6 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
                                 update_chld_levels(par_node);
                                 //do the same for the neighbour
                                 update_chld_levels(neighbour);
-                                store_node(par_node->my_offset, par_node);
                                 store_node(split_org_node->my_offset, split_org_node);
                                 delete(neighbour);
                         }

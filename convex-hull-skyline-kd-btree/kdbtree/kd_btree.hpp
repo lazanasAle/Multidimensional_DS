@@ -53,7 +53,7 @@ enum max_min {
         MIN
 };
 
-enum tag {
+enum tag: bool {
         POINT,
         REGION
 };

@@ -37,8 +37,6 @@ int32_t interval_node<T>:: balance_factor()
     int32_t left_height=(this->left)? this->left->height:-1;
     int32_t right_height=(this->right)? this->right->height:-1;
     return (left_height-right_height);
-
-
 }
 
 template<typename T>
@@ -58,7 +56,6 @@ void interval_node<T>::update_max_end()
     T left_max=(this->left)? this->left->max_end: this->inter->high;   
     T right_max=(this->right)? this->right->max_end: this->inter->high;
     this->max_end= max(this->inter->high, max(left_max,right_max));   
-
 }
 
 template<typename T>
@@ -83,7 +80,7 @@ void interval_node<T>::left_rotation()
     this->left->parent=this; //set the parent of this new node to be the current one
     this->left->left=varA; //link again the subtrees
 
-    if(varA) //updates varA's parent pointer to the new lef node if varA exists
+    if(varA) //updates varA's parent pointer to the new left node if varA exists
     {
         varA->parent=this->left;
 
@@ -92,17 +89,13 @@ void interval_node<T>::left_rotation()
     this->left->right=varB; 
 
     if(varB) //update varB' parent pointer if varB exists
-    {
         varB->parent=this->left;
 
-    }
     this->right=varC; //link again the subtrees
     //we will attach the original right-right subtree -varC- to the current node's right
 
     if(varC) //update varC's parent pointer to the current node (again, if varC exists)
-    {
         varC->parent=this;
-    }
 
     //now updating height+max_end for the new left child first
     //it is lower in the tree
@@ -116,7 +109,8 @@ void interval_node<T>::left_rotation()
 
 //exact same logic with left rotation just above
 template <typename T>
-void interval_node<T>::right_rotation() {
+void interval_node<T>::right_rotation() 
+{
 	if (this->left == nullptr)
 		return;
 	interval_node<T> *varA = this->left->left;
@@ -130,21 +124,15 @@ void interval_node<T>::right_rotation() {
 	this->left = varA;
 
 	if (varA)
-	{
 			varA->parent = this;
-	}
 	this->right->left = varB;
 	
 	if (varB)
-	{
 		varB->parent = this->right;
-	}
 	this->right->right = varC;
 
 	if (varC)
-	{	
 		varC->parent = this->right;
-	}
 
 	this->right->update_height();
 	this->right->update_max_end();
@@ -152,7 +140,6 @@ void interval_node<T>::right_rotation() {
 	this->update_height();
 	this->update_max_end();
 }
-
 
 template<typename T>
 void interval_node<T>::left_right_rotation()
@@ -176,7 +163,45 @@ void interval_node<T>::right_left_rotation()
 
 
 //Interval node iterator methods
-//...
+template <typename T>
+interval_node_iterator<T>::interval_node_iterator(interval_node<T> *n)
+{
+    this->node=n;
+}
+
+template <typename T>
+bool interval_node_iterator<T>::is_null()
+{
+    return (this->node==nullptr);
+}
+
+template <typename T>
+interval_node_iterator<T> interval_node_iterator<T>::next()
+{
+
+}
+
+template <typename T>
+interval_node_iterator<T> interval_node_iterator<T>::previous()
+{
+    
+}
+
+
+//Interval tree methods
+
+template <typename T>
+interval_tree<T>::interval_tree(function<int (T &,T &)> cmp)
+{
+    this->root = nullptr;
+    this->comparator=cmp;
+}
+
+template <typename T>
+bool interval_tree<T>::empty()
+{
+    return (this->root ==nullptr);
+}
 
 
 // will add comments to make it clear what each piece of code represents.

@@ -172,6 +172,7 @@ interval_node<T>::~interval_node()
 }
 
 //Interval node iterator methods
+
 template <typename T>
 interval_node_iterator<T>::interval_node_iterator(interval_node<T> *n)
 {
@@ -222,7 +223,24 @@ interval_node_iterator<T> interval_node_iterator<T>::next()
 template <typename T>
 interval_node_iterator<T> interval_node_iterator<T>::previous()
 {
-    
+    if(this->is_null())
+    {
+        return interval_node_iterator<T>(nullptr);
+
+    }
+    if(this->node->left)
+    {
+        interval_node<T> *previous_node=this->node->left;
+
+        while(previous_node->right)
+            previous_node=previous_node->right;
+        return interval_node_iterator<T>(previous_node);
+    }
+
+    interval_node<T> *prn =this->node;
+    while((prn->parent) && (prn->parent->left==prn))
+        prn=prn->parent;
+    return interval_node_iterator<T>(prn->parent);  
 }
 
 //Interval tree methods
@@ -259,8 +277,7 @@ interval_node<T> *&interval_tree<T>::search(interval<T> &inter, interval_node<T>
 
     }
     else
-    {   return search(inter,subtree_root->right);
-    }
+        return search(inter,subtree_root->right);
 }
 
 template <typename T>
@@ -271,27 +288,58 @@ void interval_tree<T>::update_max_end_up(interval_node<T> *node)
         node->update_max_end();
         node=node->parent;
     }
-
 }
 
 template <typename T>
 void interval_tree<T>::avl_balance(interval_node<T> *&node)
 {
+    if(node ==nullptr)
+        return;
+    else if (node->balance_factor()>1)
+    {
+        if(node->left && node->left->balance_factor()<0)
+        {
+            node->left_right_rotation();
+        }
+        else
+        {
+            node->right_rotation;
+        }
+    }
+    else if(node->balance_factor()<-1)
+    {
+        if(node->right && node->right->balance_factor() > 0)
+        {
+            node->right_left_rotation();
+
+        }
+        else
+            node->left_rotation();
+    }
 
 }
 
 template <typename T>
 void interval_tree<T>::add_node(interval_node<T> *&new_node, interval_node<T> *&subtree_root)
 {
+
+}
+
+template <typename T>
+interval_node<T> *interval_tree<T>::max_node(interval_node<T> *&subtree_root)
+{
+
+}
+
+//will be same logic as max_node....
+template <typename T>
+interval_node<T> *interval_tree<T>::min_node(interval_node<T> *&subtree_root)
+{
     
 }
 
 
-
-
 //comments
-
-
 
 
 // will add comments to make it clear what each piece of code represents.

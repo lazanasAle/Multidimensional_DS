@@ -81,7 +81,9 @@ class interval_tree
         void avl_balance(interval_node<T> *&node); //balance the tree using AVL rotations
         void add_node(interval_node<T> *&new_node,interval_node<T> *&subtree_root); //adding new node to the subtree
         //..
-        
+        interval_node<T> *max_node(interval_node<T> *&subtree_root); //find a node with max interval in the subtree
+        interval_node<T> *min_node(interval_node<T> *&subtree_root); // find a node with min interval in the subtree
+
         void update_max_end_up(interval_node<T> *node); //update max_end from node to root
     public:
         interval_tree(function<int (T &, T &)> cmp); //constructor with compare function
@@ -91,10 +93,6 @@ class interval_tree
     ~interval_tree(); //destructor to clean the tree memory
 
 };
-
-
-
-// we will for sure need a class for interval_node and one for iteration
 
 // Run it as:
 //g++ -std=c++17 test_interval_tree.cpp -o interval_test

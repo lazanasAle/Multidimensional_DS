@@ -77,6 +77,12 @@ class interval_tree
     private:
         interval_node<T> *root; //pointer to root node of the 3
         function<int (T &, T &)>comparator; //compare function for ordering intervals
+        interval_node<T> *&search(interval<T> &inter, interval_node<T> *&subtree_root); //searching for an interval in subtree
+        void avl_balance(interval_node<T> *&node); //balance the tree using AVL rotations
+        void add_node(interval_node<T> *&new_node,interval_node<T> *&subtree_root); //adding new node to the subtree
+        //..
+        
+        void update_max_end_up(interval_node<T> *node); //update max_end from node to root
     public:
         interval_tree(function<int (T &, T &)> cmp); //constructor with compare function
         bool empty();

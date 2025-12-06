@@ -161,6 +161,15 @@ void interval_node<T>::right_left_rotation()
     }
 }
 
+template <typename T>
+interval_node<T>::~interval_node()
+{
+    if(this->left)
+        delete(this->left);
+    if(this->right)
+        delete(this->right);
+    delete(inter);
+}
 
 //Interval node iterator methods
 template <typename T>
@@ -176,17 +185,45 @@ bool interval_node_iterator<T>::is_null()
 }
 
 template <typename T>
+interval<T> *interval_node_iterator<T>::context() 
+{
+	return this->node->inter;
+}
+
+template <typename T>
 interval_node_iterator<T> interval_node_iterator<T>::next()
 {
+    if(this->is_null())
+    {
+        return interval_node_iterator<T>(nullptr);
+
+    }
+    if(this->node->right)
+    {
+        interval_node<T> *next_node=this->node->right;
+
+        while(next_node->left)
+        {
+            next_node=next_node->left;
+        }
+        return interval_node_iterator<T>(next_node);
+    }
+
+    interval_node<T> *rn =this->node;
+    while((rn->parent) && (rn->parent->right==rn))
+    {
+        rn=rn->parent;
+    }
+    return interval_node_iterator<T>(rn->parent);
 
 }
 
+//same logic as next
 template <typename T>
 interval_node_iterator<T> interval_node_iterator<T>::previous()
 {
     
 }
-
 
 //Interval tree methods
 
@@ -202,6 +239,59 @@ bool interval_tree<T>::empty()
 {
     return (this->root ==nullptr);
 }
+
+template <typename T>
+interval_node<T> *&interval_tree<T>::search(interval<T> &inter, interval_node<T> *&subtree_root)
+{
+    if(subtree_root== nullptr)
+    {
+        return subtree_root;
+
+    }
+    else if(comparator(inter.low, subtree_root->inter->low)==0 &&
+            comparator(inter.high, subtree_root->inter->high)==0)
+    {
+        return subtree_root;
+    }
+    else if(comparator(inter.low, subtree_root->inter->low)<0)
+    {
+        return search(inter,subtree_root->left);
+
+    }
+    else
+    {   return search(inter,subtree_root->right);
+    }
+}
+
+template <typename T>
+void interval_tree<T>::update_max_end_up(interval_node<T> *node)
+{
+    while (node!= nullptr)
+    {
+        node->update_max_end();
+        node=node->parent;
+    }
+
+}
+
+template <typename T>
+void interval_tree<T>::avl_balance(interval_node<T> *&node)
+{
+
+}
+
+template <typename T>
+void interval_tree<T>::add_node(interval_node<T> *&new_node, interval_node<T> *&subtree_root)
+{
+    
+}
+
+
+
+
+//comments
+
+
 
 
 // will add comments to make it clear what each piece of code represents.

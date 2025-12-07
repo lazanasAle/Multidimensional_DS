@@ -10,14 +10,12 @@ template <typename T>
 bool interval<T>::overlaps(interval<T> &other)
 {
     return (this->low <= other.high && this->high >=other.low);
-
 }
 
 template <typename T>
 bool interval<T>::contains(T point)
 {
     return (point >= this->low && point <= this->high);
-
 }
 
 //Methods for interval nodes
@@ -81,10 +79,7 @@ void interval_node<T>::left_rotation()
     this->left->left=varA; //link again the subtrees
 
     if(varA) //updates varA's parent pointer to the new left node if varA exists
-    {
         varA->parent=this->left;
-
-    }
     //connect the middle subtree (varB) to be the right child of the new left node
     this->left->right=varB; 
 
@@ -195,18 +190,14 @@ template <typename T>
 interval_node_iterator<T> interval_node_iterator<T>::next()
 {
     if(this->is_null())
-    {
         return interval_node_iterator<T>(nullptr);
-
-    }
     if(this->node->right)
     {
         interval_node<T> *next_node=this->node->right;
 
         while(next_node->left)
-        {
             next_node=next_node->left;
-        }
+
         return interval_node_iterator<T>(next_node);
     }
 
@@ -322,7 +313,6 @@ void interval_tree<T>::add_node(interval_node<T> *&new_node, interval_node<T> *&
     subtree_root->update_max_end();
 }
 
-
 template <typename T>
 interval_node<T> *interval_tree<T>::max_node(interval_node<T> *&subtree_root)
 {
@@ -340,17 +330,61 @@ interval_node<T> *interval_tree<T>::min_node(interval_node<T> *&subtree_root)
 {
     interval_node<T> *curr=subtree_root;
     while(curr->left != nullptr)
-    {
         curr= curr ->left;
-    }
     return curr;
 }
 
 template <typename T>
 void interval_tree<T>::remove_node(interval<T> &inter, interval_node<T> *&sub_root)
 {
+    if(sub_root)
+    {
+        if(comparatow(inter.low, sub_root->inter->low)<0)
+            remove_node(inter,sub_root->left);
+        else if(comparator(inter.low, sub_root->inter->low) >0)
+            remove_node(inter, sub_root->right);
+        else
+        {
+            if(comparator(inter.high, sub_root->inter->high)!= 0)
+            {
+                remove_node(inter, sub_root->right);
+            }
+            else
+            {
+                if(sub_root->left && sub_root ->right)
+                {
+                    interval_node<T> *to_swap=max_node(sub_root->left);
+                    interval<T> *tmp= to_swap->inter;
+                    to_swap->inter= sub_root->inter;
+                    sub_root->inter= tmp;
+                    remove_node(*to_swap->inter, sub_root->left);
+                }
+                else if(sub_root->left || sub_root->right)
+                {
+                    interval_node<T> *&to_swap= (sub_root->left)? sub_root->left: sub_root->right;
+                    interval<T> *tmp= to_swap->inter;
+                    to_swap->inter= sub_root->inter;
+                    sub_root->inter=tmp;
+                    remove_node(*to_swap->inter, to_swap);
+                }
+                else
+                {
+                    delete(sub_root->inter);
+                    sub_root->inter= nullptr;
+                    sub_root->left = sub_root->right= nullptr;
+                    delete(sub_root);
+                    sub_root= nullptr;
+                }
+            }
+        }
+        if(sub_root)
+        {
+            avl_balance(sub_root);
+            sub_root->update_height();
+            sub_root->update_max_end();
+        }
 
-    //...
+    }
 }
 
 template <typename T>
@@ -377,6 +411,14 @@ template<typename T>
 void interval_tree<T>::interval_search_rec(interval<T> &inter,vector<interval<T>> &result, interval_node<T> *subtree_root)
 {
 
+    if(subtree_root ==nullptr)
+        return;
+    if(subtree_root ->inter->overlaps(inter))
+        result.push_back(*subtree_root->inter);
+    if(subtree_root->left && subtree_root->left->max_end >= inter.low)
+        interval_search_rec(inter,result, subtree_root->left);
+    if(subtree_root-> right && subtree_root ->inter->low <= inter.high)
+        interval_search_rec(inter, result, subtree_root->right);
 }
 
 template <typename T>
@@ -399,15 +441,11 @@ void interval_tree<T>::stabbing_query_rec(T point, vector<interval<T>> &result, 
     }
 
     if(subtree_root->left && subtree_root->left->max_end >= point)
-    {
         stabbing_query_rec(point,result,subtree_root->left);
-    }
     if(subtree_root->right && subtree_root->inter->low <=point)
     {
         stabbing_query_rec(point,result, subtree_root->right);
     }
-
-
 }
 
 template <typename T>
@@ -421,7 +459,6 @@ vector<interval<T>> interval_tree<T>::stabbing_query(T point)
 template <typename T>
 void interval_tree<T>::inorder(interval_node<T> *subtree_root, vector<interval<T>> &vec)
 {
-
     if(subtree_root!=nullptr)
     {
         inorder(subtree_root->left, vec);
@@ -429,7 +466,6 @@ void interval_tree<T>::inorder(interval_node<T> *subtree_root, vector<interval<T
         inorder(subtree_root->right,vec);
     }
 }
-
 
 template <typename T>
 vector<interval<T>> interval_tree<T>::inorder()
@@ -449,4 +485,3 @@ interval_tree<T>::~interval_tree()
 //comments
 
 // will add comments to make it clear what each piece of code represents.
-//template<typename T>

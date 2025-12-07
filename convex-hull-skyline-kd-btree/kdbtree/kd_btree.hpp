@@ -11,6 +11,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
+#include <iostream>
 #include <cstring>
 #include <ios>
 
@@ -143,9 +144,9 @@ private:
         long coffset, next_offset, root_offset;
         size_t nitems;
 
-        kd_bnode<T> *load_node(size_t node_offset);
+        kd_bnode<T> *load_node(long node_offset);
         void update_node_level(kd_bnode<T> *node);
-        bool store_node(size_t node_offset, kd_bnode<T> *node);
+        bool store_node(long node_offset, kd_bnode<T> *node);
 
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
         void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);

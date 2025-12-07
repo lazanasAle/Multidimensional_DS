@@ -13,6 +13,7 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
                 size_t vec_len;
                 if (file.read((char *)&vec_len, sizeof(size_t))) {
                         vec.resize(vec_len);
+                        std::cout<<"read: "<<vec_len<<" in: "<<off<<"\n";
                         for (size_t j = 0; j < vec_len; ++j)
                                 vec[j].read(file);
                         T inv;
@@ -29,6 +30,7 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         if (off >= 0) {
                 size_t vec_len = vec.size();
                 file.write((char *)&vec_len, sizeof(size_t));
+                std::cout<<"wrote: "<<vec_len<<" in: "<<off<<"\n";
                 for (size_t j = 0; j < vec_len; ++j)
                         vec[j].write(file);
                 T inv;
@@ -148,7 +150,7 @@ kd_bnode<T> *point_kd_bnode<T>::split_node() {
         size_t median_idx = (this->points.size() - 1) / 2;
         auto median_it = this->points.begin() + median_idx;
         //now split from the median
-        vector<point<T>> new_left(this->points.begin(), median_it);
+        vector<point<T>> new_left(this->points.begin(), median_it + 1);
         vector<point<T>> new_right(median_it + 1, this->points.end());
         this->points = move(new_left);
         point_kd_bnode<T> *new_node = new point_kd_bnode<T>(this->comparators, this->make_rectangle);
@@ -200,7 +202,7 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
         size_t median_idx = (this->regions.size() - 1) / 2;
         auto median_it = this->regions.begin() + median_idx;
         //split from the median
-        vector<region<T>> left_regions(this->regions.begin(), median_it);
+        vector<region<T>> left_regions(this->regions.begin(), median_it + 1);
         vector<region<T>> right_regions(median_it + 1, this->regions.end());
         this->regions = move(left_regions);
         region_kd_bnode<T> *new_node = new region_kd_bnode<T>(this->comparators, this->make_rectangle);
@@ -252,7 +254,7 @@ bool kd_btree<T>::empty() {
 
 template<typename T>
 
-kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
+kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
                 tag t;
@@ -282,7 +284,7 @@ kd_bnode<T> *kd_btree<T>::load_node(size_t node_offset) {
 
 template<typename T>
 
-bool kd_btree<T>::store_node(size_t node_offset, kd_bnode<T> *node) {
+bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
         if (this->file.is_open() && node_offset >= 0) {
                 node->my_offset = node_offset;
                 //write the common fields
@@ -465,6 +467,7 @@ void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitt
                 store_node(splitted_node->my_offset, splitted_node);
                 // make the parent new root
                 this->root_offset = this->coffset;
+                std::cout<<"root has: "<<parent_node->regions.size()<<" and offset is: "<<this->root_offset<<"\n";
                 //move the offset to the next position
                 this->coffset = this->next_offset = end_pos(this->file);
                 delete(parent_node);
@@ -516,10 +519,12 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
                 if (par_node) {
+                        std::cout<<"par_node_region_cnt: "<<par_node->regions.size()<<"my offset: "<<par_node->my_offset<<"root offset: "<<this->root_offset<<"\n";
                         //since there is a parent node we must find the original's parent and update it
                         assign_new_region(par_node, org_parent.region_rec, org_node->my_offset);
                         //insert the new parent region found
                         par_node->regions.push_back(splitted_parent);
+                        std::cout<<"par_node_region_cnt: "<<par_node->regions.size()<<"my offset: "<<par_node->my_offset<<"root offset: "<<this->root_offset<<"\n";
                         store_node(split_org_node->my_offset, split_org_node);
                         //now deal with the father and maybe propagate the split
                         size_t vlen = par_node->regions.size();

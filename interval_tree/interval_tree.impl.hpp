@@ -322,25 +322,110 @@ void interval_tree<T>::avl_balance(interval_node<T> *&node)
 template <typename T>
 void interval_tree<T>::add_node(interval_node<T> *&new_node, interval_node<T> *&subtree_root)
 {
+    if(subtree_root==nullptr)
+    {
+        subtree_root=new_node;
+    }
+    else if(comparator(new_node->inter->low, subtree_root->inter->low)<0)
+    {
+        new_node->parent=subtree_root;
+        add_node(new_node,subtree_root->left);
+    }
+    else 
+    {
+        new_node->parent= subtree_root;
+        add_node(new_node, subtree_root->right);
+    }
 
+    avl_balance(subtree_root);
+    subtree_root->update_height();
+    subtree_root->update_max_end();
 }
+
 
 template <typename T>
 interval_node<T> *interval_tree<T>::max_node(interval_node<T> *&subtree_root)
 {
-
+    interval_node<T> *curr=subtree_root;
+    while(curr->right!= nullptr)
+    {
+        curr= curr ->right;
+    }
+    return curr;
 }
 
-//will be same logic as max_node....
+//same logic as max_node
 template <typename T>
 interval_node<T> *interval_tree<T>::min_node(interval_node<T> *&subtree_root)
 {
-    
+    interval_node<T> *curr=subtree_root;
+    while(curr->left != nullptr)
+    {
+        curr= curr ->left;
+    }
+    return curr;
 }
 
+template <typename T>
+void interval_tree<T>::remove_node(interval<T> &inter, interval_node<T> *&sub_root)
+{
+
+    //...
+}
+
+template <typename T>
+void interval_tree<T>::insert(interval<T> &inter)
+{
+    interval<T> *new_inter= new interval<T>(inter.low, inter.high);
+    interval_node<T> *new_node= new interval_node<T>(new_inter);
+    add_node(new_node, root);
+}
+
+template <typename T>
+void interval_tree<T>::erase(interval<T> &inter)
+{
+    remove_node(inter, root);
+}
+
+template <typename T>
+interval_node_iterator<T> interval_tree<T>::find(interval<T> &inter)
+{
+    return interval_node_iterator<T>(search(inter,root));
+}
+
+template<typename T>
+void interval_tree<T>::interval_search_rec(interval<T> &inter,vector<interval<T>> &result, interval_node<T> *subtree_root)
+{
+
+}
+
+template <typename T>
+vector<interval<T>> interval_tree<T>::interval_search(interval<T> &inter)
+{
+    vector<interval<T>> result;
+    interval_search_rec(inter, result, root);
+    return result;
+}
+
+//..
+
+
+template <typename T>
+vector<interval<T>> interval_tree<T>::inorder()
+{
+    vector<interval<T>> to_return;
+    inorder(root, to_return);
+    return to_return;
+}
+
+template <typename T>
+interval_tree<T>::~interval_tree()
+{
+    if(root)
+        delete(root);
+}
 
 //comments
-
 
 // will add comments to make it clear what each piece of code represents.
 //template<typename T>

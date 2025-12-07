@@ -80,16 +80,18 @@ class interval_tree
         interval_node<T> *&search(interval<T> &inter, interval_node<T> *&subtree_root); //searching for an interval in subtree
         void avl_balance(interval_node<T> *&node); //balance the tree using AVL rotations
         void add_node(interval_node<T> *&new_node,interval_node<T> *&subtree_root); //adding new node to the subtree
-        //..
+        void remove_node(interval<T> &inter, interval_node<T> *&subtree_root); //remove an interval from subtree
         interval_node<T> *max_node(interval_node<T> *&subtree_root); //find a node with max interval in the subtree
         interval_node<T> *min_node(interval_node<T> *&subtree_root); // find a node with min interval in the subtree
-
+        void interval_search_rec(interval<T> &inter,vector<interval<T>> &result,interval_node<T> *subtree_root); // recursive interval search
         void update_max_end_up(interval_node<T> *node); //update max_end from node to root
     public:
         interval_tree(function<int (T &, T &)> cmp); //constructor with compare function
         bool empty();
         void insert(interval<T> &inter); //insert an interval into the tree
-        void erase(interval<T> &inter);
+        void erase(interval<T> &inter); //delete an interval from the tree
+        interval_node_iterator<T> find(interval<T> &inter); //find an interval
+        vector<interval<T>> interval_search(interval<T> &inter); //find all the intervals overlapping with given interval
     ~interval_tree(); //destructor to clean the tree memory
 
 };

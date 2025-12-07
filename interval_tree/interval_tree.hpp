@@ -85,7 +85,7 @@ class interval_tree
         interval_node<T> *min_node(interval_node<T> *&subtree_root); // find a node with min interval in the subtree
         void interval_search_rec(interval<T> &inter,vector<interval<T>> &result,interval_node<T> *subtree_root); // recursive interval search
         void update_max_end_up(interval_node<T> *node); //update max_end from node to root
-
+        void stabbing_query_rec(T point, vector<interval<T>> &result, interval_node<T> *subtree_root); //recursive stabbing query
         void inorder(interval_node<T> *subtree_root, vector<interval<T>> &vec); //inorder traversal
     public:
         interval_tree(function<int (T &, T &)> cmp); //constructor with compare function
@@ -94,7 +94,7 @@ class interval_tree
         void erase(interval<T> &inter); //delete an interval from the tree
         interval_node_iterator<T> find(interval<T> &inter); //find an interval
         vector<interval<T>> interval_search(interval<T> &inter); //find all the intervals overlapping with given interval
-        
+        vector<interval<T>> stabbing_query(T point); //find all intervals that contain the given point
         vector<interval<T>> inorder(); //return all intervals (sorted)
     ~interval_tree(); //destructor to clean the tree memory
 

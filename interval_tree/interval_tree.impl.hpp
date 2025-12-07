@@ -224,10 +224,7 @@ template <typename T>
 interval_node_iterator<T> interval_node_iterator<T>::previous()
 {
     if(this->is_null())
-    {
         return interval_node_iterator<T>(nullptr);
-
-    }
     if(this->node->left)
     {
         interval_node<T> *previous_node=this->node->left;
@@ -262,20 +259,12 @@ template <typename T>
 interval_node<T> *&interval_tree<T>::search(interval<T> &inter, interval_node<T> *&subtree_root)
 {
     if(subtree_root== nullptr)
-    {
         return subtree_root;
-
-    }
     else if(comparator(inter.low, subtree_root->inter->low)==0 &&
             comparator(inter.high, subtree_root->inter->high)==0)
-    {
         return subtree_root;
-    }
     else if(comparator(inter.low, subtree_root->inter->low)<0)
-    {
         return search(inter,subtree_root->left);
-
-    }
     else
         return search(inter,subtree_root->right);
 }
@@ -298,21 +287,14 @@ void interval_tree<T>::avl_balance(interval_node<T> *&node)
     else if (node->balance_factor()>1)
     {
         if(node->left && node->left->balance_factor()<0)
-        {
             node->left_right_rotation();
-        }
         else
-        {
             node->right_rotation;
-        }
     }
     else if(node->balance_factor()<-1)
     {
         if(node->right && node->right->balance_factor() > 0)
-        {
             node->right_left_rotation();
-
-        }
         else
             node->left_rotation();
     }
@@ -323,9 +305,7 @@ template <typename T>
 void interval_tree<T>::add_node(interval_node<T> *&new_node, interval_node<T> *&subtree_root)
 {
     if(subtree_root==nullptr)
-    {
         subtree_root=new_node;
-    }
     else if(comparator(new_node->inter->low, subtree_root->inter->low)<0)
     {
         new_node->parent=subtree_root;
@@ -407,7 +387,48 @@ vector<interval<T>> interval_tree<T>::interval_search(interval<T> &inter)
     return result;
 }
 
-//..
+//stabbing query
+template<typename T>
+void interval_tree<T>::stabbing_query_rec(T point, vector<interval<T>> &result, interval_node<T> *subtree_root)
+{
+    if(subtree_root==nullptr)
+        return;
+    if(subtree_root->inter->contains(point))
+    {
+        result.push_back(*subtree_root->inter);
+    }
+
+    if(subtree_root->left && subtree_root->left->max_end >= point)
+    {
+        stabbing_query_rec(point,result,subtree_root->left);
+    }
+    if(subtree_root->right && subtree_root->inter->low <=point)
+    {
+        stabbing_query_rec(point,result, subtree_root->right);
+    }
+
+
+}
+
+template <typename T>
+vector<interval<T>> interval_tree<T>::stabbing_query(T point)
+{
+    vector<interval<T>> result;
+    stabbing_query_rec(point,result,root);
+    return result;
+}
+
+template <typename T>
+void interval_tree<T>::inorder(interval_node<T> *subtree_root, vector<interval<T>> &vec)
+{
+
+    if(subtree_root!=nullptr)
+    {
+        inorder(subtree_root->left, vec);
+        vec.push_back(*subtree_root->inter);
+        inorder(subtree_root->right,vec);
+    }
+}
 
 
 template <typename T>

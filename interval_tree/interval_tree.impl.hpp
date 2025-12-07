@@ -407,6 +407,24 @@ vector<interval<T>> interval_tree<T>::interval_search(interval<T> &inter)
     return result;
 }
 
+//..
+
+
+template <typename T>
+vector<interval<T>> interval_tree<T>::inorder()
+{
+    vector<interval<T>> to_return;
+    inorder(root, to_return);
+    return to_return;
+}
+
+template <typename T>
+interval_tree<T>::~interval_tree()
+{
+    if(root)
+        delete(root);
+}
+
 //comments
 
 // will add comments to make it clear what each piece of code represents.

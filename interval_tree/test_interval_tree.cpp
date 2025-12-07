@@ -36,8 +36,10 @@ void test_basic_ops() //testing basic operations
     //tree.insert(i6);
     // cout<< "Inserted 6 intervals"<<endl;
 
+    interval<int> query(14,16); //just testing. will delete these numbers soon
+    cout << "\n Interval Search for [14,16]:" <<endl;
+    //vector<interval<int>> result= tree.interval_search(query);
 
-    
 
 }
 
@@ -49,6 +51,8 @@ int main()
 {
     //need to test the operations.so new function for testing
     test_basic_ops();
+
+
     
     return 0;
 }

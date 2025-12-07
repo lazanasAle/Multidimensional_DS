@@ -13,7 +13,6 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
                 size_t vec_len;
                 if (file.read((char *)&vec_len, sizeof(size_t))) {
                         vec.resize(vec_len);
-                        std::cout<<"read: "<<vec_len<<" in: "<<off<<"\n";
                         for (size_t j = 0; j < vec_len; ++j)
                                 vec[j].read(file);
                         T inv;
@@ -30,7 +29,6 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         if (off >= 0) {
                 size_t vec_len = vec.size();
                 file.write((char *)&vec_len, sizeof(size_t));
-                std::cout<<"wrote: "<<vec_len<<" in: "<<off<<"\n";
                 for (size_t j = 0; j < vec_len; ++j)
                         vec[j].write(file);
                 T inv;
@@ -242,7 +240,6 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->make_point_rectangle = point_rectangle_fn;
         this->file = fstream("records.bin", ios::binary | ios::in | ios::out | ios::trunc);
         this->coffset = 0;
-        this->next_offset = 0;
         this->root_offset = INV_OFF;
 }
 
@@ -258,9 +255,7 @@ kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
                 bool t;
-                std::cout<<"before read tag is: "<<t<<"\n";
                 this->file.read((char *)&t, sizeof(bool));
-                std::cout<<"read tag in offset: "<<t<<", "<<node_offset<<"\n";
                 // here i cannot do it (read the common and then differentiate) it is unsafe
                 kd_bnode<T> *loaded;
                 if (!t) {
@@ -397,7 +392,6 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         //enlarge it
                         rnode->regions[min_idx].region_rec = enlargement[min_idx].second;
                         store_node(subtree_root_off, rnode);
-                        std::cout<<"this offset: "<<subtree_root_off<<" has a node with: "<<rnode->regions.size()<<"children\n";
                         delete(curr_node);
                         //now it's in here go to the child
                         return choose_leaf(data, rnode->regions[min_idx].child_offset);
@@ -453,8 +447,7 @@ void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitt
                 store_node(splitted_node->my_offset, splitted_node);
                 //find father offset
                 long end_offset = end_pos(this->file);
-                this->next_offset = (this->coffset != this->next_offset)? this->coffset : end_offset;
-                this->coffset = this->next_offset;
+                this->coffset = end_offset;
                 //put the father were you should
                 parent_node->my_offset = this->coffset;
                 store_node(this->coffset, parent_node);
@@ -468,9 +461,8 @@ void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitt
                 store_node(splitted_node->my_offset, splitted_node);
                 // make the parent new root
                 this->root_offset = this->coffset;
-                std::cout<<"root has: "<<parent_node->regions.size()<<" and offset is: "<<this->root_offset<<"\n";
                 //move the offset to the next position
-                this->coffset = this->next_offset = end_pos(this->file);
+                this->coffset = end_pos(this->file);
                 delete(parent_node);
         }
 
@@ -499,16 +491,23 @@ void kd_btree<T>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, reg
                                 return (res < 0);
                         });
                 splitted_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
+                //in its children change the father offset (to inform them for the change of the father)
+                for (region<T> &reg : par_node->regions) {
+                        kd_bnode<T> *current_chld = load_node(reg.child_offset);
+                        current_chld->parent_offset = neighbour->my_offset;
+                        store_node(current_chld->my_offset, current_chld);
+                        delete(current_chld);
+                }
 }
 
 template<typename T>
 
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
-        size_t splitted_off = this->next_offset;
+        size_t splitted_off = this->coffset;
         split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
         //find the new parent region after the splitting (for the new node)
         region<T> splitted_parent = make_parent_region(split_org_node);
-        splitted_parent.child_offset = splitted_off;
+        splitted_parent.child_offset = split_org_node->my_offset;
         //find the new parent region after the splitting (for the orignal node)
         region<T> org_parent = make_parent_region(org_node);
         //if there is no parent node we make one
@@ -520,12 +519,10 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
         else {
                 region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
                 if (par_node) {
-                        std::cout<<"par_node_region_cnt: "<<par_node->regions.size()<<"my offset: "<<par_node->my_offset<<"root offset: "<<this->root_offset<<"\n";
                         //since there is a parent node we must find the original's parent and update it
                         assign_new_region(par_node, org_parent.region_rec, org_node->my_offset);
                         //insert the new parent region found
                         par_node->regions.push_back(splitted_parent);
-                        std::cout<<"par_node_region_cnt: "<<par_node->regions.size()<<"my offset: "<<par_node->my_offset<<"root offset: "<<this->root_offset<<"\n";
                         store_node(split_org_node->my_offset, split_org_node);
                         //now deal with the father and maybe propagate the split
                         size_t vlen = par_node->regions.size();
@@ -561,7 +558,15 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
 template<typename T>
 
 void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
+        if (this->nitems >= 23) {
+                region_kd_bnode<T> *root = (region_kd_bnode<T> *) load_node(subtree_root_off);
+                std::cout<<root->regions.size()<<"is root's size\n";
+        }
         point_kd_bnode<T> *leaf = choose_leaf(data, subtree_root_off);
+        if (this->nitems >= 23) {
+                region_kd_bnode<T> *root = (region_kd_bnode<T> *) load_node(subtree_root_off);
+                std::cout<<root->regions.size()<<"is root's size after choosing leaf\n";
+        }
         leaf->points.push_back(data);
         store_node(leaf->my_offset, leaf);
         size_t vlen = leaf->points.size();
@@ -583,10 +588,10 @@ void kd_btree<T>::insert(T &data) {
                 point_kd_bnode<T> new_root(this->comparators, this->make_point_rectangle);
                 new_root.points.push_back(data);
                 update_node_level(&new_root);
-                new_root.my_offset = this->next_offset;
+                new_root.my_offset = this->coffset;
                 store_node(new_root.my_offset, &new_root);
                 this->root_offset = new_root.my_offset;
         }
         this->nitems++;
-        this->coffset = this->next_offset = end_pos(this->file);
+        this->coffset = end_pos(this->file);
 }

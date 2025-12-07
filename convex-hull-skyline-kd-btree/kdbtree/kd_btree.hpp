@@ -49,16 +49,6 @@ template<typename T>
 
 void read_rectangle(rectangle<T> &rect, fstream &file);
 
-enum max_min {
-        MAX,
-        MIN
-};
-
-enum tag: bool {
-        POINT,
-        REGION
-};
-
 template<typename T>
 
 class point {
@@ -103,7 +93,7 @@ public:
         size_t minimum_fill, maximum_fill, level, dim_len;
         long parent_offset, my_offset;
         cmp_vector<T> *comparators;
-        tag t;
+        bool tag;
 
         kd_bnode(cmp_vector<T> *cmp_vec);
         virtual kd_bnode<T> *split_node() = 0;
@@ -161,7 +151,7 @@ private:
 
 
         void insert_rec(T &data, long subtree_root_off);
-        void skyline_rec(vector<max_min> &best, vector<T> &vec, long subtree_root_off);
+        void skyline_rec(vector<bool> &best, vector<T> &vec, long subtree_root_off);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
 public:
         kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
@@ -169,7 +159,7 @@ public:
         void insert(T &data);
         vector<T> range_query(pair<T, T> &rect);
         void erase(T &data);
-        vector<T> skyline(vector<max_min> &best);
+        vector<T> skyline(vector<bool> &best);
         bool empty();
         size_t n_items() {return this->nitems;}
         ~kd_btree() {this->file.close();}

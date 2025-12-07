@@ -6,24 +6,26 @@
 #include <cstring>
 #include <fstream>
 #include <string>
-#include <chrono>
 #include <cstdint>
-#include <charconv>
 #include <algorithm>
 
 #define N 50
 
-using   std::string, std::chrono::year_month_day, std::chrono::sys_days,
-        std::chrono::days, std::min, std::strncpy, std::chrono::year,
-        std::chrono::month, std::chrono::day, std::fstream, std::format,
+using   std::string, std::fstream,
         std::int32_t, std::to_string;
 
 typedef char name[N];
 
+struct date_t {
+        size_t year;
+        uint8_t month;
+        uint8_t day;
+};
+
 struct movie {
         name title, org_lang, org_country,
                 genre_names, prod_comp_names;
-        year_month_day release_date;
+        date_t release_date;
         double budget, revenue, popularity, vote_avg;
         size_t id, runtime, vote_count;
         bool adult;
@@ -42,24 +44,18 @@ static inline double compare_vote_avg(const movie &a, const movie &b) {return (a
 static inline double compare_runtime(const movie &a, const movie &b) {return ((double)a.runtime - (double)b.runtime);}
 static inline double compare_vote_count(const movie &a, const movie &b) {return ((double)a.vote_count - (double)b.vote_count);}
 
-static inline double compare_release_dates(const movie &a, const movie &b) {
-        sys_days sd1 = a.release_date;
-        sys_days sd2 = b.release_date;
-        days diff = sd1 - sd2;
-        return diff.count();
-}
-
-
 static inline void copy_to_char_array(char *dest, const string &src) {
         strncpy(dest, src.c_str(), N);
 }
 
-static inline year_month_day parse_date(const string &s) {
-        int y, m, d;
-        if (sscanf(s.c_str(), "%d-%d-%d", &y, &m, &d)) {
-                return year_month_day{year{y}, month{(unsigned)m}, day{(unsigned)d}};
+static inline date_t parse_date(const string &s) {
+        size_t y;
+        uint8_t m, d;
+        date_t ret_date{2022, 10, 3};
+        if (sscanf(s.c_str(), "%ld-%hhd-%hhd", &y, &m, &d) == 3) {
+                return date_t{y, m, d};
         }
-        return year_month_day{};
+        return ret_date;
 }
 
 #endif /* _MOVIE_UTILS_HPP */

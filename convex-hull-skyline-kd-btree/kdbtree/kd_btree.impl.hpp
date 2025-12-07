@@ -130,7 +130,7 @@ template<typename T>
 
 point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
-        this->t = POINT;
+        this->tag = false;
         this->maximum_fill = BLC_LEN / sizeof(point<T>);
         this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->make_rectangle = make_rectangle_fn;
@@ -182,7 +182,7 @@ template<typename T>
 
 region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
-        this->t = REGION;
+        this->tag = true;
         this->maximum_fill = BLC_LEN / sizeof(region<T>);
         this->minimum_fill = (size_t) trunc(MIN_PERC * this->maximum_fill);
         this->make_rectangle = make_rectangle_fn;
@@ -257,26 +257,26 @@ template<typename T>
 kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
-                tag t;
-                this->file.read((char *)&t, sizeof(tag));
+                bool t;
+                std::cout<<"before read tag is: "<<t<<"\n";
+                this->file.read((char *)&t, sizeof(bool));
+                std::cout<<"read tag in offset: "<<t<<", "<<node_offset<<"\n";
                 // here i cannot do it (read the common and then differentiate) it is unsafe
                 kd_bnode<T> *loaded;
-                if (t == POINT) {
+                if (!t) {
                         point_kd_bnode<T> *loaded_point = new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
                         // read characteristics of node
                         loaded_point->read_common(this->file, node_offset);
                         read_vector<point<T>>(this->file, loaded_point->points, loaded_point->maximum_fill);
                         loaded = loaded_point;
                 }
-                else if (t == REGION){
+                else {
                         region_kd_bnode<T> *loaded_region = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
                         //read characteristics of node
                         loaded_region->read_common(this->file, node_offset);
                         read_vector<region<T>>(this->file, loaded_region->regions, loaded_region->maximum_fill);
                         loaded = loaded_region;
                 }
-                else
-                        return nullptr;
                 return loaded;
         }
         return nullptr;
@@ -289,11 +289,11 @@ bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
                 node->my_offset = node_offset;
                 //write the common fields
                 this->file.seekp(node_offset, ios::beg);
-                this->file.write((char *)&node->t, sizeof(tag));
+                this->file.write((char *)&node->tag, sizeof(bool));
                 this->file.write((char *)&node->parent_offset, sizeof(long));
                 this->file.write((char *)&node->level, sizeof(size_t));
                 //diferentiate
-                if (node->t == POINT) {
+                if (!node->tag) {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                         write_vector<point<T>>(this->file, pnode->points, pnode->maximum_fill);
                 }
@@ -326,7 +326,7 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *node = load_node(subtree_root_off);
                 if (node) {
-                        if (node->t == POINT) {
+                        if (!node->tag) {
                                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                                 for (auto &point : pnode->points) {
                                         if (into_rectangle<T>(rect, point, this->comparators))
@@ -360,7 +360,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *curr_node = load_node(subtree_root_off);
                 if (curr_node) {
-                        if (curr_node->t == POINT) {
+                        if (!curr_node->tag) {
                                 //it's a leaf you found it
                                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) curr_node;
                                 return pnode;
@@ -397,6 +397,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         //enlarge it
                         rnode->regions[min_idx].region_rec = enlargement[min_idx].second;
                         store_node(subtree_root_off, rnode);
+                        std::cout<<"this offset: "<<subtree_root_off<<" has a node with: "<<rnode->regions.size()<<"children\n";
                         delete(curr_node);
                         //now it's in here go to the child
                         return choose_leaf(data, rnode->regions[min_idx].child_offset);
@@ -409,7 +410,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
 template<typename T>
 region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
         rectangle<T> my_new_rect;
-        if (node->t == POINT) {
+        if (!node->tag) {
                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
                 //make the new vector of points
                 vector<T *> point_locs;

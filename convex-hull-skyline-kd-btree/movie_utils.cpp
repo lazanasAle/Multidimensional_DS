@@ -8,30 +8,30 @@ movie::movie() {
         strcpy(this->genre_names, "UN");
         strcpy(this->prod_comp_names, "UN");
 
-        this->release_date = year_month_day{year{2022}, month{10}, day{3}};
+        this->release_date = date_t{2022, 10, 3};
         this->adult = true;
 
         this->budget = this->revenue = this->popularity = this->vote_avg = -1;
         this->id = this->runtime = this->vote_count = 0;
 }
 
-void read_date(fstream &file, year_month_day &ymd) {
-        int32_t y;
+void read_date(fstream &file, date_t &ymd) {
+        size_t y;
         uint8_t m, d;
 
-        file.read((char *)&y, sizeof(int32_t));
+        file.read((char *)&y, sizeof(size_t));
         file.read((char *)&m, sizeof(uint8_t));
         file.read((char *)&d, sizeof(uint8_t));
 
-        ymd = year_month_day{year{y}, month{m}, day{d}};
+        ymd = date_t{y, m, d};
 }
 
-void write_date(fstream &file, year_month_day &ymd) {
-        int32_t y = (int) ymd.year();
-        uint8_t m = (unsigned) unsigned(ymd.month());
-        uint8_t d = (unsigned) unsigned(ymd.day());
+void write_date(fstream &file, date_t &ymd) {
+        size_t y = ymd.year;
+        uint8_t m = ymd.month;
+        uint8_t d = ymd.day;
 
-        file.write((char *)&y, sizeof(int32_t));
+        file.write((char *)&y, sizeof(size_t));
         file.write((char *)&m, sizeof(uint8_t));
         file.write((char *)&d, sizeof(uint8_t));
 }

@@ -13,7 +13,7 @@ int main() {
         movie mv;
         mv.id = 195554; strcpy(mv.title, "Panorama of Galveston Power House");
         mv.adult = false; strcpy(mv.org_lang, "en");
-        strcpy(mv.org_country, "['US']"); mv.release_date = year_month_day{year{1900}, month{5}, day{21}};
+        strcpy(mv.org_country, "['US']"); mv.release_date = date_t{1900, 5, 21};
         strcpy(mv.genre_names, "[]"); strcpy(mv.prod_comp_names, "[]");
         mv.budget = 1486.88423469876; mv.revenue = 1605.98597870523; mv.runtime = 2;
         mv.popularity = 3.4255; mv.vote_avg = 6.1; mv.vote_count = 55;

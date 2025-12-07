@@ -68,22 +68,31 @@ class interval_node_iterator //this is a useful class for traversing the interva
         interval<T> *context(); //get the interval at the current position
 
         interval_node_iterator<T> next(); //move to the next node - inorder traversal
-        interval_node_iterator<T> prev(); // same as above but previous node
+        interval_node_iterator<T> previous(); // same as above but previous node
 };
 
 template <typename T>
 class interval_tree
 {
+    private:
+        interval_node<T> *root; //pointer to root node of the 3
+        function<int (T &, T &)>comparator; //compare function for ordering intervals
+        interval_node<T> *&search(interval<T> &inter, interval_node<T> *&subtree_root); //searching for an interval in subtree
+        void avl_balance(interval_node<T> *&node); //balance the tree using AVL rotations
+        void add_node(interval_node<T> *&new_node,interval_node<T> *&subtree_root); //adding new node to the subtree
+        //..
+        interval_node<T> *max_node(interval_node<T> *&subtree_root); //find a node with max interval in the subtree
+        interval_node<T> *min_node(interval_node<T> *&subtree_root); // find a node with min interval in the subtree
+
+        void update_max_end_up(interval_node<T> *node); //update max_end from node to root
     public:
+        interval_tree(function<int (T &, T &)> cmp); //constructor with compare function
+        bool empty();
         void insert(interval<T> &inter); //insert an interval into the tree
         void erase(interval<T> &inter);
     ~interval_tree(); //destructor to clean the tree memory
 
 };
-
-
-
-// we will for sure need a class for interval_node and one for iteration
 
 // Run it as:
 //g++ -std=c++17 test_interval_tree.cpp -o interval_test

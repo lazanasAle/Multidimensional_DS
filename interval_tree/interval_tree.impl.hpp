@@ -280,7 +280,7 @@ void interval_tree<T>::avl_balance(interval_node<T> *&node)
         if(node->left && node->left->balance_factor()<0)
             node->left_right_rotation();
         else
-            node->right_rotation;
+            node->right_rotation();
     }
     else if(node->balance_factor()<-1)
     {
@@ -339,7 +339,7 @@ void interval_tree<T>::remove_node(interval<T> &inter, interval_node<T> *&sub_ro
 {
     if(sub_root)
     {
-        if(comparatow(inter.low, sub_root->inter->low)<0)
+        if(comparator(inter.low, sub_root->inter->low)<0)
             remove_node(inter,sub_root->left);
         else if(comparator(inter.low, sub_root->inter->low) >0)
             remove_node(inter, sub_root->right);

@@ -14,7 +14,6 @@ int int_compare(int &a, int &b)
     if(a<b) return -1;
     if(a>b) return 1;
     return 0;
-
 }
 
 //Will import data from Stamatia's synthetic dataset
@@ -61,7 +60,7 @@ vector<interval<int>> load_intervals_from_csv(const string &filename)
     }
 
     file.close();
-    cout<< "Successfully loaded "<< intervals.size()<< "intervals from " << filename<<endl;
+    cout<< "Successfully loaded "<< intervals.size()<< " intervals from " << filename<<endl;
 
     return intervals;
 }
@@ -97,7 +96,6 @@ void test_basic_ops() //testing basic operations
     for(const auto &inter: result)
     {
         cout<< "["<< inter.low<< ", "<< inter.high<< "]"<< endl;
-
     }
 
     //stabbing query testing
@@ -113,7 +111,7 @@ void test_basic_ops() //testing basic operations
 
 void test_csv()
 {
-    cout << "\n *** CSV Import Test ***" <<endl;
+    cout << "\n *** CSV imported data Testing ***" <<endl;
     
     //loading intervals from the CSV file
     //The data is synthetically created using a python script
@@ -129,7 +127,56 @@ void test_csv()
         return;
     }
 
+    //Building an Interval Tree
+    interval_tree<int> tree(int_compare);
 
+    auto start_build= chrono::high_resolution_clock::now();
+    for (auto &inter: intervals)
+    {
+        tree.insert(inter);
+    }
+
+    auto end_build=chrono::high_resolution_clock::now();
+    auto build_time=chrono:: duration_cast<chrono::milliseconds>(end_build-start_build);
+
+    cout<< "Built the Interval Tree with "<< intervals.size()<< " intervals"<<endl;
+    cout<< "Build Time: "<< build_time.count() << " ms"<<endl;
+
+    interval<int> query(50,100);
+    cout<< "\nInterval Search for [50,100]:" <<endl;
+
+    auto start_search=chrono::high_resolution_clock::now();
+    vector<interval<int>> result= tree.interval_search(query);
+    auto end_search= chrono::high_resolution_clock::now();
+    auto search_time= chrono::duration_cast<chrono::microseconds>(end_search-start_search);
+
+    cout<< "Found "<< result.size()<< " over-lapping intervals" <<endl;
+    cout<< "Search Time: " << search_time.count()<< " μs"<< endl;
+
+    cout<< "First 10 results: "<<endl;
+    for(size_t i=0; i<min(result.size(), size_t(10)); ++i)
+    {
+        cout<< "[" <<result[i].low<< "," << result[i].high<< "]" <<endl;
+    }
+
+    //Testing the stabbing query
+    int point=75;  //may change it
+    cout<< "\nStabbing Query for point "<<point << ":"<< endl;
+
+    auto start_stabbing_query= chrono::high_resolution_clock::now();
+    vector<interval<int>> stab_result= tree.stabbing_query(point);
+    
+    auto end_stabbing_query= chrono:: high_resolution_clock::now();
+    auto stab_time=chrono::duration_cast< chrono::microseconds>(end_stabbing_query-start_stabbing_query);
+
+    cout<< "Found " << stab_result.size()<< " intervals containing point: "<< point<< endl;
+    cout<< "Stabbing query time: " << stab_time.count()<< " μs"<< endl;
+
+    cout<< "First 10 results:"<< endl;
+    for(size_t i=0; i< min(stab_result.size(), size_t(10)); ++i)
+    {
+        cout << "[" << stab_result[i].low << ", " << stab_result[i].high<<"]"<< endl;
+    }
 
 }
 
@@ -154,13 +201,38 @@ void performance_test()
     for(auto &inter : intervals)
     {
         tree.insert(inter);
-
     }
     
     auto end= chrono::high_resolution_clock::now();
     auto duration= chrono::duration_cast<chrono::milliseconds>(end-start);
 
-    //cout..
+    cout << "Inserted " << intervals.size()<< " intervals"<< endl;
+    cout << "Total Time: "<< duration.count()<< " ms" <<endl; 
+    cout << "Average per insertion: " << (double)duration.count()/ intervals.size()<< " ms" <<endl;
+
+    //perform multiple searches
+    cout<< "\n Search Performance (100 queries):" <<endl;
+    int num_queries=100;
+    long total_results=0;
+
+    start= chrono::high_resolution_clock::now();
+
+    for(int i=0; i<num_queries; ++i)
+    {
+        int low=rand()%150; //
+        int high =low+ (rand()%50);
+        interval<int> query(low,high);
+        vector<interval<int>> result= tree.interval_search(query);
+        total_results+= result.size();
+    }
+
+    end=chrono::high_resolution_clock::now();
+    duration= chrono::duration_cast<chrono::milliseconds>(end-start);
+
+    cout << "Total Queries: " << num_queries<< endl;
+    cout<< "Total Time: "<< duration.count()<< " ms"<< endl;
+    cout<< "Average per query: " << (double)duration.count()/ num_queries<< " ms"<< endl;
+    cout<< "Average Results per Query: " <<(double)total_results/ num_queries<< endl;
 
 }
 
@@ -172,7 +244,7 @@ int main()
     //Now testing the operations with the synthetic data from CSV
     test_csv();
 
-    //performance_test();
+    performance_test();
     
     return 0;
 }

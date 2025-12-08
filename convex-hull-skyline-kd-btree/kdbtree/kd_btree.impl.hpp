@@ -16,7 +16,7 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
                         for (size_t j = 0; j < vec_len; ++j)
                                 vec[j].read(file);
                         T inv;
-                        for (size_t j = vec_len; j < it_in_blc; ++j)
+                        for (size_t j = vec_len; j < it_in_blc + 1; ++j)
                                 inv.read(file);
                 }
         }
@@ -28,11 +28,13 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         long off = file.tellp();
         if (off >= 0) {
                 size_t vec_len = vec.size();
+                if (vec_len > it_in_blc + 1)
+                        std::cout<<"It is bigger: "<<vec_len<<" should be <= "<<it_in_blc + 1;
                 file.write((char *)&vec_len, sizeof(size_t));
                 for (size_t j = 0; j < vec_len; ++j)
                         vec[j].write(file);
                 T inv;
-                for (size_t j = vec_len; j < it_in_blc; ++j)
+                for (size_t j = vec_len; j < it_in_blc + 1; ++j)
                         inv.write(file);
         }
 }
@@ -558,15 +560,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
 template<typename T>
 
 void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
-        if (this->nitems >= 23) {
-                region_kd_bnode<T> *root = (region_kd_bnode<T> *) load_node(subtree_root_off);
-                std::cout<<root->regions.size()<<"is root's size\n";
-        }
         point_kd_bnode<T> *leaf = choose_leaf(data, subtree_root_off);
-        if (this->nitems >= 23) {
-                region_kd_bnode<T> *root = (region_kd_bnode<T> *) load_node(subtree_root_off);
-                std::cout<<root->regions.size()<<"is root's size after choosing leaf\n";
-        }
         leaf->points.push_back(data);
         store_node(leaf->my_offset, leaf);
         size_t vlen = leaf->points.size();
@@ -575,7 +569,7 @@ void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
                 store_node(leaf->my_offset, leaf);
                 propagate_split(leaf, neighbour);
         }
-        //delete(leaf);
+        delete(leaf);
 }
 
 

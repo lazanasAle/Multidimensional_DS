@@ -28,8 +28,6 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         long off = file.tellp();
         if (off >= 0) {
                 size_t vec_len = vec.size();
-                if (vec_len > it_in_blc + 1)
-                        std::cout<<"It is bigger: "<<vec_len<<" should be <= "<<it_in_blc + 1;
                 file.write((char *)&vec_len, sizeof(size_t));
                 for (size_t j = 0; j < vec_len; ++j)
                         vec[j].write(file);

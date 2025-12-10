@@ -1,51 +1,32 @@
 #include "ConvexHull.hpp"
 
 
-int main(){
-    //Read csv and get the columns you need-->working
-        string filename="data_movies_clean.csv";
+int main() {
+        //Read csv and get the columns you need-->working
+        string filename="../data_movies_clean.csv";
         vector<movie_point> points;
-        points=read_csv(filename);
+        points = read_csv(filename);
+        points = polar_sorting(points);
 
-        points=polar_sorting(points);
-
-        //print the polar points
-        cout<<"Polar sorting"<<endl;
-        for(size_t i=0;i<points.size();i++){
-            cout << "X: " << points[i].budget << ", Y: " << points[i].popularity << std::endl;
-        }
-        cout << endl;
-
-        cout<<"Convex_hull"<<endl;
-        vector<movie_point> S;
-        S=Create_Convex_hull(points);
+        cout<<"Convex_hull\n";
+        vector<movie_point> conv_set = Create_Convex_hull(points);
 
         //print the convex hull
-        for (auto it = S.begin(); it != S.end(); ++it) {
-                cout << "X: " << it->budget << ", Y: " << it->popularity << std::endl;
-        }
-        cout << endl;
+        for (auto it = conv_set.begin(); it != conv_set.end(); ++it)
+                cout<<"X: "<<it->budget<<", Y: "<<it->popularity<<"\n";
+        cout<<"\n";
 
         //export data to visualize its for testing only
         ofstream file("export_data.csv");
 
-            if (!file.is_open()) {
-                cerr << "Failed to open file.\n";
+        if (!file.is_open()) {
+                cerr<<"Failed to open file.\n";
                 return 1;
-            }
+        }
+        file<<"budget,popularity\n";
 
-
-            file << "budget,popularity\n";
-
-
-            for (const auto& row : S) {
-                file << row.budget << ","
-                     << row.popularity << "\n";
-            }
-
-            file.close();
-            cout << "CSV exported successfully!\n";
-
-
-
+        for (const auto& row : conv_set)
+                file<< row.budget << ","<< row.popularity << "\n";
+        file.close();
+        cout<<"CSV exported successfully!\n";
 }

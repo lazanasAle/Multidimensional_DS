@@ -1,8 +1,9 @@
 #include "movies_kd_btree.hpp"
 #include "kd_btree.hpp"
 #include <cstdint>
+#include <thread>
 
-
+using std::thread;
 
 cmp_vector<movie> movie_comp = {
         compare_budget, compare_revenue, compare_runtime,
@@ -149,10 +150,18 @@ rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
 }
 
 
-void read_csv(kd_btree<movie> &movies_kdb) {
+void read_csv(kd_btree<movie> &movies_kdb, size_t num_threads) {
         rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
         size_t row_len = movies_csv.GetRowCount();
 
+        size_t each_th_chunk = row_len / num_threads;
+        size_t main_th_chunk = each_th_chunk + row_len % num_threads;
+
+
+
+}
+
+void per_thread_insert(kd_btree<movie> &movies_kdb, size_t my_len, rapidcsv::Document &movies_csv) {
         vector<string> int_columns = {"id", "runtime", "vote_count"};
         vector<size_t movie:: *> int_fields = {&movie::id, &movie::runtime, &movie::vote_count};
 
@@ -162,7 +171,7 @@ void read_csv(kd_btree<movie> &movies_kdb) {
         vector<string> str_columns = {"title", "original_language", "origin_country", "genre_names", "production_company_names"};
         vector<name movie:: *> str_fields = {&movie::title, &movie::org_lang, &movie::org_country, &movie::genre_names, &movie::prod_comp_names};
 
-        for (size_t j = 0; j < row_len; ++j) {
+        for (size_t j = 0; j < my_len; ++j) {
                 movie m;
                 //integer fields
                 size_t int_f_c = int_fields.size();

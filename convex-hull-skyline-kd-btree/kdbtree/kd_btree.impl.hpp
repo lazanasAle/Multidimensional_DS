@@ -1,4 +1,5 @@
 
+#include "kd_btree.hpp"
 static long end_pos(fstream &file) {
         file.seekp(0, ios::end);
         long end_p = file.tellp();
@@ -393,7 +394,9 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         rnode->regions[min_idx].region_rec = enlargement[min_idx].second;
                         store_node(subtree_root_off, rnode);
                         //now it's in here go to the child
-                        return choose_leaf(data, rnode->regions[min_idx].child_offset);
+                        point_kd_bnode<T> *leaf = choose_leaf(data, rnode->regions[min_idx].child_offset);
+                        delete(curr_node);
+                        return leaf;
                 }
                 return nullptr;
         }

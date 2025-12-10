@@ -12,8 +12,6 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         if (off >= 0) {
                 size_t vec_len;
                 if (file.read((char *)&vec_len, sizeof(size_t))) {
-                        if (vec_len > it_in_blc + 1)
-                                std::cout<<"read big: "<<vec_len<<" in: "<<off<<"\n";
                         vec.resize(vec_len);
                         for (size_t j = 0; j < vec_len; ++j)
                                 vec[j].read(file);
@@ -274,10 +272,6 @@ kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
                         read_vector<region<T>>(this->file, loaded_region->regions, loaded_region->maximum_fill);
                         loaded = loaded_region;
                 }
-                if (this->nitems >= 72) {
-                        long end_off = this->file.tellg();
-                        std::cout<<"reading began: "<<node_offset<<"ended: "<<end_off<<"\n";
-                }
                 return loaded;
         }
         return nullptr;
@@ -301,10 +295,6 @@ bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
                         write_vector<region<T>>(this->file, rnode->regions, rnode->maximum_fill);
-                }
-                if (this->nitems >= 72) {
-                        long end_off = this->file.tellg();
-                        std::cout<<"writing began: "<<node_offset<<"ended: "<<end_off<<"\n";
                 }
                 return true;
         }
@@ -402,7 +392,6 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
                         //enlarge it
                         rnode->regions[min_idx].region_rec = enlargement[min_idx].second;
                         store_node(subtree_root_off, rnode);
-                        delete(curr_node);
                         //now it's in here go to the child
                         return choose_leaf(data, rnode->regions[min_idx].child_offset);
                 }

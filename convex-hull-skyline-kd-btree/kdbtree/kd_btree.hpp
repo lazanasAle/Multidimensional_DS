@@ -11,7 +11,7 @@
 #include <vector>
 #include <tuple>
 #include <cmath>
-#include <iostream>
+#include <stack>
 #include <cstring>
 #include <ios>
 
@@ -23,7 +23,7 @@
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::binary_search, std::strncpy, std::find;
+        std::binary_search, std::strncpy, std::find, std::stack;
 
 template<typename T>
 
@@ -133,6 +133,9 @@ private:
         fstream file;
         long coffset, next_offset, root_offset;
         size_t nitems;
+
+        // for delete tommorrow
+        stack<pair<long, bool>> off_stack;
 
         kd_bnode<T> *load_node(long node_offset);
         void update_node_level(kd_bnode<T> *node);

@@ -230,9 +230,9 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
 
 //kd-btree functions
 
-template <typename T>
+template <typename T, typename C>
 
-kd_btree<T>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
+kd_btree<T, C>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
 function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->nitems = 0;
         this->comparators = cmp_vec;
@@ -243,15 +243,15 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->root_offset = INV_OFF;
 }
 
-template <typename T>
+template <typename T, typename C>
 
-bool kd_btree<T>::empty() {
+bool kd_btree<T, C>::empty() {
         return (this->root_offset <= INV_OFF);
 }
 
-template <typename T>
+template <typename T, typename C>
 
-kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
+kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
                 bool t;
@@ -277,9 +277,9 @@ kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
         return nullptr;
 }
 
-template <typename T>
+template <typename T, typename C>
 
-bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
+bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
         if (this->file.is_open() && node_offset >= 0) {
                 node->my_offset = node_offset;
                 //write the common fields
@@ -301,9 +301,9 @@ bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
         return false;
 }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
+void kd_btree<T, C>::update_node_level(kd_bnode<T> *node) {
         if (node->parent_offset >= 0) {
                 kd_bnode<T> *parent = load_node(node->parent_offset);
                 if (parent) {
@@ -315,9 +315,9 @@ void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
         node->level = 0;
 }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off) {
+void kd_btree<T, C>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off) {
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *node = load_node(subtree_root_off);
                 if (node) {
@@ -341,17 +341,17 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
         }
 }
 
-template <typename T>
+template <typename T, typename C>
 
-vector<T> kd_btree<T>::range_query(pair<T, T> &rect) {
+vector<T> kd_btree<T, C>::range_query(pair<T, T> &rect) {
         vector<T> vec;
         range_query_rec(rect, vec, root_offset);
         return vec;
 }
 
-template <typename T>
+template <typename T, typename C>
 
-point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
+point_kd_bnode<T> *kd_btree<T, C>::choose_leaf(T &data, long subtree_root_off) {
         if (subtree_root_off >= 0) {
                 kd_bnode<T> *curr_node = load_node(subtree_root_off);
                 if (curr_node) {
@@ -402,8 +402,9 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
         return nullptr;
 }
 
-template <typename T>
-region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
+template <typename T, typename C>
+
+region<T> kd_btree<T, C>::make_parent_region(kd_bnode<T> *node) {
         rectangle<T> my_new_rect;
         if (!node->tag) {
                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
@@ -425,9 +426,9 @@ region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
         return splitted_parent;
 }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
+void kd_btree<T, C>::update_chld_levels(region_kd_bnode<T> *node) {
         for (region<T> &reg : node->regions) {
                 kd_bnode<T> *chld_node = load_node(reg.child_offset);
                 if (chld_node) {
@@ -438,9 +439,9 @@ void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
         }
 }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitted_par,
+void kd_btree<T, C>::make_and_store_parent(region<T> &org_parent, region<T> &splitted_par,
         kd_bnode<T> *org_node, kd_bnode<T> *splitted_node) {
                 region_kd_bnode<T> *parent_node = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
                 parent_node->regions.push_back(org_parent);
@@ -467,9 +468,9 @@ void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitt
                 delete(parent_node);
         }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &new_region_rect, long searching_off) {
+void kd_btree<T, C>::assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &new_region_rect, long searching_off) {
         for (region<T> &r : par_node->regions) {
                 if (r.child_offset == searching_off)
                         r.region_rec = new_region_rect;
@@ -478,9 +479,9 @@ void kd_btree<T>::assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &
         store_node(par_node->my_offset, par_node);
 }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
+void kd_btree<T, C>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
         size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node) {
                 this->coffset = end_pos(this->file);
                 neighbour->my_offset = this->coffset;
@@ -501,9 +502,9 @@ void kd_btree<T>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, reg
                 }
 }
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
+void kd_btree<T, C>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
         size_t splitted_off = this->coffset;
         split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
         //find the new parent region after the splitting (for the new node)
@@ -556,9 +557,9 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
 }
 
 
-template <typename T>
+template <typename T, typename C>
 
-void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
+void kd_btree<T, C>::insert_rec(T &data, long subtree_root_off) {
         point_kd_bnode<T> *leaf = choose_leaf(data, subtree_root_off);
         leaf->points.push_back(data);
         store_node(leaf->my_offset, leaf);
@@ -571,10 +572,9 @@ void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
         delete(leaf);
 }
 
+template <typename T, typename C>
 
-template <typename T>
-
-void kd_btree<T>::insert(T &data) {
+void kd_btree<T, C>::insert(T &data) {
         if (this->root_offset >= 0)
                 insert_rec(data, this->root_offset);
         else {
@@ -637,4 +637,63 @@ bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best
                         dom_count++;
         }
         return (dom_count >= cmp_len);
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p) {
+        for (T &q_t : skyline_set) {
+                point<T> q(q_t);
+                if (dominates<T>(p, q, this->comparators, best)) {
+                        // p is out of the current skyline but dominates q which is inside it fix that
+                        skyline_set.erase(q_t);
+                        skyline_set.insert(p.location);
+                }
+                else if (!dominates<T>(q, p, this->comparators, best))
+                        skyline_set.insert(p.location);
+        }
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r) {
+        for (region<T> &q : skyline_regs) {
+                if (dominates<T>(r, q, this->comparators, best)) {
+                        skyline_regs.erase(q);
+                        skyline_regs.insert(r);
+                }
+                else if (!dominates<T>(q, r, this->comparators, best))
+                        skyline_regs.insert(r);
+        }
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, long subtree_root_off) {
+        kd_bnode<T> *node = load_node(subtree_root_off);
+        if (!node->tag) {
+                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                if (skyline_set.empty())
+                        skyline_set.insert(pnode->points[0].location);
+                for (point<T> &p : pnode->points)
+                        skyline_update(best, skyline_set, p);
+        }
+        else {
+                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                set<region<T>, region_comp<T>> skyline_regs;
+                skyline_regs.insert(rnode->regions[0]);
+                for (region<T> &r : rnode->regions)
+                        skyline_region_update(best, skyline_regs, r);
+                for (region<T> &f : skyline_regs)
+                        skyline_rec(best, skyline_set, f.child_offset);
+        }
+        delete(node);
+}
+
+template <typename T, typename C>
+
+set<T, C> kd_btree<T, C>::skyline(vector<best_t> &best) {
+        set<T, C> skyline_set;
+        skyline_rec(best, skyline_set, this->root_offset);
+        return skyline_set;
 }

@@ -5,7 +5,7 @@ using namespace std;
 extern cmp_vector<movie> movie_comp;
 
 int main(int argc, char *argv[]) {
-        kd_btree<movie> movies_kdb(&movie_comp, make_movie_region_rectangle,
+        kd_btree<movie, movie_compare> movies_kdb(&movie_comp, make_movie_region_rectangle,
                 make_movie_point_rectangle);
         size_t num_threads = 12;
         if (argc > 1)

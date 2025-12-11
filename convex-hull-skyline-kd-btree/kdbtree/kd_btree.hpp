@@ -9,6 +9,7 @@
 #include <string>
 #include <random>
 #include <vector>
+#include <set>
 #include <tuple>
 #include <cmath>
 #include <stack>
@@ -23,7 +24,7 @@
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::binary_search, std::strncpy, std::find, std::stack;
+        std::binary_search, std::strncpy, std::find, std::stack, std::set;
 
 
 enum best_t: bool {MINIMIZE, MAXIMIZE};
@@ -91,6 +92,14 @@ public:
 
 template <typename T>
 
+struct region_comp {
+        bool operator ()(const region<T> &r1, const region<T> &r2) const {
+                return (r1.child_offset < r2.child_offset);
+        }
+};
+
+template <typename T>
+
 bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
 
 template <typename T>
@@ -134,7 +143,7 @@ public:
         kd_bnode<T> *split_node() override;
 };
 
-template <typename T>
+template <typename T, typename C>
 
 class kd_btree {
 private:
@@ -163,8 +172,11 @@ private:
         void store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
                 size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node);
 
+        void skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p);
+        void skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r);
+
         void insert_rec(T &data, long subtree_root_off);
-        void skyline_rec(vector<best_t> &best, vector<T> &vec, long subtree_root_off);
+        void skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, long subtree_root_off);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
 public:
         kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
@@ -172,7 +184,7 @@ public:
         void insert(T &data);
         vector<T> range_query(pair<T, T> &rect);
         void erase(T &data);
-        vector<T> skyline(vector<best_t> &best);
+        set<T, C> skyline(vector<best_t> &best);
         bool empty();
         size_t n_items() {return this->nitems;}
         ~kd_btree() {this->file.close();}

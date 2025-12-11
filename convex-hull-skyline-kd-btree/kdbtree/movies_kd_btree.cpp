@@ -155,7 +155,7 @@ rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
         return make_tuple(minimum, median, maximum);
 }
 
-void internal_insert(kd_btree<movie> &movies_kdb, size_t my_low, size_t my_high, rapidcsv::Document &movies_csv) {
+void internal_insert(kd_btree<movie, movie_compare> &movies_kdb, size_t my_low, size_t my_high, rapidcsv::Document &movies_csv) {
         vector<string> int_columns = {"id", "runtime", "vote_count"};
         vector<size_t movie:: *> int_fields = {&movie::id, &movie::runtime, &movie::vote_count};
 
@@ -195,7 +195,7 @@ void internal_insert(kd_btree<movie> &movies_kdb, size_t my_low, size_t my_high,
 
 
 
-void read_csv(kd_btree<movie> &movies_kdb, size_t num_threads) {
+void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_threads) {
         rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
         size_t row_len =movies_csv.GetRowCount();
         //for presentation if its done on stamys computer it has to be

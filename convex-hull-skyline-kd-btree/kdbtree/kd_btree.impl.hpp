@@ -5,7 +5,7 @@ static long end_pos(fstream &file) {
         return end_p;
 }
 
-template<typename T>
+template <typename T>
 
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         long off = file.tellg();
@@ -22,7 +22,7 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         }
 }
 
-template<typename T>
+template <typename T>
 
 void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         long off = file.tellp();
@@ -37,7 +37,7 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         }
 }
 
-template<typename T>
+template <typename T>
 
 void read_rectangle(rectangle<T> &rect, fstream &file) {
         get<0>(rect).read(file);
@@ -45,7 +45,7 @@ void read_rectangle(rectangle<T> &rect, fstream &file) {
         get<2>(rect).read(file);
 }
 
-template<typename T>
+template <typename T>
 
 void write_rectangle(rectangle<T> &rect, fstream &file) {
         get<0>(rect).write(file);
@@ -54,7 +54,7 @@ void write_rectangle(rectangle<T> &rect, fstream &file) {
 }
 
 
-template<typename T>
+template <typename T>
 
 double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec) {
         T lower = get<0>(r);
@@ -67,46 +67,46 @@ double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec) {
         return area;
 }
 
-template<typename T>
+template <typename T>
 
 point<T>::point(T p) {
         this->location = p;
 }
 
-template<typename T>
+template <typename T>
 
 void point<T>::read(fstream &file) {
         location.read(file);
 }
 
-template<typename T>
+template <typename T>
 
 void point<T>::write(fstream &file) {
         location.write(file);
 }
 
-template<typename T>
+template <typename T>
 
 region<T>::region(rectangle<T> reg) {
         this->region_rec = reg;
         this->child_offset = INV_OFF;
 }
 
-template<typename T>
+template <typename T>
 
 void region<T>::read(fstream &file) {
         file.read((char *)&this->child_offset, sizeof(long));
         read_rectangle(this->region_rec, file);
 }
 
-template<typename T>
+template <typename T>
 
 void region<T>::write(fstream &file) {
         file.write((char *)&this->child_offset, sizeof(long));
         write_rectangle(this->region_rec, file);
 }
 
-template<typename T>
+template <typename T>
 
 kd_bnode<T>::kd_bnode(cmp_vector<T> *cmp_vec) {
         this->level = 0;
@@ -115,7 +115,7 @@ kd_bnode<T>::kd_bnode(cmp_vector<T> *cmp_vec) {
         this->parent_offset = this->my_offset = INV_OFF;
 }
 
-template<typename T>
+template <typename T>
 
 void kd_bnode<T>::read_common(fstream &file, long node_offset) {
         file.read((char *)&this->parent_offset, sizeof(long));
@@ -124,7 +124,7 @@ void kd_bnode<T>::read_common(fstream &file, long node_offset) {
 }
 // point node functions
 
-template<typename T>
+template <typename T>
 
 point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
@@ -134,7 +134,7 @@ kd_bnode<T>(cmp_vec) {
         this->make_rectangle = make_rectangle_fn;
 }
 
-template<typename T>
+template <typename T>
 
 kd_bnode<T> *point_kd_bnode<T>::split_node() {
         //sort entries in the dimension of interest
@@ -159,7 +159,7 @@ kd_bnode<T> *point_kd_bnode<T>::split_node() {
         return new_node;
 }
 
-template<typename T>
+template <typename T>
 
 bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec) {
         size_t smaller = 0, bigger = 0;
@@ -176,7 +176,7 @@ bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec) {
 
 // region node functions
 
-template<typename T>
+template <typename T>
 
 region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn):
 kd_bnode<T>(cmp_vec) {
@@ -186,7 +186,7 @@ kd_bnode<T>(cmp_vec) {
         this->make_rectangle = make_rectangle_fn;
 }
 
-template<typename T>
+template <typename T>
 
 kd_bnode<T> *region_kd_bnode<T>::split_node() {
         //sort entries in the dimension of interest
@@ -212,7 +212,7 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
 }
 
 
-template<typename T>
+template <typename T>
 
 bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
         rectangle<T> my_rect = reg.region_rec;
@@ -230,7 +230,7 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
 
 //kd-btree functions
 
-template<typename T>
+template <typename T>
 
 kd_btree<T>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
 function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
@@ -243,13 +243,13 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->root_offset = INV_OFF;
 }
 
-template<typename T>
+template <typename T>
 
 bool kd_btree<T>::empty() {
         return (this->root_offset <= INV_OFF);
 }
 
-template<typename T>
+template <typename T>
 
 kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
@@ -277,7 +277,7 @@ kd_bnode<T> *kd_btree<T>::load_node(long node_offset) {
         return nullptr;
 }
 
-template<typename T>
+template <typename T>
 
 bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
         if (this->file.is_open() && node_offset >= 0) {
@@ -301,7 +301,7 @@ bool kd_btree<T>::store_node(long node_offset, kd_bnode<T> *node) {
         return false;
 }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
         if (node->parent_offset >= 0) {
@@ -315,7 +315,7 @@ void kd_btree<T>::update_node_level(kd_bnode<T> *node) {
         node->level = 0;
 }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off) {
         if (subtree_root_off >= 0) {
@@ -341,7 +341,7 @@ void kd_btree<T>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree
         }
 }
 
-template<typename T>
+template <typename T>
 
 vector<T> kd_btree<T>::range_query(pair<T, T> &rect) {
         vector<T> vec;
@@ -349,7 +349,7 @@ vector<T> kd_btree<T>::range_query(pair<T, T> &rect) {
         return vec;
 }
 
-template<typename T>
+template <typename T>
 
 point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
         if (subtree_root_off >= 0) {
@@ -402,7 +402,7 @@ point_kd_bnode<T> *kd_btree<T>::choose_leaf(T &data, long subtree_root_off) {
         return nullptr;
 }
 
-template<typename T>
+template <typename T>
 region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
         rectangle<T> my_new_rect;
         if (!node->tag) {
@@ -425,7 +425,7 @@ region<T> kd_btree<T>::make_parent_region(kd_bnode<T> *node) {
         return splitted_parent;
 }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
         for (region<T> &reg : node->regions) {
@@ -438,7 +438,7 @@ void kd_btree<T>::update_chld_levels(region_kd_bnode<T> *node) {
         }
 }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitted_par,
         kd_bnode<T> *org_node, kd_bnode<T> *splitted_node) {
@@ -467,7 +467,7 @@ void kd_btree<T>::make_and_store_parent(region<T> &org_parent, region<T> &splitt
                 delete(parent_node);
         }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &new_region_rect, long searching_off) {
         for (region<T> &r : par_node->regions) {
@@ -478,7 +478,7 @@ void kd_btree<T>::assign_new_region(region_kd_bnode<T> *par_node, rectangle<T> &
         store_node(par_node->my_offset, par_node);
 }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
         size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node) {
@@ -501,7 +501,7 @@ void kd_btree<T>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, reg
                 }
 }
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
         size_t splitted_off = this->coffset;
@@ -556,7 +556,7 @@ void kd_btree<T>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_
 }
 
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
         point_kd_bnode<T> *leaf = choose_leaf(data, subtree_root_off);
@@ -572,7 +572,7 @@ void kd_btree<T>::insert_rec(T &data, long subtree_root_off) {
 }
 
 
-template<typename T>
+template <typename T>
 
 void kd_btree<T>::insert(T &data) {
         if (this->root_offset >= 0)
@@ -587,4 +587,54 @@ void kd_btree<T>::insert(T &data) {
         }
         this->nitems++;
         this->coffset = end_pos(this->file);
+}
+
+template <typename T>
+
+static inline bool point_dimention_domination(point<T> &p1, point<T> &p2, function<double (const T &, const T &)> cmp, best_t best_dim) {
+        double res = cmp(p1.location, p2.location);
+        bool value = (best_dim == MAXIMIZE)? (res > 0) : (res < 0);
+        return value;
+}
+
+template <typename T>
+
+bool dominates(point<T> &p1, point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
+        size_t dom_count = 0;
+        size_t cmp_len = cmp_vec->size();
+        for (size_t j = 0; j < cmp_len; ++j) {
+                bool dominated = point_dimention_domination<T>(p1, p2, (*cmp_vec)[j], best[j]);
+                if (dominated)
+                        dom_count++;
+        }
+        return (dom_count >= cmp_len);
+}
+
+template <typename T>
+
+static inline bool region_dimention_domination(region<T> &r1, region<T> &r2, function<double (const T &, const T &)> cmp, best_t best_dim) {
+        T r1_low = get<0>(r1.region_rec);
+        T r1_high = get<2>(r2.region_rec);
+
+        T r2_low = get<0>(r2.region_rec);
+        T r2_high = get<2>(r2.region_rec);
+
+        double res1 = cmp(r1_low, r2_low);
+        double res2 = cmp(r1_high, r2_high);
+
+        bool value = (best_dim == MAXIMIZE)? (res2 > 0) : (res1 < 0);
+        return value;
+}
+
+template <typename T>
+
+bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
+        size_t dom_count = 0;
+        size_t cmp_len = cmp_vec->size();
+        for (size_t j = 0; j < cmp_len; ++j) {
+                bool dominated = region_dimention_domination<T>(r1, r2, (*cmp_vec)[j], best[j]);
+                if (dominated)
+                        dom_count++;
+        }
+        return (dom_count >= cmp_len);
 }

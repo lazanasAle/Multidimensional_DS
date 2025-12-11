@@ -25,31 +25,34 @@ using   std::fstream, std::ios, std::string, std::vector,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
         std::binary_search, std::strncpy, std::find, std::stack;
 
-template<typename T>
+
+enum best_t: bool {MINIMIZE, MAXIMIZE};
+
+template <typename T>
 
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc);
 
-template<typename T>
+template <typename T>
 
 void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc);
 
-template<typename T>
+template <typename T>
 
 using cmp_vector = vector<function<double (const T &, const T &)>>;
 
-template<typename T>
+template <typename T>
 
 using rectangle = tuple<T, T, T>;
 
-template<typename T>
+template <typename T>
 
 void write_rectangle(rectangle<T> &rect, fstream &file);
 
-template<typename T>
+template <typename T>
 
 void read_rectangle(rectangle<T> &rect, fstream &file);
 
-template<typename T>
+template <typename T>
 
 class point {
 public:
@@ -61,15 +64,19 @@ public:
         void read(fstream &file);
 };
 
-template<typename T>
+template <typename T>
+
+bool dominates(point<T> &p1, point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
+
+template <typename T>
 
 bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec);
 
-template<typename T>
+template <typename T>
 
 double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec);
 
-template<typename T>
+template <typename T>
 
 class region {
 public:
@@ -82,11 +89,15 @@ public:
         void read(fstream &file);
 };
 
-template<typename T>
+template <typename T>
+
+bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
+
+template <typename T>
 
 bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec);
 
-template<typename T>
+template <typename T>
 
 class kd_bnode {
 public:
@@ -101,7 +112,7 @@ public:
         virtual ~kd_bnode() {}
 };
 
-template<typename T>
+template <typename T>
 
 class region_kd_bnode: public kd_bnode<T> {
 public:
@@ -112,7 +123,7 @@ public:
         kd_bnode<T> *split_node() override;
 };
 
-template<typename T>
+template <typename T>
 
 class point_kd_bnode: public kd_bnode<T> {
 public:
@@ -123,7 +134,7 @@ public:
         kd_bnode<T> *split_node() override;
 };
 
-template<typename T>
+template <typename T>
 
 class kd_btree {
 private:
@@ -152,9 +163,8 @@ private:
         void store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
                 size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node);
 
-
         void insert_rec(T &data, long subtree_root_off);
-        void skyline_rec(vector<bool> &best, vector<T> &vec, long subtree_root_off);
+        void skyline_rec(vector<best_t> &best, vector<T> &vec, long subtree_root_off);
         void range_query_rec(pair<T, T> &rect, vector<T> &vec, long subtree_root_off);
 public:
         kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
@@ -162,7 +172,7 @@ public:
         void insert(T &data);
         vector<T> range_query(pair<T, T> &rect);
         void erase(T &data);
-        vector<T> skyline(vector<bool> &best);
+        vector<T> skyline(vector<best_t> &best);
         bool empty();
         size_t n_items() {return this->nitems;}
         ~kd_btree() {this->file.close();}

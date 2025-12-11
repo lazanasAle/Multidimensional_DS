@@ -4,10 +4,14 @@
 using namespace std;
 extern cmp_vector<movie> movie_comp;
 
-int main() {
+int main(int argc, char *argv[]) {
         kd_btree<movie> movies_kdb(&movie_comp, make_movie_region_rectangle,
                 make_movie_point_rectangle);
-        read_csv(movies_kdb);
+        size_t num_threads = 12;
+        if (argc > 1)
+                num_threads = stol(argv[1]);
+
+        read_csv(movies_kdb, num_threads);
 
         //check if a certain movie is in
         movie mv;

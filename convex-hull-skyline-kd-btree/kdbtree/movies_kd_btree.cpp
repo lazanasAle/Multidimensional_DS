@@ -1,7 +1,15 @@
 #include "movies_kd_btree.hpp"
 #include "kd_btree.hpp"
+#include <cstddef>
 #include <cstdint>
+#include <thread>
+#include <mutex>
+#include <vector>
 
+
+using std::thread, std::mutex;
+
+mutex kdb_insert_mtx;
 
 cmp_vector<movie> movie_comp = {
         compare_budget, compare_revenue, compare_runtime,
@@ -147,7 +155,7 @@ rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
         return make_tuple(minimum, median, maximum);
 }
 
-void internal_insert(kd_btree<movie> &movies_kdb, size_t my_len, rapidcsv::Document &movies_csv) {
+void internal_insert(kd_btree<movie> &movies_kdb, size_t my_low, size_t my_high, rapidcsv::Document &movies_csv) {
         vector<string> int_columns = {"id", "runtime", "vote_count"};
         vector<size_t movie:: *> int_fields = {&movie::id, &movie::runtime, &movie::vote_count};
 
@@ -156,8 +164,9 @@ void internal_insert(kd_btree<movie> &movies_kdb, size_t my_len, rapidcsv::Docum
 
         vector<string> str_columns = {"title", "original_language", "origin_country", "genre_names", "production_company_names"};
         vector<name movie:: *> str_fields = {&movie::title, &movie::org_lang, &movie::org_country, &movie::genre_names, &movie::prod_comp_names};
+        vector<movie> my_movies;
 
-        for (size_t j = 0; j < my_len; ++j) {
+        for (size_t j = my_low; j < my_high; ++j) {
                 movie m;
                 //integer fields
                 size_t int_f_c = int_fields.size();
@@ -174,14 +183,36 @@ void internal_insert(kd_btree<movie> &movies_kdb, size_t my_len, rapidcsv::Docum
                 m.adult = (movies_csv.GetCell<string>("adult", j).compare("TRUE") == 0);
                 m.release_date = parse_date(movies_csv.GetCell<string>("release_date", j));
 
+                my_movies.push_back(m);
+        }
+
+        for (movie &m : my_movies) {
+                kdb_insert_mtx.lock();
                 movies_kdb.insert(m);
+                kdb_insert_mtx.unlock();
         }
 }
 
 
 
-void read_csv(kd_btree<movie> &movies_kdb) {
+void read_csv(kd_btree<movie> &movies_kdb, size_t num_threads) {
         rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
         size_t row_len = movies_csv.GetRowCount();
-        internal_insert(movies_kdb, row_len, movies_csv);
+
+        size_t each_thread_row = row_len / num_threads;
+        size_t main_thread_row = each_thread_row + row_len % num_threads;
+
+        vector<thread> threads_used(num_threads - 1);
+        size_t i = 0;
+        for (size_t j = 0; j < num_threads - 1; ++j) {
+                threads_used[j] = thread([&movies_kdb, i, each_thread_row, &movies_csv]() {
+                        internal_insert(movies_kdb, i, i + each_thread_row, movies_csv);
+                });
+                i += each_thread_row;
+        }
+
+        internal_insert(movies_kdb, i, i + main_thread_row, movies_csv);
+
+        for (size_t j = 0; j < num_threads - 1; ++j)
+                threads_used[j].join();
 }

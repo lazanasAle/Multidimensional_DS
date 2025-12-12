@@ -1,7 +1,10 @@
+#include "kd_btree.hpp"
 #include "movies_kd_btree.hpp"
-#include <fstream>
+#include <algorithm>
 #include <iostream>
 #include <chrono>
+#include <sstream>
+#include <string>
 
 using namespace std;
 extern cmp_vector<movie> movie_comp;
@@ -19,6 +22,7 @@ int main(int argc, char *argv[]) {
         else if (argc > 1)
                 rows = stol(argv[1]);
 
+        //insertion_time measuring
         auto t0 = chrono::system_clock::now();
         read_csv(movies_kdb, num_threads, rows);
         auto t1 = chrono::system_clock::now();
@@ -40,9 +44,45 @@ int main(int argc, char *argv[]) {
         cout<<mv_vec.size()<<"\n";
         cout<<movies_kdb.n_items()<<"\n";
 
-        //writing the ime used to a csv file for benchmarking
+        cout<<"the dimensions you can use for the skyline are: budget, revenue, popularity, runtime, vote_avg, vote_count."<<
+                "use them with the same order and comma-separate the words minimize and maximize\n";
+        cout<<"eg: If you want to minimize the budget, maximize the revenue and popularity minimize runtime and maximize vote_avg and vote_count you write:"<<
+                "MINIMIZE,MAXIMIZE,MAXIMIZE,MINIMIZE,MAXIMIZE, MAXIMIZE\n";
+        string input;
+        getline(cin, input);
 
-        string txt = to_string(rows) + "," + to_string(time_used);
+        stringstream is(input);
+        string item;
+        vector<best_t> mbest;
+
+        while (getline(is, item, ',')) {
+                best_t best_entry;
+                transform(item.begin(), item.end(), item.begin(), ::toupper);
+                if (item.compare("MAXIMIZE") == 0)
+                        best_entry = MAXIMIZE;
+                else
+                        best_entry = MINIMIZE;
+                mbest.push_back(best_entry);
+        }
+
+        //skyline query time measure
+        auto t2 = chrono::system_clock::now();
+        set<movie, movie_compare> skyline = movies_kdb.skyline(mbest);
+        auto t3 = chrono::system_clock::now();
+
+        chrono::duration<double> durat = t3 - t2;
+        double skyline_time = durat.count();
+
+        cout<<"skyline_length:"<<skyline.size()<<"\n";
+
+        for (auto movie_it = skyline.begin(); movie_it != skyline.end(); ++movie_it) {
+                movie mv = *movie_it;
+                cout<<" movie is: "<<mv.print_interesting()<<"\n";
+        }
+
+        //writing the time used to a csv file for benchmarking
+
+        string txt = to_string(rows) + "," + to_string(time_used) + "," + to_string(skyline_time);
 
         ofstream csv_file("times.csv", ios::app);
         csv_file<<txt;

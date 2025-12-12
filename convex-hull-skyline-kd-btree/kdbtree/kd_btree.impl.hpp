@@ -642,28 +642,37 @@ bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best
 template <typename T, typename C>
 
 void kd_btree<T, C>::skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p) {
-        for (T &q_t : skyline_set) {
-                point<T> q(q_t);
+        for (auto it = skyline_set.begin(); it != skyline_set.end(); ) {
+                point<T> q(*it);
                 if (dominates<T>(p, q, this->comparators, best)) {
                         // p is out of the current skyline but dominates q which is inside it fix that
-                        skyline_set.erase(q_t);
+                        it = skyline_set.erase(it);
                         skyline_set.insert(p.location);
                 }
-                else if (!dominates<T>(q, p, this->comparators, best))
+                else if (!dominates<T>(q, p, this->comparators, best)) {
                         skyline_set.insert(p.location);
+                        ++it;
+                }
+                else
+                        ++it;
         }
 }
 
 template <typename T, typename C>
 
 void kd_btree<T, C>::skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r) {
-        for (region<T> &q : skyline_regs) {
+        for (auto it = skyline_regs.begin(); it != skyline_regs.end(); ) {
+                region<T> q = *it;
                 if (dominates<T>(r, q, this->comparators, best)) {
-                        skyline_regs.erase(q);
+                        it = skyline_regs.erase(it);
                         skyline_regs.insert(r);
                 }
-                else if (!dominates<T>(q, r, this->comparators, best))
+                else if (!dominates<T>(q, r, this->comparators, best)) {
                         skyline_regs.insert(r);
+                        ++it;
+                }
+                else
+                        ++it;
         }
 }
 
@@ -684,8 +693,10 @@ void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, l
                 skyline_regs.insert(rnode->regions[0]);
                 for (region<T> &r : rnode->regions)
                         skyline_region_update(best, skyline_regs, r);
-                for (region<T> &f : skyline_regs)
+                for (auto it = skyline_regs.begin(); it != skyline_regs.end(); ++it) {
+                        region<T> f = *it;
                         skyline_rec(best, skyline_set, f.child_offset);
+                }
         }
         delete(node);
 }

@@ -1,2 +1,3 @@
 convex-hull-skyline-kd-btree/data_movies_clean.csv
 convex-hull-skyline-kd-btree/kdbtree/records.bin
+3d-rtree(trajectories)/tartanaviation_adsb_19k_clean.csv

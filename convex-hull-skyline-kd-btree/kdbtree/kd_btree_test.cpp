@@ -1,5 +1,7 @@
 #include "movies_kd_btree.hpp"
+#include <fstream>
 #include <iostream>
+#include <chrono>
 
 using namespace std;
 extern cmp_vector<movie> movie_comp;
@@ -8,10 +10,21 @@ int main(int argc, char *argv[]) {
         kd_btree<movie, movie_compare> movies_kdb(&movie_comp, make_movie_region_rectangle,
                 make_movie_point_rectangle);
         size_t num_threads = 12;
-        if (argc > 1)
-                num_threads = stol(argv[1]);
+        size_t rows = 10000;
 
-        read_csv(movies_kdb, num_threads);
+        if (argc > 2) {
+                rows = stol(argv[1]);
+                num_threads = stol(argv[2]);
+        }
+        else if (argc > 1)
+                rows = stol(argv[1]);
+
+        auto t0 = chrono::system_clock::now();
+        read_csv(movies_kdb, num_threads, rows);
+        auto t1 = chrono::system_clock::now();
+
+        chrono::duration<double> d = t1 - t0;
+        double time_used = d.count();
 
         //check if a certain movie is in
         movie mv;
@@ -26,4 +39,12 @@ int main(int argc, char *argv[]) {
         vector<movie> mv_vec = movies_kdb.range_query(mv_pair);
         cout<<mv_vec.size()<<"\n";
         cout<<movies_kdb.n_items()<<"\n";
+
+        //writing the ime used to a csv file for benchmarking
+
+        string txt = to_string(rows) + "," + to_string(time_used);
+
+        ofstream csv_file("times.csv", ios::app);
+        csv_file<<txt;
+        csv_file.close();
 }

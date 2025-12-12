@@ -195,14 +195,15 @@ void internal_insert(kd_btree<movie, movie_compare> &movies_kdb, size_t my_low, 
 
 
 
-void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_threads) {
+void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_threads, size_t rows) {
         rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
-        size_t row_len =movies_csv.GetRowCount();
+        size_t row_len = movies_csv.GetRowCount();
+        size_t rows_to_read = (rows < row_len)? rows : row_len;
         //for presentation if its done on stamys computer it has to be
         //size_t row_len = 500000;
 
-        size_t each_thread_row = row_len / num_threads;
-        size_t main_thread_row = each_thread_row + row_len % num_threads;
+        size_t each_thread_row = rows_to_read / num_threads;
+        size_t main_thread_row = each_thread_row + rows_to_read % num_threads;
 
         vector<thread> threads_used(num_threads - 1);
         size_t i = 0;

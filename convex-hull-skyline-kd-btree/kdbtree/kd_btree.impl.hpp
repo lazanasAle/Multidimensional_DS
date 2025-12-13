@@ -708,3 +708,51 @@ set<T, C> kd_btree<T, C>::skyline(vector<best_t> &best) {
         skyline_rec(best, skyline_set, this->root_offset);
         return skyline_set;
 }
+
+
+template <typename T>
+
+long compare_all(vector<point<T>> &points, T &element, cmp_vector<T> *comparators) {
+        long ret = -1;
+        size_t pt_len = points.size();
+        size_t cmp_len = comparators->size();
+        // use all points
+        for (size_t j = 0; j < pt_len; ++j) {
+                size_t all_give0 = 0;
+                // use each comparator to compare all points with this one to see which is really equal
+                for (size_t i = 0; i < cmp_len; ++i) {
+                        if ((*comparators)[i](points[j].location, element) == 0)
+                                all_give0++;
+                }
+                // if you found the point mark its place and stop
+                if (all_give0 >= cmp_len) {
+                        ret = j;
+                        break;
+                }
+        }
+        return ret;
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::erase(T &data) {
+        pair<T, T> interval = make_pair(data, data);
+        vector<T> exists = range_query(interval);
+
+        if (exists.size() > 0) {
+                point_kd_bnode<T> *leaf = choose_leaf(data, this->root_offset);
+                if (leaf) {
+                        //erase the entry from the leaf
+                        long to_erase = compare_all(leaf->points, data, this->comparators);
+                        auto erase_it = leaf->points.begin() + to_erase;
+                        leaf->points.erase(erase_it);
+                        store_node(leaf->my_offset, leaf);
+                        //update the parental region
+                        region<T> par_reg = make_parent_region(leaf);
+                        region_kd_bnode<T> *pnode = load_node(leaf->parent_offset);
+                        assign_new_region(pnode, par_reg.region_rec, leaf->my_offset);
+                        store_node(pnode->my_offset, pnode);
+                        // underful logic (tommorow)
+                }
+        }
+}

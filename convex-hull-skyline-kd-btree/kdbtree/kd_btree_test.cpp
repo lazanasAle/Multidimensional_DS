@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
 
         //writing the time used to a csv file for benchmarking
 
-        string txt = to_string(rows) + "," + to_string(time_used) + "," + to_string(skyline_time);
+        string txt = to_string(rows) + "," + to_string(time_used) + "," + to_string(skyline_time) + "\n";
 
         ofstream csv_file("times.csv", ios::app);
         csv_file<<txt;

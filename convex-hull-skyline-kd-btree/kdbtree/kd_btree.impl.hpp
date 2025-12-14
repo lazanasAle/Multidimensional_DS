@@ -642,7 +642,8 @@ bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best
 template <typename T, typename C>
 
 void kd_btree<T, C>::skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p) {
-        for (auto it = skyline_set.begin(); it != skyline_set.end(); ) {
+        auto it = skyline_set.begin();
+        while (it != skyline_set.end()) {
                 point<T> q(*it);
                 if (dominates<T>(p, q, this->comparators, best)) {
                         // p is out of the current skyline but dominates q which is inside it fix that
@@ -661,7 +662,8 @@ void kd_btree<T, C>::skyline_update(vector<best_t> &best, set<T, C> &skyline_set
 template <typename T, typename C>
 
 void kd_btree<T, C>::skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r) {
-        for (auto it = skyline_regs.begin(); it != skyline_regs.end(); ) {
+        auto it = skyline_regs.begin();
+        while (it != skyline_regs.end()) {
                 region<T> q = *it;
                 if (dominates<T>(r, q, this->comparators, best)) {
                         it = skyline_regs.erase(it);

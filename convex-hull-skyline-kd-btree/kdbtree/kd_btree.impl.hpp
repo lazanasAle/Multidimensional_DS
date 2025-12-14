@@ -733,6 +733,61 @@ long compare_all(vector<point<T>> &points, T &element, cmp_vector<T> *comparator
         return ret;
 }
 
+template <typename T>
+
+bool underfull(kd_bnode<T> *node) {
+        if (node->tag) {
+                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                size_t my_size = rnode->regions.size();
+                return (my_size < rnode->minimum_fill);
+        }
+        else {
+                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                size_t my_size = pnode->points.size();
+                return (my_size < pnode->minimum_fill);
+        }
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::eliminate_node(kd_bnode<T> *node, region_kd_bnode<T> *parent, vector<T> &eliminated_data) {
+        this->eliminated_stack.push(make_pair(node->my_offset, node->tag));
+        if (!node->tag) {
+                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                for (point<T> &p : pnode->points)
+                        eliminated_data.push_back(p.location);
+        }
+        if (parent) {
+                long chld_off = -1;
+                size_t reg_len = parent->regions.size();
+                for (size_t j = 0; j < reg_len; ++j) {
+                        if (parent->regions[j].child_offset == node->my_offset) {
+                                chld_off = j;
+                                break;
+                        }
+                }
+                auto pregion_it = parent->regions.begin() + chld_off;
+                (chld_off >= 0)? parent->regions.erase(pregion_it) : null_func();
+                //reflect the changes of the parent to the file
+                store_node(parent->my_offset, parent);
+        }
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::eliminate_root(kd_bnode<T> *root_node) {
+        if (root_node->tag) {
+                region_kd_bnode<T> *root_regnode = (region_kd_bnode<T> *) root_node;
+                size_t root_len = root_regnode->regions.size();
+                if (root_len && root_len <= 1) {
+                        //if there is only one child this will be the new root
+                        this->eliminated_stack.push(make_pair(root_regnode->my_offset, root_regnode->tag));
+                        region<T> reg = root_regnode->regions[0];
+                        this->root_offset = reg.child_offset;
+                }
+        }
+}
+
 template <typename T, typename C>
 
 void kd_btree<T, C>::erase(T &data) {
@@ -750,9 +805,34 @@ void kd_btree<T, C>::erase(T &data) {
                         //update the parental region
                         region<T> par_reg = make_parent_region(leaf);
                         region_kd_bnode<T> *pnode = load_node(leaf->parent_offset);
-                        assign_new_region(pnode, par_reg.region_rec, leaf->my_offset);
-                        store_node(pnode->my_offset, pnode);
-                        // underful logic (tommorow)
+                        if (pnode) {
+                                assign_new_region(pnode, par_reg.region_rec, leaf->my_offset);
+                                store_node(pnode->my_offset, pnode);
+                                // underful logic
+                                kd_bnode<T> *current = leaf;
+                                region_kd_bnode<T> *parent = pnode;
+                                vector<T> eliminated_data;
+                                while (current && (current->my_offset != this->root_offset) && underfull<T>(current)) {
+                                        //eliminate the current node
+                                        eliminate_node(current, parent, eliminated_data);
+                                        //go up
+                                        delete(current);
+                                        current = parent;
+                                        parent = load_node(current->parent_offset);
+                                }
+                                if (current && (current->my_offset == this->root_offset)) {
+                                        //if you reached the root check if it needs elimination and do it
+                                        eliminate_root(current);
+                                }
+                                if (current)
+                                        delete(current);
+                                if (parent)
+                                        delete(parent);
+                                size_t eliminated = eliminated_data.size();
+                                //insert again all the entries you eliminated
+                                for (size_t j = 0; j < eliminated; ++j)
+                                        insert(eliminated_data[j]);
+                        }
                 }
         }
 }

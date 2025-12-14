@@ -27,6 +27,8 @@ using   std::fstream, std::ios, std::string, std::vector,
         std::binary_search, std::strncpy, std::find, std::stack, std::set;
 
 
+static inline void null_func(){}
+
 enum best_t: bool {MINIMIZE, MAXIMIZE};
 
 template <typename T>
@@ -155,7 +157,7 @@ private:
         size_t nitems;
 
         // for delete tommorrow
-        stack<pair<long, bool>> off_stack;
+        stack<pair<long, bool>> eliminated_stack;
 
         kd_bnode<T> *load_node(long node_offset);
         void update_node_level(kd_bnode<T> *node);
@@ -174,6 +176,9 @@ private:
 
         void skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p);
         void skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r);
+
+        void eliminate_node(kd_bnode<T> *node, region_kd_bnode<T> *parent, vector<T> &eliminated_data);
+        void eliminate_root(kd_bnode<T> *root_node);
 
         void insert_rec(T &data, long subtree_root_off);
         void skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, long subtree_root_off);

@@ -80,7 +80,9 @@ pair<field, field> compute_point_min_max(vector<movie *> &movie_pt, field movie:
 }
 
 rectangle<movie> make_movie_region_rectangle(vector<rectangle<movie> *> &movie_regions) {
-        movie minimum, median, maximum;
+        movie minimum = create_default_movie(),
+        median = create_default_movie(),
+        maximum = create_default_movie();
         //assigning the double fields
         //assigning the budget
         pair<double, double> budget_values = compute_min_max(movie_regions, &movie::budget);
@@ -118,7 +120,9 @@ rectangle<movie> make_movie_region_rectangle(vector<rectangle<movie> *> &movie_r
 }
 
 rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
-        movie minimum, median, maximum;
+        movie minimum = create_default_movie(),
+        median = create_default_movie(),
+        maximum = create_default_movie();
         //assigning the double fields
         //assigning the budget
         pair<double, double> budget_values = compute_point_min_max(movie_points, &movie::budget);

@@ -13,11 +13,10 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
                 size_t vec_len;
                 if (file.read((char *)&vec_len, sizeof(size_t))) {
                         vec.resize(vec_len);
-                        for (size_t j = 0; j < vec_len; ++j)
-                                vec[j].read(file);
+                        file.read(reinterpret_cast<char *>(vec.data()), vec_len * sizeof(T));
                         T inv;
                         for (size_t j = vec_len; j < it_in_blc + 1; ++j)
-                                inv.read(file);
+                                file.read((char *)&inv, sizeof(T));
                 }
         }
 }
@@ -29,11 +28,10 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         if (off >= 0) {
                 size_t vec_len = vec.size();
                 file.write((char *)&vec_len, sizeof(size_t));
-                for (size_t j = 0; j < vec_len; ++j)
-                        vec[j].write(file);
+                file.write(reinterpret_cast<char *>(vec.data()), vec_len * sizeof(T));
                 T inv;
                 for (size_t j = vec_len; j < it_in_blc + 1; ++j)
-                        inv.write(file);
+                        file.write((char *)&inv, sizeof(T));
         }
 }
 

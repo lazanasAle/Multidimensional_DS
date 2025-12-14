@@ -29,13 +29,10 @@ struct movie {
         double budget, revenue, popularity, vote_avg;
         size_t id, runtime, vote_count;
         bool adult;
-
-        movie();
-        //serialization for file io
-        void read(fstream &file);
-        void write(fstream &file);
         string print_interesting();
 };
+
+movie create_default_movie();
 
 static inline double compare_budget(const movie &a, const movie &b) {return (a.budget - b.budget);}
 static inline double compare_revenue(const movie &a, const movie &b) {return (a.revenue - b.revenue);}

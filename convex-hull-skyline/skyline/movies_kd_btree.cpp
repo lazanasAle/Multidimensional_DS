@@ -1,5 +1,5 @@
 #include "movies_kd_btree.hpp"
-#include "kd_btree.hpp"
+#include "../../kd-btree/kd_btree.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <thread>

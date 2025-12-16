@@ -7,24 +7,27 @@
 #include <utility>
 #include <fstream>
 #include <string>
-#include <random>
 #include <vector>
+#include <cstdlib>
 #include <set>
+#include <map>
 #include <tuple>
 #include <cmath>
 #include <stack>
 #include <cstring>
+#include <iterator>
 #include <ios>
 
 #define INV_OFF -1
 #define BLC_LEN 4096
 #define MIN_PERC 0.35
 #define EIGHT 8
+#define MAX_CACHED 32
 
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::binary_search, std::strncpy, std::find, std::stack, std::set;
+        std::binary_search, std::strncpy, std::find, std::stack, std::set, std::map, std::prev;
 
 
 static inline void null_func(){}
@@ -154,14 +157,19 @@ private:
         function<rectangle<T> (vector<T *> &)> make_point_rectangle;
         fstream file;
         long coffset, next_offset, root_offset;
-        size_t nitems;
+        size_t nitems, max_cached;
 
-        // for delete tommorrow
+        map<long, kd_bnode<T> *> cache_map;
         stack<pair<long, bool>> eliminated_stack;
 
         kd_bnode<T> *load_node(long node_offset);
         void update_node_level(kd_bnode<T> *node);
         bool store_node(long node_offset, kd_bnode<T> *node);
+
+        kd_bnode<T> *load_cached_node(long node_offset);
+        bool update_cached_node(long node_offset, kd_bnode<T> *node);
+        void insert_cached_node(long node_offset, kd_bnode<T> *node);
+        void evict_cache();
 
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
         void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);

@@ -5,6 +5,16 @@ static long end_pos(fstream &file) {
         return end_p;
 }
 
+template <typename T, typename U>
+
+vector<T> get_map_keys(map<T, U> &mapper) {
+        vector<T> keys;
+
+        for (auto it = mapper.begin(); it != mapper.end(); ++it)
+                keys.push_back((*it).first);
+        return keys;
+}
+
 template <typename T>
 
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
@@ -238,6 +248,7 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->make_point_rectangle = point_rectangle_fn;
         this->file = fstream("records.bin", ios::binary | ios::in | ios::out | ios::trunc);
         this->coffset = 0;
+        this->max_cached = MAX_CACHED;
         this->root_offset = INV_OFF;
 }
 
@@ -297,6 +308,71 @@ bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
                 return true;
         }
         return false;
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::evict_cache() {
+        vector<long> cache_keys = get_map_keys<long, kd_bnode<T> *>(this->cache_map);
+
+        size_t curr_cache_len = cache_keys.size();
+        if (curr_cache_len >= this->max_cached) { //cache overflow, remove an element
+                long rem_idx = rand() % curr_cache_len;
+                long rem_key = cache_keys[rem_idx];
+                auto rem_it = this->cache_map.find(rem_key);
+                delete((*rem_it).second);
+                this->cache_map.erase(rem_key);
+        }
+}
+
+template <typename T, typename C>
+
+kd_bnode<T> *kd_btree<T, C>::load_cached_node(long node_offset) {
+        auto it = this->cache_map.find(node_offset);
+        if (it != this->cache_map.end())
+                return (*it).second;
+        kd_bnode<T> *new_entry = load_node(node_offset);
+        if (new_entry) {
+                evict_cache(); //check for overflow and evict
+                this->cache_map.insert({node_offset, new_entry}); //put it in cache for later use
+                return new_entry;
+        }
+        return nullptr;
+}
+
+template <typename T, typename C>
+
+bool kd_btree<T, C>::update_cached_node(long node_offset, kd_bnode<T> *node) {
+        auto it = this->cache_map.find(node_offset);
+        if (it != this->cache_map.end()) {
+                delete((*it).second)
+                (*it).second = node;
+                return true;
+        }
+        kd_bnode<T> *new_entry = load_node(node_offset);
+        if (new_entry) {
+                evict_cache(); //check for overflow and evict
+                this->cache_map.insert({node_offset, node}); //insert it in the cache (changed)
+                delete(new_entry);
+                return true;
+        }
+        return false;
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::insert_cached_node(long node_offset, kd_bnode<T> *node) {
+        long end_file_off = end_pos(this->file);
+        auto max_key_it = prev(this->cache_map.end());
+        long max_key = (*max_key_it).first;
+        long nkey = node_offset;
+
+        if (node_offset >= end_file_off) {
+                if (max_key >= end_file_off) {
+                        size_t occupied = sizeof(bool) + sizeof(long) + sizeof(size_t);
+                        //find the next ffset to insert when i am back
+                }
+        }
 }
 
 template <typename T, typename C>

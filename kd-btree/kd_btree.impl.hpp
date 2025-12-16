@@ -320,6 +320,7 @@ void kd_btree<T, C>::evict_cache() {
                 long rem_idx = rand() % curr_cache_len;
                 long rem_key = cache_keys[rem_idx];
                 auto rem_it = this->cache_map.find(rem_key);
+                store_node((*rem_it).first, (*rem_it).second); //erasing it from cavhe means to write it in the file
                 delete((*rem_it).second);
                 this->cache_map.erase(rem_key);
         }
@@ -367,12 +368,29 @@ void kd_btree<T, C>::insert_cached_node(long node_offset, kd_bnode<T> *node) {
         long max_key = (*max_key_it).first;
         long nkey = node_offset;
 
+        //since insert was called no item wants to be changed, just the file_offset may be same
         if (node_offset >= end_file_off) {
                 if (max_key >= end_file_off) {
-                        size_t occupied = sizeof(bool) + sizeof(long) + sizeof(size_t);
-                        //find the next ffset to insert when i am back
+                        size_t occupied = sizeof(bool) + sizeof(long) + sizeof(size_t) + sizeof(size_t);
+                        size_t nsize, vec_len, from_last;
+                        //find where you will put it now
+                        if (node->tag) { //it is a region
+                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                                vec_len = rnode->regions.size();
+                                nsize = vec_len * sizeof(region<T>);
+                        }
+                        else {
+                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                                vec_len = pnode->points.size();
+                                nsize = vec_len * sizeof(point<T>);
+                        }
+                         from_last = occupied + nsize;
+                         nkey = max_key + from_last; //this is the offset to put the node
                 }
         }
+        node->my_offset = nkey;
+        evict_cache();
+        this->cache_map.insert({nkey, node});
 }
 
 template <typename T, typename C>

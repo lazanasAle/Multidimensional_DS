@@ -166,11 +166,6 @@ private:
         void update_node_level(kd_bnode<T> *node);
         bool store_node(long node_offset, kd_bnode<T> *node);
 
-        kd_bnode<T> *load_cached_node(long node_offset);
-        bool update_cached_node(long node_offset, kd_bnode<T> *node);
-        void insert_cached_node(long node_offset, kd_bnode<T> *node);
-        void evict_cache();
-
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
         void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);
 

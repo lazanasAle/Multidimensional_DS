@@ -22,7 +22,7 @@
 #define BLC_LEN 4096
 #define MIN_PERC 0.35
 #define EIGHT 8
-#define MAX_CACHED 32
+#define MAX_CACHED 512
 
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
@@ -157,13 +157,19 @@ private:
         function<rectangle<T> (vector<T *> &)> make_point_rectangle;
         fstream file;
         long coffset, next_offset, root_offset;
-        size_t nitems, max_cached;
+        size_t nitems, max_cached_pnodes, max_cached_rnodes;
 
-        map<long, kd_bnode<T> *> cache_map;
+        map<long, point_kd_bnode<T>> pnodes_cached;
+        map<long, region_kd_bnode<T>> rnodes_cached;
         stack<pair<long, bool>> eliminated_stack;
 
-        kd_bnode<T> *load_node(long node_offset);
+        kd_bnode<T> *load_file_node(long node_offset);
         void update_node_level(kd_bnode<T> *node);
+        bool store_file_node(long node_offset, kd_bnode<T> *node);
+
+        void evict_point_cache();
+        void evict_region_cache();
+        kd_bnode<T> *load_node(long node_offset);
         bool store_node(long node_offset, kd_bnode<T> *node);
 
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);

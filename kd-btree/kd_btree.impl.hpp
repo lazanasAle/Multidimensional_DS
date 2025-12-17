@@ -248,7 +248,8 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->make_point_rectangle = point_rectangle_fn;
         this->file = fstream("records.bin", ios::binary | ios::in | ios::out | ios::trunc);
         this->coffset = 0;
-        this->max_cached = MAX_CACHED;
+        this->max_cached_rnodes = MAX_CACHED;
+        this->max_cached_pnodes = MAX_CACHED / 2;
         this->root_offset = INV_OFF;
 }
 
@@ -260,7 +261,7 @@ bool kd_btree<T, C>::empty() {
 
 template <typename T, typename C>
 
-kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
+kd_bnode<T> *kd_btree<T, C>::load_file_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
                 bool t;
@@ -288,7 +289,7 @@ kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
 
 template <typename T, typename C>
 
-bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
+bool kd_btree<T, C>::store_file_node(long node_offset, kd_bnode<T> *node) {
         if (this->file.is_open() && node_offset >= 0) {
                 node->my_offset = node_offset;
                 //write the common fields
@@ -304,6 +305,112 @@ bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
                 else {
                         region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
                         write_vector<region<T>>(this->file, rnode->regions, rnode->maximum_fill);
+                }
+                return true;
+        }
+        return false;
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::evict_point_cache() {
+        vector<long> pnode_cache_keys = get_map_keys<long, point_kd_bnode<T>>(this->pnodes_cached);
+        size_t key_len = pnode_cache_keys.size();
+        if (key_len >= this->max_cached_pnodes) {
+                long rem_idx = rand() % key_len;
+                long rem_key = pnode_cache_keys[rem_idx];
+                auto rem_it = this->pnodes_cached.find(rem_key);
+                store_file_node(rem_key, &rem_it->second);
+                this->pnodes_cached.erase(rem_key);
+        }
+}
+
+template <typename T, typename C>
+
+void kd_btree<T, C>::evict_region_cache() {
+        vector<long> rnode_cache_keys = get_map_keys<long, region_kd_bnode<T>>(this->rnodes_cached);
+        size_t key_len = rnode_cache_keys.size();
+        if (key_len >= this->max_cached_rnodes) {
+                long rem_idx = rand() % key_len;
+                long rem_key = rnode_cache_keys[rem_idx];
+                auto rem_it = this->rnodes_cached.find(rem_key);
+                store_file_node(rem_key, &rem_it->second);
+                this->rnodes_cached.erase(rem_key);
+        }
+}
+
+template <typename T, typename C>
+
+kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
+        if (node_offset >= 0) {
+                //look in first cache (it could be a leaf)
+                auto it1 = this->pnodes_cached.find(node_offset);
+                if (it1 != this->pnodes_cached.end()) {
+                        point_kd_bnode<T> *pnode = new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
+                        *pnode = it1->second;
+                        return pnode;
+                }
+                //look in second cache (could be a region node)
+                auto it2 = this->rnodes_cached.find(node_offset);
+                if (it2 !=  this->rnodes_cached.end()) {
+                        region_kd_bnode<T> *rnode = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
+                        *rnode = it2->second;
+                        return rnode;
+                }
+                // it is not cached so bring it from the file
+                kd_bnode<T> *nnode = load_file_node(node_offset);
+                //check what it is and put it in the right cache
+                if (nnode) {
+                        if (nnode->tag) {
+                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) nnode;
+                                evict_region_cache();
+                                this->rnodes_cached.insert_or_assign(node_offset, *rnode);
+                        }
+                        else {
+                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) nnode;
+                                evict_point_cache();
+                                this->pnodes_cached.insert_or_assign(node_offset, *pnode);
+                        }
+                        return nnode;
+                }
+                return nullptr;
+        }
+        return nullptr;
+}
+
+template <typename T, typename C>
+
+bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
+        if (node_offset >= 0 && node) {
+                if (node->tag) {
+                        region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                        auto it = this->rnodes_cached.find(node_offset);
+                        if (it != this->rnodes_cached.end())
+                                it->second = *rnode;
+                        else {
+                                //put it in cache
+                                evict_region_cache();
+                                this->rnodes_cached.insert_or_assign(node_offset, *rnode);
+
+                                long end_off = end_pos(this->file);
+                                if (node_offset >= end_off) // it is not in the file we put it
+                                        store_file_node(node_offset, node);
+                        }
+                }
+                else {
+                        point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                        auto it = this->pnodes_cached.find(node_offset);
+                        if (it != this->pnodes_cached.end())
+                                it->second = *pnode;
+                        else {
+                                //put it in cache
+                                evict_point_cache();
+                                this->pnodes_cached.insert_or_assign(node_offset, *pnode);
+
+                                long end_off = end_pos(this->file);
+                                if (node_offset >= end_off) // it is not in the file we put it
+                                        store_file_node(node_offset, node);
+                        }
                 }
                 return true;
         }

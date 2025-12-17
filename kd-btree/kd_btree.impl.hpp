@@ -797,13 +797,17 @@ void kd_btree<T, C>::skyline_region_update(vector<best_t> &best, set<region<T>, 
 template <typename T, typename C>
 
 void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, long subtree_root_off) {
+        //here is critical begin
         kd_bnode<T> *node = load_node(subtree_root_off);
+        //here is critical end
         if (!node->tag) {
                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                //here critical
                 if (skyline_set.empty())
                         skyline_set.insert(pnode->points[0].location);
                 for (point<T> &p : pnode->points)
                         skyline_update(best, skyline_set, p);
+                //critical ends here safely
         }
         else {
                 region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
@@ -824,6 +828,7 @@ template <typename T, typename C>
 
 set<T, C> kd_btree<T, C>::skyline(vector<best_t> &best) {
         set<T, C> skyline_set;
+        //here creating omp parallel and omp single
         skyline_rec(best, skyline_set, this->root_offset);
         return skyline_set;
 }

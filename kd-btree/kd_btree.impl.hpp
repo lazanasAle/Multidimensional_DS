@@ -811,6 +811,7 @@ void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, l
                 skyline_regs.insert(rnode->regions[0]);
                 for (region<T> &r : rnode->regions)
                         skyline_region_update(best, skyline_regs, r);
+                //parallelize this with openMP tasks
                 for (auto it = skyline_regs.begin(); it != skyline_regs.end(); ++it) {
                         region<T> f = *it;
                         skyline_rec(best, skyline_set, f.child_offset);

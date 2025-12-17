@@ -22,7 +22,7 @@
 #define BLC_LEN 4096
 #define MIN_PERC 0.35
 #define EIGHT 8
-#define MAX_CACHED 512
+#define MAX_CACHED 1024
 
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,

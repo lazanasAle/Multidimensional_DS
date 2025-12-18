@@ -169,6 +169,8 @@ private:
         void update_node_level(kd_bnode<T> *node);
         bool store_file_node(long node_offset, kd_bnode<T> *node);
 
+        long next_pos(bool node_to_store);
+
         void evict_point_cache();
         void evict_region_cache();
         kd_bnode<T> *load_node(long node_offset);

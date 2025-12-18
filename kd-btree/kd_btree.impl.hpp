@@ -581,7 +581,7 @@ void kd_btree<T, C>::make_and_store_parent(region<T> &org_parent, region<T> &spl
                 parent_node->regions.push_back(splitted_par);
                 store_node(splitted_node->my_offset, splitted_node);
                 //find father offset
-                long end_offset = end_pos(this->file);
+                long end_offset = next_pos(true);
                 this->coffset = end_offset;
                 //put the father were you should
                 parent_node->my_offset = this->coffset;
@@ -616,7 +616,7 @@ template <typename T, typename C>
 
 void kd_btree<T, C>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, region_kd_bnode<T> *par_node,
         size_t dlen, region<T> &splitted_parent, kd_bnode<T> *splitted_node) {
-                this->coffset = end_pos(this->file);
+                this->coffset = next_pos(true);
                 neighbour->my_offset = this->coffset;
                 store_node(this->coffset, neighbour);
                 //determine who is the father, then store it acordingly
@@ -638,7 +638,7 @@ void kd_btree<T, C>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, 
 template <typename T, typename C>
 
 void kd_btree<T, C>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node) {
-        size_t splitted_off = this->coffset;
+        size_t splitted_off = next_pos(org_node->tag);
         split_org_node->my_offset = (split_org_node->my_offset < 0)? splitted_off : split_org_node->my_offset;
         //find the new parent region after the splitting (for the new node)
         region<T> splitted_parent = make_parent_region(split_org_node);
@@ -976,4 +976,18 @@ void kd_btree<T, C>::erase(T &data) {
                         }
                 }
         }
+}
+
+template <typename T, typename C>
+
+long kd_btree<T, C>::next_pos(bool node_to_store) {
+        if (this->eliminated_stack.empty())
+                return end_pos(this->file);
+        pair<long, bool> top_offset = this->eliminated_stack.top();
+        if (!(top_offset.second ^ node_to_store)) {
+                this->eliminated_stack.pop();
+                return top_offset.first;
+        }
+        else
+                return end_pos(this->file);
 }

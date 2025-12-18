@@ -248,6 +248,7 @@ function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
         this->make_point_rectangle = point_rectangle_fn;
         this->file = fstream("records.bin", ios::binary | ios::in | ios::out | ios::trunc);
         this->coffset = 0;
+        this->recent_cnt = 0;
         this->max_cached_rnodes = MAX_CACHED;
         this->max_cached_pnodes = MAX_CACHED / 2;
         this->root_offset = INV_OFF;
@@ -314,28 +315,34 @@ bool kd_btree<T, C>::store_file_node(long node_offset, kd_bnode<T> *node) {
 template <typename T, typename C>
 
 void kd_btree<T, C>::evict_point_cache() {
-        vector<long> pnode_cache_keys = get_map_keys<long, point_kd_bnode<T>>(this->pnodes_cached);
-        size_t key_len = pnode_cache_keys.size();
-        if (key_len >= this->max_cached_pnodes) {
-                long rem_idx = rand() % key_len;
-                long rem_key = pnode_cache_keys[rem_idx];
+        size_t cache_len = this->pnodes_cached.size();
+        if (cache_len >= this->max_cached_pnodes) {
+                auto min_it = min_element(this->off_cnt_points.begin(), this->off_cnt_points.end(),
+                        [](const pair<long, size_t> &a, const pair<long, size_t> &b) {
+                                return (a.second < b.second);
+                }); //the minimum second value is the minimum timestamp (least recently used) this shall be removed
+                long rem_key = min_it->first;
                 auto rem_it = this->pnodes_cached.find(rem_key);
                 store_file_node(rem_key, &rem_it->second);
                 this->pnodes_cached.erase(rem_key);
+                this->off_cnt_points.erase(rem_key); //erase it from the lru map as well
         }
 }
 
 template <typename T, typename C>
 
 void kd_btree<T, C>::evict_region_cache() {
-        vector<long> rnode_cache_keys = get_map_keys<long, region_kd_bnode<T>>(this->rnodes_cached);
-        size_t key_len = rnode_cache_keys.size();
-        if (key_len >= this->max_cached_rnodes) {
-                long rem_idx = rand() % key_len;
-                long rem_key = rnode_cache_keys[rem_idx];
+        size_t cache_len = this->rnodes_cached.size();
+        if (cache_len >= this->max_cached_rnodes) {
+                auto min_it = min_element(this->off_cnt_regions.begin(), this->off_cnt_regions.end(),
+                        [](const pair<long, size_t> &a, const pair<long, size_t> &b) {
+                                return (a.second < b.second);
+                }); //the minimum second value is the minimum timestamp (least recently used) this shall be removed
+                long rem_key = min_it->first;
                 auto rem_it = this->rnodes_cached.find(rem_key);
                 store_file_node(rem_key, &rem_it->second);
                 this->rnodes_cached.erase(rem_key);
+                this->off_cnt_regions.erase(rem_key); //erase it from the lru map as well
         }
 }
 
@@ -348,6 +355,8 @@ kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
                 if (it1 != this->pnodes_cached.end()) {
                         point_kd_bnode<T> *pnode = new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
                         *pnode = it1->second;
+                        this->off_cnt_points.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
+                        this->recent_cnt++; //increase current timestamp
                         return pnode;
                 }
                 //look in second cache (could be a region node)
@@ -355,6 +364,8 @@ kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
                 if (it2 !=  this->rnodes_cached.end()) {
                         region_kd_bnode<T> *rnode = new region_kd_bnode<T>(this->comparators, this->make_region_rectangle);
                         *rnode = it2->second;
+                        this->off_cnt_regions.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
+                        this->recent_cnt++; //increase current timestamp
                         return rnode;
                 }
                 // it is not cached so bring it from the file
@@ -365,12 +376,15 @@ kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
                                 region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) nnode;
                                 evict_region_cache();
                                 this->rnodes_cached.insert_or_assign(node_offset, *rnode);
+                                this->off_cnt_regions.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
                         }
                         else {
                                 point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) nnode;
                                 evict_point_cache();
                                 this->pnodes_cached.insert_or_assign(node_offset, *pnode);
+                                this->off_cnt_points.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
                         }
+                        this->recent_cnt++; //increase current timestamp
                         return nnode;
                 }
                 return nullptr;
@@ -396,6 +410,7 @@ bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
                                 if (node_offset >= end_off) // it is not in the file we put it
                                         store_file_node(node_offset, node);
                         }
+                        this->off_cnt_regions.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
                 }
                 else {
                         point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
@@ -411,7 +426,9 @@ bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
                                 if (node_offset >= end_off) // it is not in the file we put it
                                         store_file_node(node_offset, node);
                         }
+                        this->off_cnt_points.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
                 }
+                this->recent_cnt++; //increase current timestamp
                 return true;
         }
         return false;

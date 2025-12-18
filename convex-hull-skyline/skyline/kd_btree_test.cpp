@@ -73,13 +73,11 @@ int main(int argc, char *argv[]) {
         chrono::duration<double> durat = t3 - t2;
         double skyline_time = durat.count();
 
-        cout<<"skyline_length:"<<skyline.size()<<"\n";
-
         for (auto movie_it = skyline.begin(); movie_it != skyline.end(); ++movie_it) {
                 movie mv = *movie_it;
                 cout<<" movie is: "<<mv.print_interesting()<<"\n";
         }
-
+        cout<<"skyline_length:"<<skyline.size()<<"\n";
         //writing the time used to a csv file for benchmarking
 
         string txt = to_string(rows) + "," + to_string(time_used) + "," + to_string(skyline_time) + "\n";

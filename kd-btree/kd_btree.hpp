@@ -157,10 +157,12 @@ private:
         function<rectangle<T> (vector<T *> &)> make_point_rectangle;
         fstream file;
         long coffset, next_offset, root_offset;
-        size_t nitems, max_cached_pnodes, max_cached_rnodes;
+        size_t nitems, max_cached_pnodes, max_cached_rnodes, recent_cnt;
 
         map<long, point_kd_bnode<T>> pnodes_cached;
         map<long, region_kd_bnode<T>> rnodes_cached;
+        map<long, size_t> off_cnt_points;
+        map<long, size_t> off_cnt_regions;
         stack<pair<long, bool>> eliminated_stack;
 
         kd_bnode<T> *load_file_node(long node_offset);

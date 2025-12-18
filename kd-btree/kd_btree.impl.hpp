@@ -663,7 +663,7 @@ void kd_btree<T, C>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_o
                         size_t vlen = par_node->regions.size();
                         size_t dlen = this->comparators->size();
                         if (vlen > par_node->maximum_fill) {
-                                region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) par_node->split_node();
+                                region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) split_node(par_node);
                                 store_node(par_node->my_offset, par_node);
                                 //store the neighbour
                                 store_neighbour_after_split(neighbour, par_node, dlen,
@@ -698,7 +698,7 @@ void kd_btree<T, C>::insert_rec(T &data, long subtree_root_off) {
         store_node(leaf->my_offset, leaf);
         size_t vlen = leaf->points.size();
         if (vlen > leaf->maximum_fill) {
-                point_kd_bnode<T> *neighbour =  (point_kd_bnode<T> *) leaf->split_node();
+                point_kd_bnode<T> *neighbour =  (point_kd_bnode<T> *) split_node(leaf);
                 store_node(leaf->my_offset, leaf);
                 propagate_split(leaf, neighbour);
         }

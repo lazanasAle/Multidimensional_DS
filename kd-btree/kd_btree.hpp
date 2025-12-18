@@ -174,6 +174,8 @@ private:
         kd_bnode<T> *load_node(long node_offset);
         bool store_node(long node_offset, kd_bnode<T> *node);
 
+        virtual kd_bnode<T> *split_node(kd_bnode<T> *node) {return node->split_node();}
+
         point_kd_bnode<T> *choose_leaf(T &data, long subtree_root_off);
         void propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_org_node);
 

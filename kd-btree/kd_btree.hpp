@@ -192,6 +192,7 @@ private:
 
         void skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p);
         void skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r);
+        void skyline_region_prune(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, set<T, C> &skyline_set);
 
         void eliminate_node(kd_bnode<T> *node, region_kd_bnode<T> *parent, vector<T> &eliminated_data);
         void eliminate_root(kd_bnode<T> *root_node);

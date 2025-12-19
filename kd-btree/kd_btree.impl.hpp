@@ -826,23 +826,26 @@ template <typename T, typename C>
 void kd_btree<T, C>::skyline_update(vector<best_t> &best, set<T, C> &skyline_set, point<T> &p) {
         auto it = skyline_set.begin();
         set<T, C> im_set;
+        bool doms = true;
         while (it != skyline_set.end()) {
                 point<T> q(*it);
                 if (dominates<T>(p, q, this->comparators, best)) {
                         // p is out of the current skyline but dominates q which is inside it fix that
                         it = skyline_set.erase(it);
-                        im_set.insert(p.location);
+                        doms = true;
                 }
                 else if (!dominates<T>(q, p, this->comparators, best)) {
-                        im_set.insert(p.location);
+                        doms = true;
                         ++it;
                 }
-                else
-                        ++it;
+                else {
+                        doms = false;
+                        break;
+                }
         }
         // insert the dominant ones you found
-        for (auto it = im_set.begin(); it != im_set.end(); ++it)
-                skyline_set.insert(*it);
+        if (doms)
+                skyline_set.insert(p.location);
 }
 
 template <typename T, typename C>
@@ -850,22 +853,25 @@ template <typename T, typename C>
 void kd_btree<T, C>::skyline_region_update(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, region<T> &r) {
         auto it = skyline_regs.begin();
         set<region<T>, region_comp<T>> im_set;
+        bool doms = true;
         while (it != skyline_regs.end()) {
                 region<T> q = *it;
                 if (dominates<T>(r, q, this->comparators, best)) {
                         it = skyline_regs.erase(it);
-                        im_set.insert(r);
+                        doms = true;
                 }
                 else if (!dominates<T>(q, r, this->comparators, best)) {
-                        im_set.insert(r);
+                        doms = true;
                         ++it;
                 }
-                else
-                        ++it;
+                else {
+                        doms = false;
+                        break;
+                }
         }
         //insert the dominant ones you found
-        for (auto it = im_set.begin(); it != im_set.end(); ++it)
-                skyline_regs.insert(*it);
+        if (doms)
+                skyline_regs.insert(r);
 }
 
 template <typename T, typename C>

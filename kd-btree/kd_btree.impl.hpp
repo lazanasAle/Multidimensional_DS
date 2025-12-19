@@ -755,8 +755,8 @@ static inline bool region_dimention_domination(region<T> &r1, region<T> &r2, fun
         T r2_low = get<0>(r2.region_rec);
         T r2_high = get<2>(r2.region_rec);
 
-        double res1 = cmp(r1_low, r2_low);
-        double res2 = cmp(r1_high, r2_high);
+        double res1 = cmp(r1_high, r2_low);
+        double res2 = cmp(r1_low, r2_high);
 
         bool value = (best_dim == MAXIMIZE)? (res2 > 0) : (res1 < 0);
         return value;
@@ -784,8 +784,8 @@ static inline bool region_point_dimention_domination(region<T> &r, point<T> &p, 
         T r_low = get<0>(r.region_rec);
         T r_high = get<2>(r.region_rec);
 
-        double res1 = cmp(r_low, p.location);
-        double res2 = cmp(r_high, p.location);
+        double res1 = cmp(r_high, p.location);
+        double res2 = cmp(r_low, p.location);
 
         bool value = (best_dim == MAXIMIZE)? (res2 > 0) : (res1 < 0);
         return value;

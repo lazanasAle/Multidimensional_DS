@@ -23,9 +23,9 @@ string movie::print_interesting() {
         string ret = "<";
         ret += to_string(this->budget) + ", ";
         ret += to_string(this->revenue) + ", ";
-        ret += to_string(this->runtime) + ", ";
         ret += to_string(this->popularity) + ", ";
         ret += to_string(this->vote_avg) + ", ";
+        ret += to_string(this->runtime) + ", ";
         ret += to_string(this->vote_count) + ">";
 
         return ret;

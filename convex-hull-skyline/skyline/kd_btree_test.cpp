@@ -3,8 +3,15 @@
 #include <algorithm>
 #include <iostream>
 #include <chrono>
+#include <cstring>
 #include <sstream>
 #include <string>
+#include <vector>
+
+#define DFIELDS 4
+#define LFIELDS 2
+#define IV_CNT 2
+#define ALL_DIMS 6
 
 using namespace std;
 extern cmp_vector<movie> movie_comp;
@@ -15,74 +22,100 @@ int main(int argc, char *argv[]) {
         size_t num_threads = 12;
         size_t rows = 10000;
 
-        if (argc > 2) {
-                rows = stol(argv[1]);
-                num_threads = stol(argv[2]);
-        }
-        else if (argc > 1)
-                rows = stol(argv[1]);
+        double dfields[IV_CNT][DFIELDS];
+        size_t sfields[IV_CNT][LFIELDS];
+        char max_min_str[ALL_DIMS][DFIELDS];
 
-        //insertion_time measuring
-        auto t0 = chrono::system_clock::now();
+        //parsing the cmd arguments 1 is rows, 2-13 is movie-field pairs for range-query 14-19 are max min for skyline
+        if (argc > 19) {
+                rows = stol(argv[1]);
+                size_t k = 2;
+                for (size_t i = 0; i < DFIELDS; ++i) {
+                        for (size_t j = 0; j < IV_CNT; ++j)
+                                dfields[j][i] = stod(argv[i+k+j]);
+                        k++;
+                }
+                k = 6;
+                for (size_t i = 0; i < LFIELDS; ++i) {
+                        for (size_t j = 0; j < IV_CNT; ++j)
+                                sfields[j][i] = stol(argv[i+k+j]);
+                        k++;
+                }
+                for (size_t j = 0; j < ALL_DIMS; ++j)
+                        strcpy(max_min_str[j], argv[j+14]);
+
+        }
+        else {
+                cout<<"wrong argument format\n";
+                return 0;
+        }
+
+        //applying basic operations and counting time
+
+        auto ins_t0 = chrono::system_clock::now();
         read_csv(movies_kdb, num_threads, rows);
-        auto t1 = chrono::system_clock::now();
+        auto ins_t1 = chrono::system_clock::now();
 
-        chrono::duration<double> d = t1 - t0;
-        double time_used = d.count();
+        chrono::duration<double> ins_dur = ins_t1 - ins_t0;
+        double ins_time = ins_dur.count();
 
-        //check if a certain movie is in
-        movie mv;
-        mv.id = 195554; strcpy(mv.title, "Panorama of Galveston Power House");
-        mv.adult = false; strcpy(mv.org_lang, "en");
-        strcpy(mv.org_country, "['US']"); mv.release_date = date_t{1900, 5, 21};
-        strcpy(mv.genre_names, "[]"); strcpy(mv.prod_comp_names, "[]");
-        mv.budget = 1486.88423469876; mv.revenue = 1605.98597870523; mv.runtime = 2;
-        mv.popularity = 3.4255; mv.vote_avg = 6.1; mv.vote_count = 55;
+        movie mv1 = create_default_movie();
+        movie mv2 = create_default_movie();
 
-        pair<movie, movie> mv_pair = make_pair(mv, mv);
-        vector<movie> mv_vec = movies_kdb.range_query(mv_pair);
-        cout<<mv_vec.size()<<"\n";
-        cout<<movies_kdb.n_items()<<"\n";
+        assign_movie(dfields[0], sfields[0], mv1);
+        assign_movie(dfields[1], sfields[1], mv2);
 
-        cout<<"the dimensions you can use for the skyline are: budget, revenue, popularity, runtime, vote_avg, vote_count."<<
-                "use them with the same order and comma-separate the words minimize and maximize\n";
-        cout<<"eg: If you want to minimize the budget, maximize the revenue and popularity minimize runtime and maximize vote_avg and vote_count you write:"<<
-                "MINIMIZE,MAXIMIZE,MAXIMIZE,MINIMIZE,MAXIMIZE, MAXIMIZE\n";
-        string input;
-        getline(cin, input);
+        pair<movie, movie> mv_interval = make_pair(mv1, mv2);
 
-        stringstream is(input);
-        string item;
-        vector<best_t> mbest;
+        auto search_t0 = chrono::system_clock::now();
+        vector<movie> mv_in = movies_kdb.range_query(mv_interval);
+        auto search_t1 = chrono::system_clock::now();
 
-        while (getline(is, item, ',')) {
-                best_t best_entry;
-                transform(item.begin(), item.end(), item.begin(), ::toupper);
-                if (item.compare("MAXIMIZE") == 0)
-                        best_entry = MAXIMIZE;
+        chrono::duration<double> search_dur = search_t1 - search_t0;
+
+        double search_time = search_dur.count();
+
+        vector<best_t> bests;
+        for (size_t j = 0; j < ALL_DIMS; ++j) {
+                if (strcmp(max_min_str[j], "max"))
+                        bests.push_back(MAXIMIZE);
                 else
-                        best_entry = MINIMIZE;
-                mbest.push_back(best_entry);
+                        bests.push_back(MINIMIZE);
         }
 
-        //skyline query time measure
-        auto t2 = chrono::system_clock::now();
-        set<movie, movie_compare> skyline = movies_kdb.skyline(mbest);
-        auto t3 = chrono::system_clock::now();
+        auto sky_t0 = chrono::system_clock::now();
+        set<movie, movie_compare> skyline_movies = movies_kdb.skyline(bests);
+        auto sky_t1 = chrono::system_clock::now();
 
-        chrono::duration<double> durat = t3 - t2;
-        double skyline_time = durat.count();
+        chrono::duration<double> sky_dur = sky_t1 - sky_t0;
 
-        for (auto movie_it = skyline.begin(); movie_it != skyline.end(); ++movie_it) {
-                movie mv = *movie_it;
-                cout<<" movie is: "<<mv.print_interesting()<<"\n";
+        double sky_time = sky_dur.count();
+
+        //printing results
+
+        cout<<"interval-query results\n";
+
+        size_t search_len = mv_in.size();
+
+        for (size_t j = 0; j < search_len; ++j)
+                cout<<mv_in[j].print_interesting()<<"\n";
+
+        cout<<"skyline results\n";
+
+        size_t sky_len = skyline_movies.size();
+
+        for (auto it = skyline_movies.begin(); it != skyline_movies.end(); ++it) {
+                movie mv = *it;
+                cout<<mv.print_interesting()<<"\n";
         }
-        cout<<"skyline_length:"<<skyline.size()<<"\n";
-        //writing the time used to a csv file for benchmarking
 
-        string txt = to_string(rows) + "," + to_string(time_used) + "," + to_string(skyline_time) + "\n";
+        cout<<"interval_length = "<<search_len<<" skyline_length = "<<sky_len<<"\n";
 
-        ofstream csv_file("times.csv", ios::app);
-        csv_file<<txt;
-        csv_file.close();
+        //results to csv file
+
+        ofstream outcsv;
+        outcsv.open("times.csv", ios::app);
+
+        outcsv<<rows<<","<<ins_time<<","<<search_time<<","<<sky_time<<"\n";
+        outcsv.close();
 }

@@ -55,4 +55,14 @@ static inline date_t parse_date(const string &s) {
         return ret_date;
 }
 
+static inline void assign_movie(double *dfields, size_t *sfields, movie &mv) {
+        mv.budget = dfields[0];
+        mv.revenue = dfields[1];
+        mv.popularity = dfields[2];
+        mv.vote_avg = dfields[3];
+
+        mv.runtime = sfields[0];
+        mv.vote_count = sfields[1];
+}
+
 #endif /* _MOVIE_UTILS_HPP */

@@ -1,6 +1,5 @@
 #include "../../kd-btree/kd_btree.hpp"
 #include "movies_kd_btree.hpp"
-#include <algorithm>
 #include <iostream>
 #include <chrono>
 #include <cstring>
@@ -35,7 +34,7 @@ int main(int argc, char *argv[]) {
                                 dfields[j][i] = stod(argv[i+k+j]);
                         k++;
                 }
-                k = 6;
+                k = 10;
                 for (size_t i = 0; i < LFIELDS; ++i) {
                         for (size_t j = 0; j < IV_CNT; ++j)
                                 sfields[j][i] = stol(argv[i+k+j]);

@@ -1,5 +1,5 @@
 //R-tree implementation
-// We are using Guttman's quadreatic spliy algorithm
+// We are using Guttman's quadreatic split algorithm
 
 template <typename T, typename C>
 rtree<T,C>::rtree(cmp_vector<T> *cmp_vec, 
@@ -10,3 +10,15 @@ rtree<T,C>::rtree(cmp_vector<T> *cmp_vec,
 
 
 
+
+//main split algorithm. Guttman's quadratic split
+template <typename T, typename C>
+kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
+{
+
+}
+
+
+
+
+//will add commenting soon

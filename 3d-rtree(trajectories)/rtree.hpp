@@ -13,7 +13,7 @@ struct SpatioTemporalPoint
     {}
 
     SpatioTemporalPoint(double _x, double _y, double _t): x(_x), y(_y), t(_t) {}
-
+    //Spatio Temporal Point=STP
     void read(fstream &file)
     {
         file.read((char*)&x, sizeof(double));
@@ -31,11 +31,25 @@ struct SpatioTemporalPoint
     }
 };
 
+struct STP_comparator
+{
+    bool operator()(const SpatioTemporalPoint &a,const SpatioTemporalPoint &b) const
+    {
+        if(a.x !=b.x) return a.x<b.x;
+        if(a.y !=b.y) return a.y<b.y;
+        return a.t< b.t;
+        }
+};
+
 template <typename T, typename C>
 class rtree: public kd_btree<T,C>
 {
     private: 
-        //..
+        double area_increase(vector<point<T>> &group, point<T> &entry);
+        double area_increase(vector<region<T>> &group, region<T> &entry);
+    protected:
+        kd_bnode<T> *split_node(kd_bnode<T> *node) override;
+        //overriding the split node with Guttman's quadratic split algorithm
     public:
         rtree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
         function<rectangle<T> (vector<T *> &)> point_rectangle_fn);
@@ -44,3 +58,5 @@ class rtree: public kd_btree<T,C>
 
 #include "rtree.impl.hpp"
 #endif /* _RTREE_HPP */
+
+//will add commenting soon

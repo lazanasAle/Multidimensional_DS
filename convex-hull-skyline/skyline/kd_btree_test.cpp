@@ -18,7 +18,7 @@ extern cmp_vector<movie> movie_comp;
 int main(int argc, char *argv[]) {
         kd_btree<movie, movie_compare> movies_kdb(&movie_comp, make_movie_region_rectangle,
                 make_movie_point_rectangle);
-        size_t num_threads = 12;
+        size_t num_chunks = 12;
         size_t rows = 10000;
 
         double dfields[IV_CNT][DFIELDS];
@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
         //applying basic operations and counting time
 
         auto ins_t0 = chrono::system_clock::now();
-        read_csv(movies_kdb, num_threads, rows);
+        read_csv(movies_kdb, num_chunks, rows);
         auto ins_t1 = chrono::system_clock::now();
 
         chrono::duration<double> ins_dur = ins_t1 - ins_t0;

@@ -2,14 +2,7 @@
 #include "../../kd-btree/kd_btree.hpp"
 #include <cstddef>
 #include <cstdint>
-#include <thread>
-#include <mutex>
 #include <vector>
-
-
-using std::thread, std::mutex;
-
-mutex kdb_insert_mtx;
 
 cmp_vector<movie> movie_comp = {
         compare_budget, compare_revenue, compare_popularity,
@@ -191,35 +184,26 @@ void internal_insert(kd_btree<movie, movie_compare> &movies_kdb, size_t my_low, 
         }
 
         for (movie &m : my_movies) {
-                kdb_insert_mtx.lock();
                 movies_kdb.insert(m);
-                kdb_insert_mtx.unlock();
         }
 }
 
 
 
-void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_threads, size_t rows) {
+void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_chunks, size_t rows) {
         rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
         size_t row_len = movies_csv.GetRowCount();
         size_t rows_to_read = (rows < row_len)? rows : row_len;
         //for presentation if its done on stamys computer it has to be
         //size_t row_len = 500000;
 
-        size_t each_thread_row = rows_to_read / num_threads;
-        size_t main_thread_row = each_thread_row + rows_to_read % num_threads;
+        size_t each_chunk_row = rows_to_read / num_chunks;
+        size_t main_chunk_row = each_chunk_row + rows_to_read % num_chunks;
 
-        vector<thread> threads_used(num_threads - 1);
-        size_t i = 0;
-        for (size_t j = 0; j < num_threads - 1; ++j) {
-                threads_used[j] = thread([&movies_kdb, i, each_thread_row, &movies_csv]() {
-                        internal_insert(movies_kdb, i, i + each_thread_row, movies_csv);
-                });
-                i += each_thread_row;
+        size_t low = 0;
+        for (size_t j = 0; j < num_chunks - 1; ++j) {
+                internal_insert(movies_kdb, low, low + each_chunk_row, movies_csv);
+                low += each_chunk_row;
         }
-
-        internal_insert(movies_kdb, i, i + main_thread_row, movies_csv);
-
-        for (size_t j = 0; j < num_threads - 1; ++j)
-                threads_used[j].join();
+        internal_insert(movies_kdb, low, low + main_chunk_row, movies_csv);
 }

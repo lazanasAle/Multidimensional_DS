@@ -29,6 +29,9 @@ struct movie {
         double budget, revenue, popularity, vote_avg;
         size_t id, runtime, vote_count;
         bool adult;
+
+        void read(fstream &file);
+        void write(fstream &file);
         string print_interesting();
 };
 

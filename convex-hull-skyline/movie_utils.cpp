@@ -30,3 +30,11 @@ string movie::print_interesting() {
 
         return ret;
 }
+
+void movie::read(fstream &file) {
+        file.read(reinterpret_cast<char *>(this), sizeof(movie));
+}
+
+void movie::write(fstream &file) {
+        file.write(reinterpret_cast<char *>(this), sizeof(movie));
+}

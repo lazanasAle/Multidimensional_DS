@@ -23,10 +23,11 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
                 size_t vec_len;
                 if (file.read((char *)&vec_len, sizeof(size_t))) {
                         vec.resize(vec_len);
-                        file.read(reinterpret_cast<char *>(vec.data()), vec_len * sizeof(T));
-                        char inv[sizeof(T)] = {0};
+                        for (size_t j = 0; j < vec_len; ++j)
+                                vec[j].read(file);
+                        T inv;
                         for (size_t j = vec_len; j < it_in_blc + 1; ++j)
-                                file.read(inv, sizeof(T));
+                                inv.read(file);
                 }
         }
 }
@@ -38,10 +39,11 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         if (off >= 0) {
                 size_t vec_len = vec.size();
                 file.write((char *)&vec_len, sizeof(size_t));
-                file.write(reinterpret_cast<char *>(vec.data()), vec_len * sizeof(T));
-                char inv[sizeof(T)] = {0};
+                for (size_t j = 0; j < vec_len; ++j)
+                        vec[j].write(file);
+                T inv;
                 for (size_t j = vec_len; j < it_in_blc + 1; ++j)
-                        file.write(inv, sizeof(T));
+                        inv.write(file);
         }
 }
 
@@ -901,17 +903,22 @@ void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, l
 
         if (!node->tag) {
                 point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
-                if (skyline_set.empty())
+                size_t low = 0;
+                if (skyline_set.empty()) {
                         skyline_set.insert(pnode->points[0].location);
-                for (point<T> &p : pnode->points)
-                        skyline_update(best, skyline_set, p);
+                        low = 1;
+                }
+                size_t plen = pnode->points.size();
+                for (size_t j = low; j < plen; ++j)
+                        skyline_update(best, skyline_set, pnode->points[j]);
         }
         else {
                 region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                 set<region<T>, region_comp<T>> skyline_regs;
                 skyline_regs.insert(rnode->regions[0]);
-                for (region<T> &r : rnode->regions)
-                        skyline_region_update(best, skyline_regs, r);
+                size_t rlen = rnode->regions.size();
+                for (size_t j = 1; j < rlen; ++j)
+                        skyline_region_update(best, skyline_regs, rnode->regions[j]);
                 //prune the regions dominated by the current skyline points
                 skyline_region_prune(best, skyline_regs, skyline_set);
                 //recursively descend to the children

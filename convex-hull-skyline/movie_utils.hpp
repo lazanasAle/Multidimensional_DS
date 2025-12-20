@@ -38,8 +38,8 @@ static inline double compare_budget(const movie &a, const movie &b) {return (a.b
 static inline double compare_revenue(const movie &a, const movie &b) {return (a.revenue - b.revenue);}
 static inline double compare_popularity(const movie &a, const movie &b) {return (a.popularity - b.popularity);}
 static inline double compare_vote_avg(const movie &a, const movie &b) {return (a.vote_avg - b.vote_avg);}
-static inline double compare_runtime(const movie &a, const movie &b) {return ((double)a.runtime - (double)b.runtime);}
-static inline double compare_vote_count(const movie &a, const movie &b) {return ((double)a.vote_count - (double)b.vote_count);}
+static inline double compare_runtime(const movie &a, const movie &b) {return (static_cast<double>(a.runtime) - static_cast<double>(b.runtime));}
+static inline double compare_vote_count(const movie &a, const movie &b) {return (static_cast<double>(a.vote_count) - static_cast<double>(b.vote_count));}
 
 static inline void copy_to_char_array(char *dest, const string &src) {
         strncpy(dest, src.c_str(), N);

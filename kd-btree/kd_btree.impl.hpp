@@ -300,11 +300,11 @@ bool kd_btree<T, C>::store_file_node(long node_offset, kd_bnode<T> *node) {
                 this->file.write((char *)&node->level, sizeof(size_t));
                 //diferentiate
                 if (!node->tag) {
-                        point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                        point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                         write_vector<point<T>>(this->file, pnode->points, pnode->maximum_fill);
                 }
                 else {
-                        region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                        region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                         write_vector<region<T>>(this->file, rnode->regions, rnode->maximum_fill);
                 }
                 return true;
@@ -373,13 +373,13 @@ kd_bnode<T> *kd_btree<T, C>::load_node(long node_offset) {
                 //check what it is and put it in the right cache
                 if (nnode) {
                         if (nnode->tag) {
-                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) nnode;
+                                region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(nnode);
                                 evict_region_cache();
                                 this->rnodes_cached.insert_or_assign(node_offset, *rnode);
                                 this->off_cnt_regions.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
                         }
                         else {
-                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) nnode;
+                                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(nnode);
                                 evict_point_cache();
                                 this->pnodes_cached.insert_or_assign(node_offset, *pnode);
                                 this->off_cnt_points.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
@@ -397,7 +397,7 @@ template <typename T, typename C>
 bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
         if (node_offset >= 0 && node) {
                 if (node->tag) {
-                        region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                        region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                         auto it = this->rnodes_cached.find(node_offset);
                         if (it != this->rnodes_cached.end())
                                 it->second = *rnode;
@@ -413,7 +413,7 @@ bool kd_btree<T, C>::store_node(long node_offset, kd_bnode<T> *node) {
                         this->off_cnt_regions.insert_or_assign(node_offset, this->recent_cnt); //update the lru map that we found it in this timestamp
                 }
                 else {
-                        point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                        point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                         auto it = this->pnodes_cached.find(node_offset);
                         if (it != this->pnodes_cached.end())
                                 it->second = *pnode;
@@ -455,14 +455,14 @@ void kd_btree<T, C>::range_query_rec(pair<T, T> &rect, vector<T> &vec, long subt
                 kd_bnode<T> *node = load_node(subtree_root_off);
                 if (node) {
                         if (!node->tag) {
-                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                                 for (auto &point : pnode->points) {
                                         if (into_rectangle<T>(rect, point, this->comparators))
                                                 vec.push_back(point.location);
                                 }
                         }
                         else {
-                                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                                region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                                 for (auto &region : rnode->regions) {
                                         if (into_rectangle<T>(rect, region, this->comparators)) {
                                                 range_query_rec(rect, vec, region.child_offset);
@@ -490,11 +490,11 @@ point_kd_bnode<T> *kd_btree<T, C>::choose_leaf(T &data, long subtree_root_off) {
                 if (curr_node) {
                         if (!curr_node->tag) {
                                 //it's a leaf you found it
-                                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) curr_node;
+                                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(curr_node);
                                 return pnode;
                         }
                         //unfortunately it's a region node dig deeper
-                        region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) curr_node;
+                        region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(curr_node);
                         vector<pair<double, rectangle<T>>> enlargement(rnode->regions.size());
                         size_t j = 0;
                         for (region<T> &r : rnode->regions) {
@@ -540,7 +540,7 @@ template <typename T, typename C>
 region<T> kd_btree<T, C>::make_parent_region(kd_bnode<T> *node) {
         rectangle<T> my_new_rect;
         if (!node->tag) {
-                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                 //make the new vector of points
                 vector<T *> point_locs;
                 for (point<T> &p : pnode->points)
@@ -548,7 +548,7 @@ region<T> kd_btree<T, C>::make_parent_region(kd_bnode<T> *node) {
                 my_new_rect = this->make_point_rectangle(point_locs);
         }
         else {
-                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                 //make the new vector of regions
                 vector<rectangle<T> *> my_regs;
                 for (region<T> &r : rnode->regions)
@@ -652,7 +652,7 @@ void kd_btree<T, C>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_o
                         org_node, split_org_node);
         }
         else {
-                region_kd_bnode<T> *par_node = (region_kd_bnode<T> *) load_node(org_node->parent_offset);
+                region_kd_bnode<T> *par_node = static_cast<region_kd_bnode<T> *>(load_node(org_node->parent_offset));
                 if (par_node) {
                         //since there is a parent node we must find the original's parent and update it
                         assign_new_region(par_node, org_parent.region_rec, org_node->my_offset);
@@ -663,7 +663,7 @@ void kd_btree<T, C>::propagate_split(kd_bnode<T> *org_node, kd_bnode<T> *split_o
                         size_t vlen = par_node->regions.size();
                         size_t dlen = this->comparators->size();
                         if (vlen > par_node->maximum_fill) {
-                                region_kd_bnode<T> *neighbour = (region_kd_bnode<T> *) split_node(par_node);
+                                region_kd_bnode<T> *neighbour = static_cast<region_kd_bnode<T> *>(split_node(par_node));
                                 store_node(par_node->my_offset, par_node);
                                 //store the neighbour
                                 store_neighbour_after_split(neighbour, par_node, dlen,
@@ -698,7 +698,7 @@ void kd_btree<T, C>::insert_rec(T &data, long subtree_root_off) {
         store_node(leaf->my_offset, leaf);
         size_t vlen = leaf->points.size();
         if (vlen > leaf->maximum_fill) {
-                point_kd_bnode<T> *neighbour =  (point_kd_bnode<T> *) split_node(leaf);
+                point_kd_bnode<T> *neighbour =  static_cast<point_kd_bnode<T> *>(split_node(leaf));
                 store_node(leaf->my_offset, leaf);
                 propagate_split(leaf, neighbour);
         }
@@ -900,14 +900,14 @@ void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, l
         kd_bnode<T> *node = load_node(subtree_root_off);
 
         if (!node->tag) {
-                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                 if (skyline_set.empty())
                         skyline_set.insert(pnode->points[0].location);
                 for (point<T> &p : pnode->points)
                         skyline_update(best, skyline_set, p);
         }
         else {
-                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                 set<region<T>, region_comp<T>> skyline_regs;
                 skyline_regs.insert(rnode->regions[0]);
                 for (region<T> &r : rnode->regions)
@@ -959,12 +959,12 @@ template <typename T>
 
 bool underfull(kd_bnode<T> *node) {
         if (node->tag) {
-                region_kd_bnode<T> *rnode = (region_kd_bnode<T> *) node;
+                region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
                 size_t my_size = rnode->regions.size();
                 return (my_size < rnode->minimum_fill);
         }
         else {
-                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                 size_t my_size = pnode->points.size();
                 return (my_size < pnode->minimum_fill);
         }
@@ -975,7 +975,7 @@ template <typename T, typename C>
 void kd_btree<T, C>::eliminate_node(kd_bnode<T> *node, region_kd_bnode<T> *parent, vector<T> &eliminated_data) {
         this->eliminated_stack.push(make_pair(node->my_offset, node->tag));
         if (!node->tag) {
-                point_kd_bnode<T> *pnode = (point_kd_bnode<T> *) node;
+                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
                 for (point<T> &p : pnode->points)
                         eliminated_data.push_back(p.location);
         }
@@ -999,7 +999,7 @@ template <typename T, typename C>
 
 void kd_btree<T, C>::eliminate_root(kd_bnode<T> *root_node) {
         if (root_node->tag) {
-                region_kd_bnode<T> *root_regnode = (region_kd_bnode<T> *) root_node;
+                region_kd_bnode<T> *root_regnode = static_cast<region_kd_bnode<T> *>(root_node);
                 size_t root_len = root_regnode->regions.size();
                 if (root_len && root_len <= 1) {
                         //if there is only one child this will be the new root

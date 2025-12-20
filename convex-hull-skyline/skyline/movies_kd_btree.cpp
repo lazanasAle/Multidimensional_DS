@@ -13,7 +13,7 @@ mutex kdb_insert_mtx;
 
 cmp_vector<movie> movie_comp = {
         compare_budget, compare_revenue, compare_popularity,
-        compare_vote_avg, compare_vote_count, compare_runtime
+        compare_vote_avg, compare_runtime, compare_vote_count
 };
 
 

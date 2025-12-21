@@ -80,7 +80,6 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_points(vector<point<T>> &entries)
         return seeds;
 }
 
-
 template<typename T, typename C>
 pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
 {
@@ -162,6 +161,75 @@ size_t rtree<T,C>::pick_next_region(vector<region<T>> &remaining,
         }
         return next_idx;
 }
+
+//assigning to gorups
+
+template <typename T, typename C>
+bool rtree<T,C>::assign_to_group1(vector<point<T>> &group1,
+                                vector<point<T>> &group2,
+                                point<T> &entry)
+{
+        double d1=area_increase(group1,entry);
+        double d2=area_increase(group2,entry);
+
+        if(abs(d1-d2)< 1e-9)
+        {
+                vector<T*> g1_points,g2_points;
+                for(auto &p: group1) g1_points.push_back(&p.location);
+                for(auto &p: group2) g2_points.push_back(&p.location);
+
+                if(g1_points.empty()) return true;
+                if(g2_points.empty()) return false;
+
+                double area1=rect_area(this->make_point_rectangle(g1_points), this->comparators);
+                double area2=rect_area(this->make_point_rectangle(g2_points), this->comparators);
+
+                if(abs(area1-area2)< 1e-9)
+                {
+                        return group1.size()<= group2.size();
+
+                }
+
+                return area1<area2;
+        }
+
+        return d1<d2;
+}
+
+
+
+template <typename T, typename C>
+bool rtree<T,C>::assign_to_group1(vector<region<T>> &group1,
+                                vector<region<T>> &group2,
+                                region<T> &entry)
+{
+        double d1=area_increase(group1,entry);
+        double d2=area_increase(group2,entry);
+
+        if(abs(d1-d2)< 1e-9)
+        {
+                vector<rectangle<T>*> g1_rectangles,g2_rectangles;
+                for(auto &r: group1) g1_rectangles.push_back(&r.region_rec);
+                for(auto &r: group2) g2_rectangles.push_back(&r.region_rec);
+
+                if(g1_rectangles.empty()) return true;
+                if(g2_rectangles.empty()) return false;
+
+                double area1=rect_area(this->make_region_rectangle(g1_rectangles), this->comparators);
+                double area2=rect_area(this->make_region_rectangle(g2_rectangles), this->comparators);
+
+                if(abs(area1-area2)< 1e-9)
+                {
+                        return group1.size()<= group2.size();
+
+                }
+
+                return area1<area2;
+        }
+
+        return d1<d2;
+}
+
 
 //Main split algorithm. Guttman's quadratic split
 template <typename T, typename C>

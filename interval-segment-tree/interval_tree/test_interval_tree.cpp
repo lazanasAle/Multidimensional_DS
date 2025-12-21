@@ -115,7 +115,7 @@ void test_csv()
 
     //loading intervals from the CSV file
     //The data is synthetically created using a python script
-    vector<interval<int>> intervals= load_intervals_from_csv("Interval_Data.csv");
+    vector<interval<int>> intervals= load_intervals_from_csv("../Interval_Data.csv");
 
     if(intervals.empty())
     {

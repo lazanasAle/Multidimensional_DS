@@ -7,10 +7,13 @@ Upper_bound=200 #the upper bound for thr interval
 
 
 #create data set for interval & segment trees & swipe line
-intervals = [
-    (int(random.uniform(0, Upper_bound)), int(random.uniform(0, Upper_bound)))
-    for i in range(Size_of_dataset)
-]
+
+intervals = []
+
+for i in range (Size_of_dataset):
+    a = int(random.uniform(0, Upper_bound))
+    b = int(random.uniform(a, Upper_bound))
+    intervals.append((a, b))
 
 fields= ['X','Y']
 

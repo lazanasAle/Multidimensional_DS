@@ -72,7 +72,7 @@ public:
 
 template <typename T>
 
-bool dominates(point<T> &p1, point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
+bool dominates(const point<T> &p1, const point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
 
 template <typename T>
 
@@ -105,7 +105,7 @@ struct region_comp {
 
 template <typename T>
 
-bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
+bool dominates(const region<T> &r1, const region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best);
 
 template <typename T>
 

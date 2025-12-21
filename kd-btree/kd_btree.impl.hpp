@@ -726,7 +726,7 @@ void kd_btree<T, C>::insert(T &data) {
 
 template <typename T>
 
-static inline bool point_dimention_domination(point<T> &p1, point<T> &p2, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool point_dimention_domination(const point<T> &p1, const point<T> &p2, function<double (const T &, const T &)> cmp, best_t best_dim) {
         double res = cmp(p1.location, p2.location);
         bool value = (best_dim == MAXIMIZE)? (res > 0) : (res < 0);
         return value;
@@ -734,7 +734,7 @@ static inline bool point_dimention_domination(point<T> &p1, point<T> &p2, functi
 
 template <typename T>
 
-bool dominates(point<T> &p1, point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
+bool dominates(const point<T> &p1, const point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
         size_t dom_count = 0, worse_count = 0;
         size_t cmp_len = cmp_vec->size();
         for (size_t j = 0; j < cmp_len; ++j) {
@@ -750,7 +750,7 @@ bool dominates(point<T> &p1, point<T> &p2, cmp_vector<T> *cmp_vec, vector<best_t
 
 template <typename T>
 
-static inline bool region_dimention_domination(region<T> &r1, region<T> &r2, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool region_dimention_domination(const region<T> &r1, const region<T> &r2, function<double (const T &, const T &)> cmp, best_t best_dim) {
         T r1_low = get<0>(r1.region_rec);
         T r1_high = get<2>(r1.region_rec);
 
@@ -766,7 +766,7 @@ static inline bool region_dimention_domination(region<T> &r1, region<T> &r2, fun
 
 template <typename T>
 
-bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
+bool dominates(const region<T> &r1, const region<T> &r2, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
         size_t dom_count = 0, worse_count = 0;
         size_t cmp_len = cmp_vec->size();
         for (size_t j = 0; j < cmp_len; ++j) {
@@ -782,7 +782,7 @@ bool dominates(region<T> &r1, region<T> &r2, cmp_vector<T> *cmp_vec, vector<best
 
 template <typename T>
 
-static inline bool region_point_dimention_domination(region<T> &r, point<T> &p, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool region_point_dimention_domination(const region<T> &r, const point<T> &p, function<double (const T &, const T &)> cmp, best_t best_dim) {
         T r_low = get<0>(r.region_rec);
         T r_high = get<2>(r.region_rec);
 
@@ -795,7 +795,7 @@ static inline bool region_point_dimention_domination(region<T> &r, point<T> &p, 
 
 template <typename T>
 
-static inline bool point_region_dimention_domination(point<T> &p, region<T> &r, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool point_region_dimention_domination(const point<T> &p, const region<T> &r, function<double (const T &, const T &)> cmp, best_t best_dim) {
         T r_low = get<0>(r.region_rec);
         T r_high = get<2>(r.region_rec);
 
@@ -809,7 +809,7 @@ static inline bool point_region_dimention_domination(point<T> &p, region<T> &r, 
 
 template <typename T>
 
-bool dominates(point<T> &p, region<T> &r, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
+bool dominates(const point<T> &p, const region<T> &r, cmp_vector<T> *cmp_vec, vector<best_t> &best) {
         size_t dom_count = 0, worse_count = 0;
         size_t cmp_len = cmp_vec->size();
         for (size_t j = 0; j < cmp_len; ++j) {
@@ -857,7 +857,7 @@ void kd_btree<T, C>::skyline_region_update(vector<best_t> &best, set<region<T>, 
         set<region<T>, region_comp<T>> im_set;
         bool doms = true;
         while (it != skyline_regs.end()) {
-                region<T> q = *it;
+                const region<T> &q = *it;
                 if (dominates<T>(r, q, this->comparators, best)) {
                         it = skyline_regs.erase(it);
                         doms = true;

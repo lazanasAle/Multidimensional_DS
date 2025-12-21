@@ -33,13 +33,14 @@ template <typename T, typename C>
 double rtree<T,C>::area_increase(vector<region<T>> &group, region<T> &entry)
 {
     if(group.empty()) return 0.0;
-    vector<rectangles<T>*> old_rectangles;
+    vector<rectangle<T>*> old_rectangles;
     for(auto &r: group)
     {
         old_rectangles.push_back(&r.region_rec);
     }
 
-    rectangle<T> old_mbr=this->make_point_rectangle(old_points);
+    rectangle<T> old_mbr=this->make_region_rectangle(old_rectangles);
+    //    rectangle<T> old_mbr=this->make_point_rectangle(old_points);
     double old_area= rect_area(old_mbr, this->comparators);
     
     vector<rectangle<T>*> new_rectangles=old_rectangles;
@@ -48,6 +49,45 @@ double rtree<T,C>::area_increase(vector<region<T>> &group, region<T> &entry)
     double new_area= rect_area(new_mbr, this->comparators);
     return new_area-old_area;
 }
+
+
+/*template<typename T, typename C>
+pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
+{}*/
+
+
+template<typename T, typename C>
+pair<size_t,size_t> rtree<T,C>::pick_seeds_points(vector<point<T>> &entries)
+{
+        double max_waste=-1.0;
+        pair<size_t, size_t> seeds={0,1};
+        size_t n= entries.size();
+
+        for(size_t i=0; i<n; i++)
+        {
+                for(size_t j=i+1; j<n; j++)
+                {
+                        //create MBR that has both entries
+                        vector<T*> combined={&entries[i].location, &entries[j].location};
+
+                        rectangle<T> mbr=this->make_point_rectangle(combined);
+                        double area_mbr=rect_area(mbr, this->comparators);
+                        
+                        //for points area=0 obviously. So that waste=area(MBR)
+                        //we need the most 'distant' points
+                        double waste=area_mbr; 
+
+                        if(waste>max_waste)
+                        {
+                                max_waste=waste;
+                                seeds={i,j};
+                        }
+                }
+        }
+
+        return seeds;
+}
+
 
 //main split algorithm. Guttman's quadratic split
 template <typename T, typename C>

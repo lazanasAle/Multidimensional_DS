@@ -47,6 +47,11 @@ class rtree: public kd_btree<T,C>
     private: 
         double area_increase(vector<point<T>> &group, point<T> &entry);
         double area_increase(vector<region<T>> &group, region<T> &entry);
+        
+        //picking seeds. finds the entries with the most spatial waste
+        pair<size_t,size_t> pick_seeds_points(vector<point<T>> &entries);
+        pair<size_t,size_t> pick_seeds_regions(vector<region<T>> &entries);
+
     protected:
         kd_bnode<T> *split_node(kd_bnode<T> *node) override;
         //overriding the split node with Guttman's quadratic split algorithm

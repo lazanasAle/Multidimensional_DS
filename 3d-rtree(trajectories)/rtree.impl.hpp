@@ -28,7 +28,6 @@ double rtree<T,C>::area_increase(vector<point<T>> &group, point<T> &entry)
     return new_area-old_area;
 }
 
-
 template <typename T, typename C>
 double rtree<T,C>::area_increase(vector<region<T>> &group, region<T> &entry)
 {
@@ -49,12 +48,6 @@ double rtree<T,C>::area_increase(vector<region<T>> &group, region<T> &entry)
     double new_area= rect_area(new_mbr, this->comparators);
     return new_area-old_area;
 }
-
-
-/*template<typename T, typename C>
-pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
-{}*/
-
 
 template<typename T, typename C>
 pair<size_t,size_t> rtree<T,C>::pick_seeds_points(vector<point<T>> &entries)
@@ -84,18 +77,98 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_points(vector<point<T>> &entries)
                         }
                 }
         }
-
         return seeds;
 }
 
 
-//main split algorithm. Guttman's quadratic split
+template<typename T, typename C>
+pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
+{
+        double max_waste=-1.0;
+        pair<size_t, size_t> seeds={0,1};
+        size_t n= entries.size();
+
+        for(size_t i=0; i<n; i++)
+        {
+                for(size_t j=i+1; j<n; j++)
+                {
+                        //create MBR that has both entries
+                        vector<rectangle<T*>> combined={&entries[i].region_rec, &entries[j].region_rec};
+
+                        rectangle<T> mbr=this->make_region_rectangle(combined);
+                        double area_i=rect_area(entries[i].region_rec, this->comparators);
+                        double area_j=rect_area(entries[j].region_rec, this->comparators);
+                        double area_mbr=rect_area(mbr, this->comparators);
+                        
+                        //waste is the area of MBR minus the area of entry_i minus the area of entry_j
+                        double waste=area_mbr- area_i-area_j; 
+
+                        if(waste>max_waste)
+                        {
+                                max_waste=waste;
+                                seeds={i,j};
+                        }
+                }
+        }
+
+        return seeds;   
+}
+
+//Picking next
+template <typename T, typename C>
+size_t rtree<T, C>::pick_next_point(vector<point<T>> &remaining,
+                        vector<point<T>> &group1,
+                        vector<point<T>> &group2)
+{
+        double max_diff=-1.0;
+        size_t next_idx;
+
+        for(size_t i=0; i<remaining.size(); i++)
+        {
+                double d1=area_increase(group1, remaining[i]);
+                double d2=area_increase(group2, remaining[i]);
+
+                double diff=abs(d1-d2);
+
+                if(diff>max_diff)
+                {
+                        max_diff=diff;
+                        next_idx=i;
+                }
+        }
+        return next_idx;
+}
+
+template <typename T, typename C>
+size_t rtree<T,C>::pick_next_region(vector<region<T>> &remaining,
+                        vector<region<T>> &group1,
+                        vector<region<T>> &group2)
+{
+        double max_diff=-1.0;
+        size_t next_idx;
+
+        for(size_t i=0; i<remaining.size(); i++)
+        {
+                double d1=area_increase(group1, remaining[i]);
+                double d2=area_increase(group2, remaining[i]);
+
+                double diff=abs(d1-d2);
+
+                if(diff>max_diff)
+                {
+                        max_diff=diff;
+                        next_idx=i;
+                }
+        }
+        return next_idx;
+}
+
+//Main split algorithm. Guttman's quadratic split
 template <typename T, typename C>
 kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
 {
 
 }
-
 
 
 

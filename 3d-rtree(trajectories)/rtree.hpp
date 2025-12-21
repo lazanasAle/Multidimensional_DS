@@ -52,6 +52,15 @@ class rtree: public kd_btree<T,C>
         pair<size_t,size_t> pick_seeds_points(vector<point<T>> &entries);
         pair<size_t,size_t> pick_seeds_regions(vector<region<T>> &entries);
 
+        //picking next point/region
+        size_t pick_next_point(vector<point<T>> &remaining,
+                        vector<point<T>> &group1,
+                        vector<point<T>> &group2);
+                        
+        size_t pick_next_region(vector<region<T>> &remaining,
+                        vector<region<T>> &group1,
+                        vector<region<T>> &group2);
+
     protected:
         kd_bnode<T> *split_node(kd_bnode<T> *node) override;
         //overriding the split node with Guttman's quadratic split algorithm

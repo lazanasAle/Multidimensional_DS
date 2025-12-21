@@ -257,12 +257,102 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
                         }
                 }
 
-                //distribute entries...
+                //distribute entries
+                while(!remaining.empty())
+                {
+                        if(group1.size()+remaining.size()==m)
+                        {
+                                //checking if one group needs all the other entries
+                                group1.insert(group1.end(),remaining.begin(), remaining.end());
+                                break;
+                        }
 
+                        if(group2.size()+remaining.size()==m)
+                        {
+                                //checking if one group needs all the other entries
+                                group2.insert(group2.end(),remaining.begin(), remaining.end());
+                                break;
+                        }
+
+                        size_t next= pick_next_point(remaining,group1,group2);
+
+                        if(assign_to_group1(group1, group2, remaining[next]))
+                        {
+                                group1.push_back(remaining[next]);
+                        }
+                        else
+                        {
+                                group2.push_back(remaining[next]);
+                        }
+                        remaining.erase(remaining.begin()+next);
+                }
+
+                //create 2 new nodes
+                pnode->points=move(group1);
+                point_kd_bnode<T> *new_node=new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
+                new_node->points=move(group2);
+                new_node->level=node->level;
+
+                return new_node;
+        }
+        else
+        {
+                region_kd_bnode<T> *rnode=static_cast<region_kd_bnode<T> *>(node);
+                vector<region<T>> all_regions=rnode->regions;
+
+                size_t m=rnode->minimum_fill;
+
+                auto seeds=pick_seeds_regions(all_regions);
+
+                vector<region<T>> group1= {all_regions[seeds.first]};
+                vector<region<T>> group2= {all_regions[seeds.second]};
+                vector<region<T>> remaining;
+
+                for(size_t i=0; i<all_regions.size(); i++)
+                {
+                        if(i!= seeds.first && i!=seeds.second)
+                        {
+                                remaining.push_back(all_regions[i]);
+                        }
+                }
+
+                //distribute entries
+                while(!remaining.empty())
+                {
+                        if(group1.size()+remaining.size()==m)
+                        {
+                                //checking if one group needs all the other entries
+                                group1.insert(group1.end(),remaining.begin(), remaining.end());
+                                break;
+                        }
+
+                        if(group2.size()+remaining.size()==m)
+                        {
+                                //checking if one group needs all the other entries
+                                group2.insert(group2.end(),remaining.begin(), remaining.end());
+                                break;
+                        }
+
+                        size_t next= pick_next_point(remaining,group1,group2);
+
+                        if(assign_to_group1(group1, group2, remaining[next]))
+                        {
+                                group1.push_back(remaining[next]);
+                        }
+                        else
+                        {
+                                group2.push_back(remaining[next]);
+                        }
+                        remaining.erase(remaining.begin()+next);
+                }
+
+                rnode->regions=move(group1);
+                region_kd_bnode<T> *new_node=new region_kd_bnode<T>(this->comparators,this->make_region_rectangle);
+                new_node->regions=move(group2);
+                new_node->level=node->level;
+
+                return new_node;
         }       
-
-
-
 }
 
 

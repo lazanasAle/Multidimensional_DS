@@ -23,7 +23,7 @@ vector<interval<int>> load_intervals_from_csv(const string &filename)
 {
     vector<interval<int>> intervals;
     ifstream file(filename);
-    
+
     if(!file.is_open())
     {
         cerr<< "Error: Couldn't open the file: "<<filename<<endl;
@@ -87,7 +87,7 @@ void test_basic_ops() //testing basic operations
     tree.insert(i5);
     tree.insert(i6);
     cout<< "Inserted 6 intervals"<<endl;
-    
+
     interval<int> query(14,16); //just testing. will delete these numbers soon
     cout << "\nInterval Search for [14,16]:" <<endl;
     vector<interval<int>> result= tree.interval_search(query);
@@ -112,13 +112,10 @@ void test_basic_ops() //testing basic operations
 void test_csv()
 {
     cout << "\n *** CSV imported data Testing ***" <<endl;
-    
+
     //loading intervals from the CSV file
     //The data is synthetically created using a python script
-    vector<interval<int>> intervals= load_intervals_from_csv("Interval_Segmnet.csv");
-    // the filename has a typo. i will leave it like this for now
-    //might change to Interval_Segment.csv
-    // i dont wanna ruin anything else by renaming it
+    vector<interval<int>> intervals= load_intervals_from_csv("Interval_Data.csv");
 
     if(intervals.empty())
     {
@@ -165,7 +162,7 @@ void test_csv()
 
     auto start_stabbing_query= chrono::high_resolution_clock::now();
     vector<interval<int>> stab_result= tree.stabbing_query(point);
-    
+
     auto end_stabbing_query= chrono:: high_resolution_clock::now();
     auto stab_time=chrono::duration_cast< chrono::microseconds>(end_stabbing_query-start_stabbing_query);
 
@@ -202,12 +199,12 @@ void performance_test()
     {
         tree.insert(inter);
     }
-    
+
     auto end= chrono::high_resolution_clock::now();
     auto duration= chrono::duration_cast<chrono::milliseconds>(end-start);
 
     cout << "Inserted " << intervals.size()<< " intervals"<< endl;
-    cout << "Total Time: "<< duration.count()<< " ms" <<endl; 
+    cout << "Total Time: "<< duration.count()<< " ms" <<endl;
     cout << "Average per insertion: " << (double)duration.count()/ intervals.size()<< " ms" <<endl;
 
     //perform multiple searches
@@ -245,7 +242,7 @@ int main()
     test_csv();
 
     performance_test();
-    
+
     return 0;
 }
 

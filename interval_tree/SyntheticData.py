@@ -14,7 +14,7 @@ intervals = [
 
 fields= ['X','Y']
 
-with open('Interval_Segmnet.csv','w',newline='') as f:
+with open('Interval_Data.csv','w',newline='') as f:
     writer=csv.writer(f)
     writer.writerow(fields)
     writer.writerows(intervals)

@@ -196,8 +196,6 @@ bool rtree<T,C>::assign_to_group1(vector<point<T>> &group1,
         return d1<d2;
 }
 
-
-
 template <typename T, typename C>
 bool rtree<T,C>::assign_to_group1(vector<region<T>> &group1,
                                 vector<region<T>> &group2,
@@ -235,9 +233,37 @@ bool rtree<T,C>::assign_to_group1(vector<region<T>> &group1,
 template <typename T, typename C>
 kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
 {
+        if(!node->tag)
+        {
+                //point node -leaf
+                point_kd_bnode<T> *pnode=static_cast<point_kd_bnode<T> *>(node);
+                vector<point<T>> all_points= pnode->points;
+
+                size_t m=pnode->minimum_fill; //min entries per node
+
+                //picking seeds
+                auto seeds=pick_seeds_points(all_points);
+
+                vector<point<T>> group1= {all_points[seeds.first]};
+                vector<point<T>> group2= {all_points[seeds.second]};
+                vector<point<T>> remaining;
+
+                //move all entries besides seeds to remaining
+                for(size_t i=0; i<all_points.size(); i++)
+                {
+                        if(i!= seeds.first && i!=seeds.second)
+                        {
+                                remaining.push_back(all_points[i]);
+                        }
+                }
+
+                //distribute entries...
+
+        }       
+
+
 
 }
-
 
 
 //will add commenting soon

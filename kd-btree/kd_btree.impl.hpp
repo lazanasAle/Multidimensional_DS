@@ -901,33 +901,35 @@ template <typename T, typename C>
 void kd_btree<T, C>::skyline_rec(vector<best_t> &best, set<T, C> &skyline_set, long subtree_root_off) {
         kd_bnode<T> *node = load_node(subtree_root_off);
 
-        if (!node->tag) {
-                point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
-                size_t low = 0;
-                if (skyline_set.empty()) {
-                        skyline_set.insert(pnode->points[0].location);
-                        low = 1;
+        if (node) {
+                if (!node->tag) {
+                        point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);
+                        size_t low = 0;
+                        if (skyline_set.empty()) {
+                                skyline_set.insert(pnode->points[0].location);
+                                low = 1;
+                        }
+                        size_t plen = pnode->points.size();
+                        for (size_t j = low; j < plen; ++j)
+                                skyline_update(best, skyline_set, pnode->points[j]);
                 }
-                size_t plen = pnode->points.size();
-                for (size_t j = low; j < plen; ++j)
-                        skyline_update(best, skyline_set, pnode->points[j]);
-        }
-        else {
-                region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
-                set<region<T>, region_comp<T>> skyline_regs;
-                skyline_regs.insert(rnode->regions[0]);
-                size_t rlen = rnode->regions.size();
-                for (size_t j = 1; j < rlen; ++j)
-                        skyline_region_update(best, skyline_regs, rnode->regions[j]);
-                //prune the regions dominated by the current skyline points
-                skyline_region_prune(best, skyline_regs, skyline_set);
-                //recursively descend to the children
-                for (auto it = skyline_regs.begin(); it != skyline_regs.end(); ++it) {
-                        region<T> f = *it;
-                        skyline_rec(best, skyline_set, f.child_offset);
+                else {
+                        region_kd_bnode<T> *rnode = static_cast<region_kd_bnode<T> *>(node);
+                        set<region<T>, region_comp<T>> skyline_regs;
+                        skyline_regs.insert(rnode->regions[0]);
+                        size_t rlen = rnode->regions.size();
+                        for (size_t j = 1; j < rlen; ++j)
+                                skyline_region_update(best, skyline_regs, rnode->regions[j]);
+                        //prune the regions dominated by the current skyline points
+                        skyline_region_prune(best, skyline_regs, skyline_set);
+                        //recursively descend to the children
+                        for (auto it = skyline_regs.begin(); it != skyline_regs.end(); ++it) {
+                                region<T> f = *it;
+                                skyline_rec(best, skyline_set, f.child_offset);
+                        }
                 }
+                delete(node);
         }
-        delete(node);
 }
 
 template <typename T, typename C>

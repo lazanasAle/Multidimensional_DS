@@ -5,7 +5,10 @@ template <typename T, typename C>
 rtree<T,C>::rtree(cmp_vector<T> *cmp_vec, 
         function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
         function<rectangle<T> (vector<T *> &)> point_rectangle_fn)
-        : kd_btree<T,C>(cmp_vec, region_rectangle_fn, point_rectangle_fn)
+        : kd_btree<T,C>(cmp_vec, region_rectangle_fn, point_rectangle_fn),
+        local_comparators(cmp_vec),
+        local_make_region_rectangle(region_rectangle_fn),
+        local_make_point_rectangle(point_rectangle_fn)
         {}
 
 template <typename T, typename C>
@@ -17,13 +20,15 @@ double rtree<T,C>::area_increase(vector<point<T>> &group, point<T> &entry)
     {
         old_points.push_back(&p.location);
     }
-    rectangle<T> old_mbr=this->make_point_rectangle(old_points);
-    double old_area= rect_area(old_mbr, this->comparators);
+
+    rectangle<T> old_mbr = this->local_make_point_rectangle(old_points); 
+    double old_area = rect_area(old_mbr, this->local_comparators);
 
     vector<T*> new_points=old_points;
     new_points.push_back(&entry.location);
-    rectangle<T> new_mbr=this->make_point_rectangle(new_points);
-    double new_area= rect_area(new_mbr, this->comparators);
+
+    rectangle<T> new_mbr = this->local_make_point_rectangle(new_points);
+    double new_area = rect_area(new_mbr, this->local_comparators);
 
     return new_area-old_area;
 }
@@ -38,14 +43,15 @@ double rtree<T,C>::area_increase(vector<region<T>> &group, region<T> &entry)
         old_rectangles.push_back(&r.region_rec);
     }
 
-    rectangle<T> old_mbr=this->make_region_rectangle(old_rectangles);
-    //    rectangle<T> old_mbr=this->make_point_rectangle(old_points);
-    double old_area= rect_area(old_mbr, this->comparators);
+    rectangle<T> old_mbr=this->local_make_region_rectangle(old_rectangles);
+    double old_area= rect_area(old_mbr, this->local_comparators);
     
     vector<rectangle<T>*> new_rectangles=old_rectangles;
     new_rectangles.push_back(&entry.region_rec);
-    rectangle<T> new_mbr=this->make_region_rectangle(new_rectangles);
-    double new_area= rect_area(new_mbr, this->comparators);
+
+    rectangle<T> new_mbr = this->local_make_region_rectangle(new_rectangles);
+    double new_area = rect_area(new_mbr, this->local_comparators);
+
     return new_area-old_area;
 }
 
@@ -63,8 +69,8 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_points(vector<point<T>> &entries)
                         //create MBR that has both entries
                         vector<T*> combined={&entries[i].location, &entries[j].location};
 
-                        rectangle<T> mbr=this->make_point_rectangle(combined);
-                        double area_mbr=rect_area(mbr, this->comparators);
+                        rectangle<T> mbr=this->local_make_point_rectangle(combined);
+                        double area_mbr=rect_area(mbr, this->local_comparators);
                         
                         //for points area=0 obviously. So that waste=area(MBR)
                         //we need the most 'distant' points
@@ -92,13 +98,13 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
                 for(size_t j=i+1; j<n; j++)
                 {
                         //create MBR that has both entries
-                        vector<rectangle<T*>> combined={&entries[i].region_rec, &entries[j].region_rec};
+                        vector<rectangle<T>*> combined={&entries[i].region_rec, &entries[j].region_rec};
 
-                        rectangle<T> mbr=this->make_region_rectangle(combined);
-                        double area_i=rect_area(entries[i].region_rec, this->comparators);
-                        double area_j=rect_area(entries[j].region_rec, this->comparators);
-                        double area_mbr=rect_area(mbr, this->comparators);
-                        
+                        rectangle<T> mbr = this->local_make_region_rectangle(combined);
+                        double area_i = rect_area(entries[i].region_rec, this->local_comparators);
+                        double area_j = rect_area(entries[j].region_rec, this->local_comparators);
+                        double area_mbr = rect_area(mbr, this->local_comparators);
+                                                
                         //waste is the area of MBR minus the area of entry_i minus the area of entry_j
                         double waste=area_mbr- area_i-area_j; 
 
@@ -181,8 +187,11 @@ bool rtree<T,C>::assign_to_group1(vector<point<T>> &group1,
                 if(g1_points.empty()) return true;
                 if(g2_points.empty()) return false;
 
-                double area1=rect_area(this->make_point_rectangle(g1_points), this->comparators);
-                double area2=rect_area(this->make_point_rectangle(g2_points), this->comparators);
+                rectangle<T> temp_rect1 = this->local_make_point_rectangle(g1_points);
+                double area1 = rect_area(temp_rect1, this->local_comparators);
+                
+                rectangle<T> temp_rect2 = this->local_make_point_rectangle(g2_points);
+                double area2 = rect_area(temp_rect2, this->local_comparators);
 
                 if(abs(area1-area2)< 1e-9)
                 {
@@ -213,13 +222,15 @@ bool rtree<T,C>::assign_to_group1(vector<region<T>> &group1,
                 if(g1_rectangles.empty()) return true;
                 if(g2_rectangles.empty()) return false;
 
-                double area1=rect_area(this->make_region_rectangle(g1_rectangles), this->comparators);
-                double area2=rect_area(this->make_region_rectangle(g2_rectangles), this->comparators);
+                rectangle<T> temp_r1 = this->local_make_region_rectangle(g1_rectangles);
+                double area1 = rect_area(temp_r1, this->local_comparators);
+
+                rectangle<T> temp_r2 = this->local_make_region_rectangle(g2_rectangles);
+                double area2 = rect_area(temp_r2, this->local_comparators);
 
                 if(abs(area1-area2)< 1e-9)
                 {
                         return group1.size()<= group2.size();
-
                 }
 
                 return area1<area2;
@@ -289,7 +300,8 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
 
                 //create 2 new nodes
                 pnode->points=move(group1);
-                point_kd_bnode<T> *new_node=new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
+                //point_kd_bnode<T> *new_node=new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
+                point_kd_bnode<T> *new_node=new point_kd_bnode<T>(this->local_comparators, this->local_make_point_rectangle);
                 new_node->points=move(group2);
                 new_node->level=node->level;
 
@@ -333,7 +345,7 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
                                 break;
                         }
 
-                        size_t next= pick_next_point(remaining,group1,group2);
+                        size_t next= pick_next_region(remaining,group1,group2);
 
                         if(assign_to_group1(group1, group2, remaining[next]))
                         {
@@ -347,7 +359,7 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
                 }
 
                 rnode->regions=move(group1);
-                region_kd_bnode<T> *new_node=new region_kd_bnode<T>(this->comparators,this->make_region_rectangle);
+                region_kd_bnode<T> *new_node=new region_kd_bnode<T>(this->local_comparators, this->local_make_region_rectangle);
                 new_node->regions=move(group2);
                 new_node->level=node->level;
 

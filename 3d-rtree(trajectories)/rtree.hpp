@@ -68,6 +68,9 @@ class rtree: public kd_btree<T,C>
     protected:
         kd_bnode<T> *split_node(kd_bnode<T> *node) override;
         //overriding the split node with Guttman's quadratic split algorithm
+        cmp_vector<T> *local_comparators;
+        function<rectangle<T> (vector<rectangle<T> *> &)> local_make_region_rectangle;
+        function<rectangle<T> (vector<T *> &)> local_make_point_rectangle;
     public:
         rtree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
         function<rectangle<T> (vector<T *> &)> point_rectangle_fn);

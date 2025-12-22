@@ -90,7 +90,7 @@ int main()
     cmp_vector<SpatioTemporalPoint> comparators = {cmp_x, cmp_y, cmp_t};
     
     //Create the 3d R-tree
-    //rtree<SpatioTemporalPoint, STP_comparator> tree(&comparators,make_region_rect,make_point_rect);
+    rtree<SpatioTemporalPoint, STP_comparator> tree(&comparators,make_region_rect,make_point_rect);
     cout<< "3D R-Tree for Spatio-temporal Queries" <<endl;
     cout<< "Inserting trajectory points..." << endl;
 
@@ -102,6 +102,7 @@ int main()
         
     }*/
 
+    
     return 0;
 
 }

@@ -3,10 +3,13 @@
 #pragma once
 
 #include <cstddef>
-#include <list>
+#include <vector>
 #include <algorithm>
+#include <string>
 
-using std::list, std::max, std::min;
+
+using   std::vector, std::max, std::min, std::min_element, std::max_element, std::reverse,
+        std::string, std::to_string;
 
 struct segment {
         size_t lb, rb;
@@ -22,10 +25,13 @@ struct segment {
 
 class segment_tree {
 private:
-        list<segment> sg_vec;
-        void insert_rec(size_t lb, size_t lr);
+        vector<segment> sg_vec;
+        size_t build_rec(vector<size_t> &arr_build, size_t left, size_t right);
 public:
-        segment_tree(size_t len, vector<size_t> arr_build);
+        segment_tree(vector<size_t> &arr_build);
+        segment_tree() {}
+        void build(vector<size_t> &arr_build);
+        string stringnify_tree();
 };
 
 #endif /* _SEGMENT_TREE_HPP */

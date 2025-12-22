@@ -115,8 +115,8 @@ int main()
     auto end=high_resolution_clock::now();
     auto duration=duration_cast<microseconds>(end-start);
 
-    cout <<"Inserted "<< tree.n_items()<<"points in "<< duration.count()<< " microseconds"<< endl;
-    cout<< "\n Spatio-temporal Range Query"<< endl;
+    cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds"<< endl;
+    cout<< "\nSpatio-temporal Range Query"<< endl;
     cout <<"Query: Find vehicles in area [10,20]x[20,30] during time [100,250]"<< endl; 
     //range query, during time 100<=t<=250
 
@@ -129,16 +129,13 @@ int main()
     end =high_resolution_clock::now();
 
     duration=duration_cast<microseconds>(end-start);
-    cout<< "Found "<<results.size()<< "points in "<< duration.count()<< " microseconds" <<endl;
+    cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds" <<endl;
 
     cout<< "\nResults:"<< endl;
     for(auto &p: results)
     {
-        cout<< "Postiion ("<< p.x<< ","<<p.y<< ") at time "<<p.t<< endl;
+        cout<< "Position ("<< p.x<< ","<<p.y<< ") at time "<<p.t<< endl;
     }
-
-
-    
     return 0;
 
 }

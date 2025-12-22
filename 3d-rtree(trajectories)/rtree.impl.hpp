@@ -99,12 +99,13 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
                 {
                         //create MBR that has both entries
                         vector<rectangle<T>*> combined={&entries[i].region_rec, &entries[j].region_rec};
-
+                          
+                        // Changed to local_ versions
                         rectangle<T> mbr = this->local_make_region_rectangle(combined);
                         double area_i = rect_area(entries[i].region_rec, this->local_comparators);
                         double area_j = rect_area(entries[j].region_rec, this->local_comparators);
                         double area_mbr = rect_area(mbr, this->local_comparators);
-                                                
+
                         //waste is the area of MBR minus the area of entry_i minus the area of entry_j
                         double waste=area_mbr- area_i-area_j; 
 
@@ -222,6 +223,7 @@ bool rtree<T,C>::assign_to_group1(vector<region<T>> &group1,
                 if(g1_rectangles.empty()) return true;
                 if(g2_rectangles.empty()) return false;
 
+                // Changed to local_ versions
                 rectangle<T> temp_r1 = this->local_make_region_rectangle(g1_rectangles);
                 double area1 = rect_area(temp_r1, this->local_comparators);
 
@@ -300,7 +302,6 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
 
                 //create 2 new nodes
                 pnode->points=move(group1);
-                //point_kd_bnode<T> *new_node=new point_kd_bnode<T>(this->comparators, this->make_point_rectangle);
                 point_kd_bnode<T> *new_node=new point_kd_bnode<T>(this->local_comparators, this->local_make_point_rectangle);
                 new_node->points=move(group2);
                 new_node->level=node->level;

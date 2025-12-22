@@ -94,13 +94,49 @@ int main()
     cout<< "3D R-Tree for Spatio-temporal Queries" <<endl;
     cout<< "Inserting trajectory points..." << endl;
 
-    //insert data...
 
-    /*auto start=high_resolution_clock::now();
+    //TEST DATA TO CHECK IF IT WORKS OK
+    vector<SpatioTemporalPoint> trajectory=
+    {
+        {10.5,20.3,100.0}, //vehicle at position 10.5,20.3 at time=100
+        {15.2,25.1,150.0},
+        {18.7,22.5,200.0},
+        {12.3,28.9,250.0},
+        {20.1,30.5,300.0}
+
+    };
+
+    auto start=high_resolution_clock::now();
     for(auto &point: trajectory)
     {
-        
-    }*/
+        tree.insert(point);
+    }
+
+    auto end=high_resolution_clock::now();
+    auto duration=duration_cast<microseconds>(end-start);
+
+    cout <<"Inserted "<< tree.n_items()<<"points in "<< duration.count()<< " microseconds"<< endl;
+    cout<< "\n Spatio-temporal Range Query"<< endl;
+    cout <<"Query: Find vehicles in area [10,20]x[20,30] during time [100,250]"<< endl; 
+    //range query, during time 100<=t<=250
+
+    SpatioTemporalPoint lower(10.0,20.0,100.0);
+    SpatioTemporalPoint upper(20.0,30.0,250.0);
+
+    pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query={lower,upper};
+    start=high_resolution_clock::now();
+    vector<SpatioTemporalPoint> results=tree.range_query(range_query);
+    end =high_resolution_clock::now();
+
+    duration=duration_cast<microseconds>(end-start);
+    cout<< "Found "<<results.size()<< "points in "<< duration.count()<< " microseconds" <<endl;
+
+    cout<< "\nResults:"<< endl;
+    for(auto &p: results)
+    {
+        cout<< "Postiion ("<< p.x<< ","<<p.y<< ") at time "<<p.t<< endl;
+    }
+
 
     
     return 0;

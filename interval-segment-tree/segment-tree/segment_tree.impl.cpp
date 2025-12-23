@@ -1,30 +1,37 @@
 #include "segment_tree.hpp"
 
 
-size_t segment_tree::build_rec(vector<size_t> &arr_build, size_t left, size_t right) {
+segment get_from_array(vector<size_t> &arr, size_t left, size_t right) {
         segment sg;
-        size_t imid = (left + right) / 2;
-        auto left_it = arr_build.begin() + left;
-        auto right_it = arr_build.begin() + right + 1;
+        auto left_it = arr.begin() + left;
+        auto right_it = arr.begin() + right + 1;
+        sg.lb = *min_element(left_it, right_it);
+        sg.rb = *max_element(left_it, right_it);
+        sg.sum = accumulate(left_it, right_it, 0);
+        return sg;
+}
+
+void segment_tree::build_rec(vector<size_t> &arr_build, size_t left, size_t right) {
         if (left < right) {
-                sg.lb = *min_element(left_it, right_it);
-                sg.rb = *max_element(left_it, right_it);
-                sg.sum = build_rec(arr_build, left, imid) + build_rec(arr_build, imid + 1, right);
-                sg_vec.push_back(sg);
-                return sg.sum;
-        }
-        else {
-                sg.lb = sg.rb = sg.sum = arr_build[left];
-                sg_vec.push_back(sg);
-                return sg.sum;
+                size_t imid = (left + right) / 2;
+                if (sg_vec.empty()) {
+                        segment me = get_from_array(arr_build, left, right);
+                        sg_vec.push_back(me);
+                }
+                segment lseg = get_from_array(arr_build, left, imid);
+                segment rseg = get_from_array(arr_build, imid + 1, right);
+                sg_vec.push_back(lseg);
+                sg_vec.push_back(rseg);
+                build_rec(arr_build, left, imid);
+                build_rec(arr_build, imid + 1, right);
         }
 }
 
 
 void segment_tree::build(vector<size_t> &arr_build) {
         size_t vec_len = arr_build.size();
+        sort(arr_build.begin(), arr_build.end());
         build_rec(arr_build, 0, vec_len - 1);
-        reverse(sg_vec.begin(), sg_vec.end());
 }
 
 segment_tree::segment_tree(vector<size_t> &arr_build) {

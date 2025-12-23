@@ -6,9 +6,10 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <numeric>
 
 
-using   std::vector, std::max, std::min, std::min_element, std::max_element, std::reverse,
+using   std::vector, std::max, std::min, std::min_element, std::max_element, std::accumulate,
         std::string, std::to_string;
 
 struct segment {
@@ -26,7 +27,7 @@ struct segment {
 class segment_tree {
 private:
         vector<segment> sg_vec;
-        size_t build_rec(vector<size_t> &arr_build, size_t left, size_t right);
+        void build_rec(vector<size_t> &arr_build, size_t left, size_t right);
 public:
         segment_tree(vector<size_t> &arr_build);
         segment_tree() {}

@@ -27,7 +27,7 @@ struct segment {
 class segment_tree {
 private:
         vector<segment> sg_vec;
-        void build_rec(vector<size_t> &arr_build, size_t left, size_t right);
+        void build_rec(vector<size_t> &arr_build, size_t node, size_t left, size_t right);
 public:
         segment_tree(vector<size_t> &arr_build);
         segment_tree() {}

@@ -3,15 +3,13 @@
 
 void segment_tree::build_rec(vector<size_t> &arr_build, size_t node, size_t left, size_t right) {
         if (left == right) {
-                sg_vec[node].lb = sg_vec[node].rb
-                        = sg_vec[node].sum = arr_build[left];
+                sg_vec[node].lb = sg_vec[node].rb = left;
+                sg_vec[node].sum = arr_build[left];
         }
         else {
                 size_t imid = (left + right) / 2;
-                auto left_it = arr_build.begin() + left;
-                auto right_it = arr_build.begin() + right;
-                sg_vec[node].lb = *min_element(left_it, right_it + 1);
-                sg_vec[node].rb = *max_element(left_it, right_it + 1);
+                sg_vec[node].lb = left;
+                sg_vec[node].rb = right;
                 size_t lchild = 2 * node + 1;
                 size_t rchild = 2 * node + 2;
                 build_rec(arr_build, lchild, left, imid);

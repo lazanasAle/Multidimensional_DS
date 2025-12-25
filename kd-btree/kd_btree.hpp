@@ -151,7 +151,7 @@ public:
 template <typename T, typename C>
 
 class kd_btree {
-private:
+protected:
         cmp_vector<T> *comparators;
         function<rectangle<T> (vector<rectangle<T> *> &)> make_region_rectangle;
         function<rectangle<T> (vector<T *> &)> make_point_rectangle;

@@ -3,7 +3,6 @@
 
 #include <functional>
 #include <algorithm>
-#include <typeinfo>
 #include <utility>
 #include <fstream>
 #include <string>
@@ -27,7 +26,7 @@
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::binary_search, std::strncpy, std::find, std::stack, std::set, std::map, std::prev;
+        std::binary_search, std::stack, std::set, std::map;
 
 
 static inline void null_func(){}

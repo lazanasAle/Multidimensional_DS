@@ -142,6 +142,8 @@ int main()
 
 //will make a makefile in next commit
 
-//g++ -std=c++17 -O2 -I../3d-rtree\(trajectories\) test_rtree.cpp -o test_rtree
+//cd "3d-rtree(trajectories)"
+//g++ -std=gnu++23 -O2 -I../3d-rtree\(trajectories\) test_rtree.cpp -o test_rtree
+// ./test_rtree
 
 //will add commenting soon

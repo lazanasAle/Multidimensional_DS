@@ -21,6 +21,7 @@ int main() {
         txt_file.close();
         //build the tree
         segment_tree stree(build_arr);
+        stree.add(4, 5);
 
         cout<<stree.stringnify_tree()<<"\n";
 }

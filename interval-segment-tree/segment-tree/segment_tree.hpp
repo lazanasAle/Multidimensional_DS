@@ -28,10 +28,13 @@ class segment_tree {
 private:
         vector<segment> sg_vec;
         void build_rec(vector<size_t> &arr_build, size_t node, size_t left, size_t right);
+        void add_rec(size_t place, size_t val, size_t idx);
 public:
         segment_tree(vector<size_t> &arr_build);
         segment_tree() {}
         void build(vector<size_t> &arr_build);
+        void add(size_t place, size_t val);
+        size_t sum(size_t left, size_t right);
         string stringnify_tree();
 };
 

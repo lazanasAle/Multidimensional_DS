@@ -1,4 +1,5 @@
 #include "segment_tree.hpp"
+#include <cstddef>
 
 
 void segment_tree::build_rec(vector<size_t> &arr_build, size_t node, size_t left, size_t right) {
@@ -37,4 +38,23 @@ string segment_tree::stringnify_tree() {
         for (segment &sg : sg_vec)
                 str += "[" + to_string(sg.lb) + ", " + to_string(sg.rb) + "]:" + to_string(sg.sum) + ", ";
         return str;
+}
+
+void segment_tree::add_rec(size_t place, size_t val, size_t idx) {
+        if ((sg_vec[idx].lb == sg_vec[idx].rb) && (place == sg_vec[idx].lb))
+                sg_vec[idx].sum += val;
+        else {
+                sg_vec[idx].sum += val;
+                const size_t lchild = 2 * idx + 1;
+                const size_t rchild = 2 * idx + 2;
+                if ((sg_vec[lchild].lb <= place) && (sg_vec[lchild].rb >= place))
+                        add_rec(place, val, lchild);
+                else
+                        add_rec(place, val, rchild);
+        }
+}
+
+
+void segment_tree::add(size_t place, size_t val) {
+        add_rec(place, val, 0);
 }

@@ -1,5 +1,4 @@
 #include "segment_tree.hpp"
-#include <cstddef>
 
 
 void segment_tree::build_rec(vector<size_t> &arr_build, size_t node, size_t left, size_t right) {

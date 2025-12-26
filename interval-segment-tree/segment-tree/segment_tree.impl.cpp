@@ -57,3 +57,34 @@ void segment_tree::add_rec(size_t place, size_t val, size_t idx) {
 void segment_tree::add(size_t place, size_t val) {
         add_rec(place, val, 0);
 }
+
+
+size_t segment_tree::sum_rec(size_t left, size_t right, size_t idx) {
+        if ((left == sg_vec[idx].lb) && (right == sg_vec[idx].rb))
+                return sg_vec[idx].sum;
+        else {
+                const size_t lchild = 2 * idx + 1;
+                const size_t rchild = 2 * idx + 2;
+                bool all_on_left = (left >= sg_vec[lchild].lb) && (right <= sg_vec[lchild].rb);
+                bool all_on_right = (left >= sg_vec[rchild].lb) && (right <= sg_vec[rchild].rb);
+                if (all_on_left) //all interval is in left-child
+                        return sum_rec(left, right, lchild);
+                else if (all_on_right) //all interval is in right child
+                        return sum_rec(left, right, rchild);
+                else { //it falls both on right and on left
+                        //this means only one thing left bound is in left child right bound is in right child
+                        // so i have to do the recursion left to the rb of the left child to the left child and
+                        // right to the rb of the right child
+                        size_t this_sum = sum_rec(left, sg_vec[lchild].rb, lchild) +
+                                sum_rec(right, sg_vec[rchild].rb, rchild);
+                        return this_sum;
+                }
+        }
+}
+
+size_t segment_tree::sum(size_t left, size_t right) {
+        if (left > right) //error code lower bound exceeds upper bound
+                return SIZE_MAX;
+        else
+                return sum_rec(left, right, 0);
+}

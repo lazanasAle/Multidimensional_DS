@@ -6,6 +6,8 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <climits>
+#include <cstdint>
 #include <numeric>
 
 
@@ -29,6 +31,7 @@ private:
         vector<segment> sg_vec;
         void build_rec(vector<size_t> &arr_build, size_t node, size_t left, size_t right);
         void add_rec(size_t place, size_t val, size_t idx);
+        size_t sum_rec(size_t left, size_t right, size_t idx);
 public:
         segment_tree(vector<size_t> &arr_build);
         segment_tree() {}

@@ -23,5 +23,8 @@ int main() {
         segment_tree stree(build_arr);
         stree.add(4, 5);
 
+        size_t sum2_8 = stree.sum(2, 8);
+
         cout<<stree.stringnify_tree()<<"\n";
+        cout<<sum2_8<<"\n";
 }

@@ -1,6 +1,6 @@
 import random as rnd
 
-Size_of_dataset = 20
+Size_of_dataset = 200000
 Upper_bound = 200
 
 numbers = [int(rnd.uniform(0, Upper_bound)) for i in range(Size_of_dataset)]

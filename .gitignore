@@ -4,5 +4,5 @@ convex-hull-skyline/skyline/records.bin
 3d-rtree(trajectories)/flight_data_readable.csv
 3d-rtree(trajectories)/.venv/*
 3d-rtree(trajectories)/.idea/*
-segment-tree/.idea/*
-segment-tree/.venv/*
+interval-segment-tree/segment-tree/dataset.txt
+

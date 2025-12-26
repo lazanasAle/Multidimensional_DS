@@ -703,6 +703,7 @@ void kd_btree<T, C>::insert_rec(T &data, long subtree_root_off) {
                 point_kd_bnode<T> *neighbour =  static_cast<point_kd_bnode<T> *>(split_node(leaf));
                 store_node(leaf->my_offset, leaf);
                 propagate_split(leaf, neighbour);
+                delete(neighbour);
         }
         delete(leaf);
 }

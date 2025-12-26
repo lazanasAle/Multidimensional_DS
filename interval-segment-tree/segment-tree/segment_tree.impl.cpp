@@ -76,7 +76,7 @@ size_t segment_tree::sum_rec(size_t left, size_t right, size_t idx) {
                         // so i have to do the recursion left to the rb of the left child to the left child and
                         // right to the rb of the right child
                         size_t this_sum = sum_rec(left, sg_vec[lchild].rb, lchild) +
-                                sum_rec(right, sg_vec[rchild].rb, rchild);
+                                sum_rec(sg_vec[rchild].lb, right, rchild);
                         return this_sum;
                 }
         }

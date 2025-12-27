@@ -161,33 +161,55 @@ int main()
     //Create the 3d R-tree
     rtree<SpatioTemporalPoint, STP_comparator> tree(&comparators,make_region_rect,make_point_rect);
     cout<< "3D R-Tree for Spatio-temporal Queries (Flight Data)" <<endl;
-    /*cout<< "Inserting trajectory points..." << endl;
-
-
-    //TEST DATA TO CHECK IF IT WORKS OK
-    
-    vector<SpatioTemporalPoint> trajectory=
-    {
-        {10.5,20.3,100.0}, //vehicle at position 10.5,20.3 at time=100
-        {15.2,25.1,150.0},
-        {18.7,22.5,200.0},
-        {12.3,28.9,250.0},
-        {20.1,30.5,300.0}
-
-    };*/
 
     cout <<"Reading flight data from CSV..."<< endl;
     vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv");
 
-    if(trajectory.empty())
+    double min_r=0, max_r=0;
+    double min_u=0, max_u=0;
+    double min_t=0, max_t=0;
+
+    if(!trajectory.empty())
     {
-        cerr<< "No data loaded. Exit..."<< endl;
+        //double min_r= trajectory[0].x, max_r= trajectory[0].x;
+        //double min_u= trajectory[0].y, max_u=trajectory[0].y;
+        //double min_t= trajectory[0].t, max_t=trajectory[0].t;
+
+        min_r = trajectory[0].x;
+        max_r = trajectory[0].x;
+        min_u = trajectory[0].y;
+        max_u = trajectory[0].y;
+        min_t = trajectory[0].t;
+        max_t = trajectory[0].t;
+
+        for(auto &p: trajectory)
+        {
+            min_r=min(min_r, p.x);
+            max_r=max(max_r, p.x);
+
+            min_u=min(min_u, p.y);
+            max_u=max(max_u, p.y);
+
+            min_t=min(min_t, p.t);
+            max_t=max(max_t, p.t);
+        }
+
+        cout << "\nData Statistics"<< endl;
+
+        cout << "r (x) range: [" << min_r  << ", " <<  max_r << "]" << endl;
+        cout << "u (y) range: [" <<  min_u << ", " <<  max_u << "]" << endl;
+        cout << "t range: ["  << min_t << ", " <<    max_t << "]" <<   endl;
+        cout<< "\n\n"<< endl;
+
+    }
+    else
+    {
+        cerr << "No data loaded. Exit..."<<endl;
         return 1;
+
     }
 
     cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
-
-
 
     auto start=high_resolution_clock::now();
     for(auto &point: trajectory)
@@ -199,20 +221,16 @@ int main()
     auto duration=duration_cast<microseconds>(end-start);
 
     cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
-    //"<< endl;
 
     cout<< "\nSpatio-temporal Range Query"<< endl;
     cout << "Query: Find aircraft in specific spatial area during time interval" << endl;
 
-    /*cout <<"Query: Find vehicles in area [10,20]x[20,30] during time [100,250]"<< endl; 
-    //range query, during time 100<=t<=250
+    //SpatioTemporalPoint lower(16000000.0, -1.30, 0.0);
+    //SpatioTemporalPoint upper(16500000.0,  -1.28, 200000.0);
 
-    SpatioTemporalPoint lower(10.0,20.0,100.0);
-    SpatioTemporalPoint upper(20.0,30.0,250.0);*/
+    SpatioTemporalPoint lower(min_r+ (max_r-min_r)*0.2, min_u+(max_u-min_u)*0.2, min_t+(max_t-min_t)*0.1);
+    SpatioTemporalPoint upper(min_r+ (max_r-min_r)*0.4, min_u+(max_u-min_u)*0.4, min_t+(max_t-min_t)*0.3);
 
-    SpatioTemporalPoint lower(16000000.0, -1.30, 0.0);
-    SpatioTemporalPoint upper(16500000.0,  -1.28, 200000.0);
-    
     cout <<  "Spatial range (r): ["  << lower.x << ", " << upper.x << "]" << endl;
     cout << "Spatial range (u): [" << lower.y << ", "  << upper.y << "]" << endl;
     cout << "Time range: [" << lower.t << ", " <<  upper.t << "]" <<  endl;
@@ -224,7 +242,6 @@ int main()
 
     duration=duration_cast<microseconds>(end-start);
     cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl; 
-    //<<endl;
 
     cout << "\n=== First 10 Results ===" << endl;
     int display_count = min(10, (int)results.size());

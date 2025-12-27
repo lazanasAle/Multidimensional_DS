@@ -1,6 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <fstream>
+#include <sstream>
+#include <string>
 #include "rtree.hpp"
 
 using namespace std;
@@ -69,6 +72,72 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
 
 }
 
+
+vector<SpatioTemporalPoint> read_flight_data(const string& filename)
+{
+    vector<SpatioTemporalPoint> points;
+    ifstream file(filename);
+
+    if(!file.is_open())
+    {
+        cerr<< "Error: Could not open file "<<filename <<endl;
+        return points;
+    }
+
+    string line;
+    getline(file,line);
+    //skip 1st line (header)
+
+    int count=0;
+    while(getline(file,line))
+    {
+        stringstream ss(line);
+        string token;
+        vector<string> values;
+
+        while(getline(ss, token, ','))
+        {
+            values.push_back(token);
+        }
+
+        if (values.size()>=9)
+        {
+
+            try
+            {
+                int airfraft_id=(int)stod(values[0]);
+                int year=(int)stod(values[1]);
+                int month=(int)stod(values[2]);
+                int day=(int)stod(values[3]);
+                int hour=(int)stod(values[4]);
+                int minute=(int)stod(values[5]);
+                
+                double second=stod(values[6]);
+                double r= stod(values[7]); //r->x
+                double u=stod(values[8]); //u-> y
+
+                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0;
+                // 86400 is the #seconds in a day: 24 x 60 x 60 = 86400
+                //2592000 is the #seconds in a month (if 1 month=30days) 24 x 60 x 60 x30=25920000
+
+                //migth edit later
+
+                points.push_back(SpatioTemporalPoint(airfraft_id,r,u,timestamp));
+                count++;
+
+            }
+            catch(const exception& e)
+            {
+                cerr << "Error parsing the line: "<<line<< endl;
+            }
+        }
+    }
+
+    file.close();
+    cout<< "Succesfully loaded "<< count<< " trajectory points from CSV file"<< endl;
+    return points;
+}
+
 int main()
 {
     auto cmp_x=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
@@ -91,11 +160,12 @@ int main()
     
     //Create the 3d R-tree
     rtree<SpatioTemporalPoint, STP_comparator> tree(&comparators,make_region_rect,make_point_rect);
-    cout<< "3D R-Tree for Spatio-temporal Queries" <<endl;
-    cout<< "Inserting trajectory points..." << endl;
+    cout<< "3D R-Tree for Spatio-temporal Queries (Flight Data)" <<endl;
+    /*cout<< "Inserting trajectory points..." << endl;
 
 
     //TEST DATA TO CHECK IF IT WORKS OK
+    
     vector<SpatioTemporalPoint> trajectory=
     {
         {10.5,20.3,100.0}, //vehicle at position 10.5,20.3 at time=100
@@ -104,7 +174,20 @@ int main()
         {12.3,28.9,250.0},
         {20.1,30.5,300.0}
 
-    };
+    };*/
+
+    cout <<"Reading flight data from CSV..."<< endl;
+    vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv");
+
+    if(trajectory.empty())
+    {
+        cerr<< "No data loaded. Exit..."<< endl;
+        return 1;
+    }
+
+    cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
+
+
 
     auto start=high_resolution_clock::now();
     for(auto &point: trajectory)
@@ -115,13 +198,24 @@ int main()
     auto end=high_resolution_clock::now();
     auto duration=duration_cast<microseconds>(end-start);
 
-    cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds"<< endl;
+    cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
+    //"<< endl;
+
     cout<< "\nSpatio-temporal Range Query"<< endl;
-    cout <<"Query: Find vehicles in area [10,20]x[20,30] during time [100,250]"<< endl; 
+    cout << "Query: Find aircraft in specific spatial area during time interval" << endl;
+
+    /*cout <<"Query: Find vehicles in area [10,20]x[20,30] during time [100,250]"<< endl; 
     //range query, during time 100<=t<=250
 
     SpatioTemporalPoint lower(10.0,20.0,100.0);
-    SpatioTemporalPoint upper(20.0,30.0,250.0);
+    SpatioTemporalPoint upper(20.0,30.0,250.0);*/
+
+    SpatioTemporalPoint lower(16000000.0, -1.30, 0.0);
+    SpatioTemporalPoint upper(16500000.0,  -1.28, 200000.0);
+    
+    cout <<  "Spatial range (r): ["  << lower.x << ", " << upper.x << "]" << endl;
+    cout << "Spatial range (u): [" << lower.y << ", "  << upper.y << "]" << endl;
+    cout << "Time range: [" << lower.t << ", " <<  upper.t << "]" <<  endl;
 
     pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query={lower,upper};
     start=high_resolution_clock::now();
@@ -129,13 +223,24 @@ int main()
     end =high_resolution_clock::now();
 
     duration=duration_cast<microseconds>(end-start);
-    cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds" <<endl;
+    cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl; 
+    //<<endl;
 
-    cout<< "\nResults:"<< endl;
+    cout << "\n=== First 10 Results ===" << endl;
+    int display_count = min(10, (int)results.size());
+    for (int i = 0; i < display_count; i++) 
+    {
+        auto &p = results[i];
+        cout << "Aircraft ID: " << p.aircraft_id  
+            << " | Position (r=" << p.x << ", u=" <<  p.y 
+            << ") | Time: " << p.t <<  endl;
+    }
+
+    /*cout<< "\nResults:"<< endl;
     for(auto &p: results)
     {
         cout<< "Position ("<< p.x<< ","<<p.y<< ") at time "<<p.t<< endl;
-    }
+    }*/
     return 0;
 
 }

@@ -8,14 +8,20 @@
 //struct for the 3d spatio-temporal points x,y,t
 struct SpatioTemporalPoint
 {
+    int aircraft_id;
     double x,y,t; //x= longitude,y= latitude, t=time
-    SpatioTemporalPoint(): x(0), y(0),t(0)
+    //SpatioTemporalPoint(): x(0), y(0),t(0)
+    SpatioTemporalPoint(): aircraft_id(0),x(0), y(0),t(0)
     {}
 
-    SpatioTemporalPoint(double _x, double _y, double _t): x(_x), y(_y), t(_t) {}
+    SpatioTemporalPoint(double _x, double _y, double _t): aircraft_id(0), x(_x), y(_y), t(_t) {}
+    
+    SpatioTemporalPoint(int _id,double _x, double _y, double _t): aircraft_id(_id), x(_x), y(_y), t(_t) {}
+
     //Spatio Temporal Point=STP
     void read(fstream &file)
     {
+        file.read((char*)&aircraft_id,sizeof(int));
         file.read((char*)&x, sizeof(double));
         file.read((char*)&y, sizeof(double));
         file.read((char*)&t, sizeof(double));
@@ -24,6 +30,7 @@ struct SpatioTemporalPoint
 
     void write(fstream &file) const
     {
+        file.write((char*)&aircraft_id,sizeof(int));
         file.write((char*)&x, sizeof(double));
         file.write((char*)&y, sizeof(double));
         file.write((char*)&t, sizeof(double));

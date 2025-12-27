@@ -53,7 +53,6 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     double min_y=get<0>(*rectangles[0]).y, max_y=get<2>(*rectangles[0]).y;
     double min_t=get<0>(*rectangles[0]).t, max_t=get<2>(*rectangles[0]).t;
     
-
     for(auto r: rectangles)
     {
         min_x=min(min_x, get<0>(*r).x);
@@ -71,7 +70,6 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     );
 
 }
-
 
 vector<SpatioTemporalPoint> read_flight_data(const string& filename)
 {
@@ -102,7 +100,6 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
 
         if (values.size()>=9)
         {
-
             try
             {
                 int airfraft_id=(int)stod(values[0]);
@@ -120,7 +117,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
                 // 86400 is the #seconds in a day: 24 x 60 x 60 = 86400
                 //2592000 is the #seconds in a month (if 1 month=30days) 24 x 60 x 60 x30=25920000
 
-                //migth edit later
+                //might edit later
 
                 points.push_back(SpatioTemporalPoint(airfraft_id,r,u,timestamp));
                 count++;
@@ -155,7 +152,6 @@ int main()
         return a.t-b.t;
     };
 
-
     cmp_vector<SpatioTemporalPoint> comparators = {cmp_x, cmp_y, cmp_t};
     
     //Create the 3d R-tree
@@ -171,10 +167,6 @@ int main()
 
     if(!trajectory.empty())
     {
-        //double min_r= trajectory[0].x, max_r= trajectory[0].x;
-        //double min_u= trajectory[0].y, max_u=trajectory[0].y;
-        //double min_t= trajectory[0].t, max_t=trajectory[0].t;
-
         min_r = trajectory[0].x;
         max_r = trajectory[0].x;
         min_u = trajectory[0].y;
@@ -200,13 +192,11 @@ int main()
         cout << "u (y) range: [" <<  min_u << ", " <<  max_u << "]" << endl;
         cout << "t range: ["  << min_t << ", " <<    max_t << "]" <<   endl;
         cout<< "\n\n"<< endl;
-
     }
     else
     {
         cerr << "No data loaded. Exit..."<<endl;
         return 1;
-
     }
 
     cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
@@ -225,11 +215,15 @@ int main()
     cout<< "\nSpatio-temporal Range Query"<< endl;
     cout << "Query: Find aircraft in specific spatial area during time interval" << endl;
 
-    //SpatioTemporalPoint lower(16000000.0, -1.30, 0.0);
-    //SpatioTemporalPoint upper(16500000.0,  -1.28, 200000.0);
+    //SpatioTemporalPoint lower(min_r+ (max_r-min_r)*0.2, min_u+(max_u-min_u)*0.2, min_t+(max_t-min_t)*0.1);
+    //SpatioTemporalPoint upper(min_r+ (max_r-min_r)*0.4, min_u+(max_u-min_u)*0.4, min_t+(max_t-min_t)*0.3);
 
-    SpatioTemporalPoint lower(min_r+ (max_r-min_r)*0.2, min_u+(max_u-min_u)*0.2, min_t+(max_t-min_t)*0.1);
-    SpatioTemporalPoint upper(min_r+ (max_r-min_r)*0.4, min_u+(max_u-min_u)*0.4, min_t+(max_t-min_t)*0.3);
+    SpatioTemporalPoint lower(min_r, min_u, min_t);
+    SpatioTemporalPoint upper(min_r + (max_r - min_r) * 0.5, min_u + (max_u - min_u) * 0.5, min_t + (max_t - min_t) * 0.5);
+
+    //the whole space                      
+    //SpatioTemporalPoint lower(min_r, min_u, min_t);
+    //SpatioTemporalPoint upper(max_r, max_u, max_t);
 
     cout <<  "Spatial range (r): ["  << lower.x << ", " << upper.x << "]" << endl;
     cout << "Spatial range (u): [" << lower.y << ", "  << upper.y << "]" << endl;

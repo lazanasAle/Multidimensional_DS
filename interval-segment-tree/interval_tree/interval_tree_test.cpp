@@ -111,6 +111,14 @@ void test_basic_ops() //testing basic operations
     //display tree structure
     cout << "\nTree structure (inorder):" << endl;
     cout << tree.stringify_tree() << endl;
+
+    //test update operation
+    cout << "\nTesting update operation:" << endl;
+    interval<int> old_interval(15, 20);
+    interval<int> new_interval(15, 25);
+    tree.update(old_interval, new_interval);
+    cout << "Updated [15,20] to [15,25]" << endl;
+    cout << "Tree after update: " << tree.stringify_tree() << endl;
 }
 
 void test_csv()

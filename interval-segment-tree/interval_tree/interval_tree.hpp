@@ -83,6 +83,7 @@ class interval_tree
         void avl_balance(interval_node<T> *&node); //balance the tree using AVL rotations
         void add_node(interval_node<T> *&new_node,interval_node<T> *&subtree_root); //adding new node to the subtree
         void remove_node(interval<T> &inter, interval_node<T> *&subtree_root); //remove an interval from subtree
+        void update_rec(interval<T> &old_inter, interval<T> &new_inter, interval_node<T> *&subtree_root); //recursive update helper
         interval_node<T> *max_node(interval_node<T> *&subtree_root); //find a node with max interval in the subtree
         interval_node<T> *min_node(interval_node<T> *&subtree_root); // find a node with min interval in the subtree
         void interval_search_rec(interval<T> &inter,vector<interval<T>> &result,interval_node<T> *subtree_root); // recursive interval search
@@ -95,6 +96,7 @@ class interval_tree
         size_t size(); //get number of nodes in tree
         void insert(interval<T> &inter); //insert an interval into the tree
         void erase(interval<T> &inter); //delete an interval from the tree
+        void update(interval<T> &old_inter, interval<T> &new_inter); //update an existing interval
         interval_node_iterator<T> find(interval<T> &inter); //find an interval
         vector<interval<T>> interval_search(interval<T> &inter); //find all the intervals overlapping with given interval
         vector<interval<T>> stabbing_query(T point); //find all intervals that contain the given point

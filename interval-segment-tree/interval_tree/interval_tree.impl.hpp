@@ -503,6 +503,36 @@ void interval_tree<T>::build(vector<interval<T>> &intervals)
 }
 
 template<typename T>
+void interval_tree<T>:: update_rec(interval<T> &old_inter, interval<T> &new_inter, interval_node<T> *&subtree_root)
+{
+    if(subtree_root== nullptr)
+        return;
+    
+    if(comparator(old_inter.low, subtree_root->inter->low)== 0 &&
+        comparator(old_inter.high, subtree_root->inter->high) ==0)
+    {
+        subtree_root->inter->low= new_inter.low;
+        subtree_root->inter->high= new_inter.high;
+
+        subtree_root->update_max_end();
+        update_max_end_up(subtree_root->parent);
+
+    }
+    else if(comparator(old_inter.low, subtree_root->inter->low)<0 )
+        update_rec(old_inter, new_inter, subtree_root->left);
+    else
+        update_rec(old_inter, new_inter, subtree_root->right);
+
+ 
+}
+
+template<typename T>
+void interval_tree<T>::update(interval<T> &old_inter, interval<T> &new_inter)
+{
+    update_rec(old_inter, new_inter, root);
+}
+
+template<typename T>
 string interval_tree<T>:: stringify_tree()
 {
     string str;

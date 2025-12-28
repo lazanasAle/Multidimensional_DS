@@ -238,12 +238,19 @@ interval_tree<T>::interval_tree(function<int (T &,T &)> cmp)
 {
     this->root = nullptr;
     this->comparator=cmp;
+    this->node_count=0; 
 }
 
 template <typename T>
 bool interval_tree<T>::empty()
 {
     return (this->root ==nullptr);
+}
+
+template <typename T>
+size_t interval_tree<T>::size()
+{
+    return this->node_count;
 }
 
 template <typename T>
@@ -393,12 +400,14 @@ void interval_tree<T>::insert(interval<T> &inter)
     interval<T> *new_inter= new interval<T>(inter.low, inter.high);
     interval_node<T> *new_node= new interval_node<T>(new_inter);
     add_node(new_node, root);
+    node_count++; //incrementing counter after insertion
 }
 
 template <typename T>
 void interval_tree<T>::erase(interval<T> &inter)
 {
     remove_node(inter, root);
+    node_count--;
 }
 
 template <typename T>
@@ -475,12 +484,32 @@ vector<interval<T>> interval_tree<T>::inorder()
     return to_return;
 }
 
+template<typename T>
+void interval_tree<T>::build(vector<interval<T>> &intervals)
+{
+    //sort intervals by low endpoint for better tree balance
+    sort(intervals.begin(), intervals.end(),
+        //[this](const interval<T> &a, const interval<T> &b)
+        [this](interval<T> &a, interval<T> &b)
+        {
+            return this->comparator(a.low, b.low)<0;
+        });
+
+    //insert all intervals    
+    for(auto &inter: intervals)
+    {
+        insert(inter);
+    }
+}
+
 template <typename T>
 interval_tree<T>::~interval_tree()
 {
     if(root)
         delete(root);
 }
+
+
 
 //comments
 

@@ -77,6 +77,7 @@ class interval_tree
     private:
         interval_node<T> *root; //pointer to root node of the 3
         function<int (T &, T &)>comparator; //compare function for ordering intervals
+        size_t node_count; //tracking total number of nodes
         interval_node<T> *&search(interval<T> &inter, interval_node<T> *&subtree_root); //searching for an interval in subtree
         void avl_balance(interval_node<T> *&node); //balance the tree using AVL rotations
         void add_node(interval_node<T> *&new_node,interval_node<T> *&subtree_root); //adding new node to the subtree
@@ -90,12 +91,14 @@ class interval_tree
     public:
         interval_tree(function<int (T &, T &)> cmp); //constructor with compare function
         bool empty();
+        size_t size(); //get number of nodes in tree
         void insert(interval<T> &inter); //insert an interval into the tree
         void erase(interval<T> &inter); //delete an interval from the tree
         interval_node_iterator<T> find(interval<T> &inter); //find an interval
         vector<interval<T>> interval_search(interval<T> &inter); //find all the intervals overlapping with given interval
         vector<interval<T>> stabbing_query(T point); //find all intervals that contain the given point
         vector<interval<T>> inorder(); //return all intervals (sorted)
+        void build(vector<interval<T>> &intervals); //build method
     ~interval_tree(); //destructor to clean the tree memory
 
 };

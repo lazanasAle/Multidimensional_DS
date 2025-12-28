@@ -115,7 +115,7 @@ void test_csv()
 
     //loading intervals from the CSV file
     //The data is synthetically created using a python script
-    vector<interval<int>> intervals= load_intervals_from_csv("../Interval_Data.csv");
+    vector<interval<int>> intervals= load_intervals_from_csv("Interval_Data.csv");
 
     if(intervals.empty())
     {
@@ -128,15 +128,18 @@ void test_csv()
     interval_tree<int> tree(int_compare);
 
     auto start_build= chrono::high_resolution_clock::now();
-    for (auto &inter: intervals)
+    tree.build(intervals); //use build method instead of loop
+    
+    /*for (auto &inter: intervals)
     {
         tree.insert(inter);
-    }
+    }*/
 
     auto end_build=chrono::high_resolution_clock::now();
     auto build_time=chrono:: duration_cast<chrono::milliseconds>(end_build-start_build);
 
-    cout<< "Built the Interval Tree with "<< intervals.size()<< " intervals"<<endl;
+    //cout<< "Built the Interval Tree with "<< intervals.size()<< " intervals"<<endl;
+    cout<< "Built the Interval Tree with "<< tree.size()<< " intervals"<<endl; //using size method
     cout<< "Build Time: "<< build_time.count() << " ms"<<endl;
 
     interval<int> query(50,100);
@@ -180,8 +183,8 @@ void test_csv()
 void performance_test()
 {
     cout << "\n---- Performance Test ----" << endl;
-    vector<interval<int>> intervals= load_intervals_from_csv("Interval_Segmnet.csv");
-    //also wrong name here
+    vector<interval<int>> intervals= load_intervals_from_csv("Interval_Data.csv");
+    //wrong name was here: Interval_Segmnet.csv"
 
     if(intervals.empty())
     {
@@ -195,15 +198,18 @@ void performance_test()
     //Time Calculations
     cout << "\nInsertion Performance:" <<endl;
     auto start = chrono::high_resolution_clock::now();
-    for(auto &inter : intervals)
+    tree.build(intervals);
+    
+    /*for(auto &inter : intervals)
     {
         tree.insert(inter);
-    }
+    }*/
 
     auto end= chrono::high_resolution_clock::now();
     auto duration= chrono::duration_cast<chrono::milliseconds>(end-start);
 
-    cout << "Inserted " << intervals.size()<< " intervals"<< endl;
+    //cout << "Inserted " << intervals.size()<< " intervals"<< endl;
+    cout << "Inserted " << tree.size()<< " intervals"<< endl;
     cout << "Total Time: "<< duration.count()<< " ms" <<endl;
     cout << "Average per insertion: " << (double)duration.count()/ intervals.size()<< " ms" <<endl;
 

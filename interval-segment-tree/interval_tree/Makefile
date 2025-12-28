@@ -1,11 +1,12 @@
 CPP = g++
-CFLAGS = -Wall -O2 -std=gnu++23
-TARGET = test_interval_tree
+CPPFLAGS = -Wall -O2 -std=gnu++23
+PROG = interval_tree_test
 
-all: $(TARGET)
+all: $(PROG)
 
-test_interval_tree: test_interval_tree.cpp
-	$(CPP) $(CFLAGS) -o test_interval_tree test_interval_tree.cpp
+interval_tree_test: interval_tree_test.cpp interval_tree.hpp interval_tree.impl.hpp
+	$(CPP) $(CPPFLAGS) -o interval_tree_test interval_tree_test.cpp 
 
 clean:
-	rm -rf test_interval_tree
+	rm -rf interval_tree_test
+

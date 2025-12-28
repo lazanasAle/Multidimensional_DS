@@ -502,6 +502,18 @@ void interval_tree<T>::build(vector<interval<T>> &intervals)
     }
 }
 
+template<typename T>
+string interval_tree<T>:: stringify_tree()
+{
+    string str;
+    vector<interval<T>> intervals= inorder();
+    for(const auto &inter: intervals)
+    {
+        str += "["+ to_string(inter.low) + ", " +to_string(inter.high)+"], ";
+    }
+    return str;
+}
+
 template <typename T>
 interval_tree<T>::~interval_tree()
 {

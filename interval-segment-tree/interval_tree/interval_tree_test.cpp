@@ -107,6 +107,10 @@ void test_basic_ops() //testing basic operations
     {
         cout<< "[" <<inter.low<< ", " << inter.high<< "]" << endl;
     }
+
+    //display tree structure
+    cout << "\nTree structure (inorder):" << endl;
+    cout << tree.stringify_tree() << endl;
 }
 
 void test_csv()

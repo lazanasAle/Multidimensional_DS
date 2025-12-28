@@ -7,8 +7,9 @@
 #include <vector> 
 #include <algorithm>
 #include <cstdint> 
+#include <string>
 
-using std::vector, std::max, std::function, std::pair, std::sort;
+using std::vector, std::max, std::function, std::pair, std::sort , std::string, std::to_string;
 
 template <typename T> //created template class for generic type T
 class interval //the interval class represents a range [low,high]
@@ -99,6 +100,7 @@ class interval_tree
         vector<interval<T>> stabbing_query(T point); //find all intervals that contain the given point
         vector<interval<T>> inorder(); //return all intervals (sorted)
         void build(vector<interval<T>> &intervals); //build method
+        string stringify_tree(); //string representation of the tree for debugging
     ~interval_tree(); //destructor to clean the tree memory
 
 };

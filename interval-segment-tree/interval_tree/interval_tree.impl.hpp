@@ -482,6 +482,7 @@ vector<interval<T>> interval_tree<T>::inorder()
     vector<interval<T>> to_return;
     inorder(root, to_return);
     return to_return;
+
 }
 
 template<typename T>
@@ -489,10 +490,9 @@ void interval_tree<T>::build(vector<interval<T>> &intervals)
 {
     //sort intervals by low endpoint for better tree balance
     sort(intervals.begin(), intervals.end(),
-        //[this](const interval<T> &a, const interval<T> &b)
-        [this](interval<T> &a, interval<T> &b)
+        [](const interval<T> &a, const interval<T> &b)
         {
-            return this->comparator(a.low, b.low)<0;
+            return a.low< b.low;
         });
 
     //insert all intervals    

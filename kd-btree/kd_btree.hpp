@@ -63,7 +63,7 @@ class point {
 public:
         T location;
 
-        point(T p);
+        point(T &p);
         point() {}
         void write(fstream &file);
         void read(fstream &file);
@@ -88,7 +88,7 @@ public:
         rectangle<T> region_rec;
         long child_offset;
 
-        region(rectangle<T> reg);
+        region(rectangle<T> &reg);
         region() {}
         void write(fstream &file);
         void read(fstream &file);

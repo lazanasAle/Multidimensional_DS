@@ -79,7 +79,7 @@ double rect_area(rectangle<T> &r, cmp_vector<T> *cmp_vec) {
 
 template <typename T>
 
-point<T>::point(T p) {
+point<T>::point(T &p) {
         this->location = p;
 }
 
@@ -97,7 +97,7 @@ void point<T>::write(fstream &file) {
 
 template <typename T>
 
-region<T>::region(rectangle<T> reg) {
+region<T>::region(rectangle<T> &reg) {
         this->region_rec = reg;
         this->child_offset = INV_OFF;
 }
@@ -831,7 +831,8 @@ void kd_btree<T, C>::skyline_update(vector<best_t> &best, set<T, C> &skyline_set
         set<T, C> im_set;
         bool doms = true;
         while (it != skyline_set.end()) {
-                point<T> q(*it);
+                point<T> q;
+                q.location = *it; //do only a single copy
                 if (dominates<T>(p, q, this->comparators, best)) {
                         // p is out of the current skyline but dominates q which is inside it fix that
                         it = skyline_set.erase(it);
@@ -882,10 +883,11 @@ template <typename T, typename C>
 void kd_btree<T, C>::skyline_region_prune(vector<best_t> &best, set<region<T>, region_comp<T>> &skyline_regs, set<T, C> &skyline_set) {
         auto it = skyline_regs.begin();
         while (it != skyline_regs.end()) {
-                region<T> cr = *it;
+                const region<T> &cr = *it;
                 bool dom = false;
                 for (auto p = skyline_set.begin(); p != skyline_set.end(); ++p) {
-                        point<T> cp(*p);
+                        point<T> cp;
+                        cp.location = *p;
                         if (dominates(cp, cr, this->comparators, best)) {
                                 dom = true;
                                 it = skyline_regs.erase(it);

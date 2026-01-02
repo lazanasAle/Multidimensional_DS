@@ -2,7 +2,6 @@
 #include "../../kd-btree/kd_btree.hpp"
 #include <cstddef>
 #include <cstdint>
-#include <vector>
 
 cmp_vector<movie> movie_comp = {
         compare_budget, compare_revenue, compare_popularity,

@@ -3,9 +3,7 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
-#include <sstream>
 #include <string>
-#include <vector>
 
 #define DFIELDS 4
 #define LFIELDS 2
@@ -76,7 +74,7 @@ int main(int argc, char *argv[]) {
 
         vector<best_t> bests;
         for (size_t j = 0; j < ALL_DIMS; ++j) {
-                if (strcmp(max_min_str[j], "max"))
+                if (strcmp(max_min_str[j], "max") == 0)
                         bests.push_back(MAXIMIZE);
                 else
                         bests.push_back(MINIMIZE);

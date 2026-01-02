@@ -9,12 +9,12 @@
 #include <cstdint>
 #include <algorithm>
 
-#define N 50
+#define STR_LENGTH 50
 
 using   std::string, std::fstream,
         std::int32_t, std::to_string;
 
-typedef char name[N];
+typedef char name[STR_LENGTH];
 
 struct date_t {
         size_t year;
@@ -45,7 +45,7 @@ static inline double compare_runtime(const movie &a, const movie &b) {return (st
 static inline double compare_vote_count(const movie &a, const movie &b) {return (static_cast<double>(a.vote_count) - static_cast<double>(b.vote_count));}
 
 static inline void copy_to_char_array(char *dest, const string &src) {
-        strncpy(dest, src.c_str(), N);
+        strncpy(dest, src.c_str(), STR_LENGTH);
 }
 
 static inline date_t parse_date(const string &s) {

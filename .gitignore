@@ -5,4 +5,7 @@ convex-hull-skyline/skyline/records.bin
 3d-rtree(trajectories)/.venv/*
 3d-rtree(trajectories)/.idea/*
 interval-segment-tree/segment-tree/dataset.txt
+convex-hull-skyline/skyline/.idea/*
+convex-hull-skyline/skyline/.venv/*
+
 

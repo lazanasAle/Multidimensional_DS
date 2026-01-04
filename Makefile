@@ -1,4 +1,4 @@
-PROGS = convex_hull skyline
+PROGS = convex-hull-skyline interval-segment-tree Sweep_line
 
 all:
 	for dir in $(PROGS); do \

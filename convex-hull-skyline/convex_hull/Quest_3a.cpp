@@ -1,7 +1,7 @@
 #include "ConvexHull.hpp"
 
 
-int main() {
+int main(int argc, char *argv[]) {
         //Read csv and get the columns you need-->working
         string filename="../data_movies_clean.csv";
         vector<movie_point> points;

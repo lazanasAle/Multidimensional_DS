@@ -19,10 +19,10 @@ struct movie_point{
 };
 
 vector<movie_point> read_csv(string filename);
-int  direction(movie_point p0,movie_point p1,movie_point p2);
-double euclideian_dist(movie_point p0,movie_point p1);
-vector<movie_point> polar_sorting(vector<movie_point> points);
-vector<movie_point> Create_Convex_hull(vector<movie_point> points);
+int  direction(const movie_point &p0, const movie_point &p1, const movie_point &p2);
+double euclideian_dist(const movie_point &p0, const movie_point &p1);
+vector<movie_point> polar_sorting(vector<movie_point> &points);
+vector<movie_point> Create_Convex_hull(vector<movie_point> &points);
 
 
 #endif /* _CONVEXHULL_HPP */

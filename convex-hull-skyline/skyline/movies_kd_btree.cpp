@@ -2,6 +2,9 @@
 #include "../../kd-btree/kd_btree.hpp"
 #include <cstddef>
 #include <cstdint>
+#include <chrono>
+
+using std::chrono::system_clock, std::chrono::duration;
 
 cmp_vector<movie> movie_comp = {
         compare_budget, compare_revenue, compare_popularity,
@@ -151,7 +154,7 @@ rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points) {
         return make_tuple(minimum, median, maximum);
 }
 
-void internal_insert(kd_btree<movie, movie_compare> &movies_kdb, size_t my_low, size_t my_high, rapidcsv::Document &movies_csv) {
+double internal_insert(kd_btree<movie, movie_compare> &movies_kdb, size_t my_low, size_t my_high, rapidcsv::Document &movies_csv) {
         vector<string> int_columns = {"id", "runtime", "vote_count"};
         vector<size_t movie:: *> int_fields = {&movie::id, &movie::runtime, &movie::vote_count};
 
@@ -182,14 +185,21 @@ void internal_insert(kd_btree<movie, movie_compare> &movies_kdb, size_t my_low, 
                 my_movies.push_back(m);
         }
 
+        auto ins_first = system_clock::now();
         for (movie &m : my_movies) {
                 movies_kdb.insert(m);
         }
+        auto ins_second = system_clock::now();
+
+        duration<double> insdur = ins_second - ins_first;
+        double ins_time = insdur.count();
+
+        return ins_time;
 }
 
 
 
-void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_chunks, size_t rows) {
+double read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_chunks, size_t rows) {
         rapidcsv::Document movies_csv("../data_movies_clean.csv", rapidcsv::LabelParams(0, -1));
         size_t row_len = movies_csv.GetRowCount();
         size_t rows_to_read = (rows < row_len)? rows : row_len;
@@ -200,9 +210,12 @@ void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_chunks, siz
         size_t main_chunk_row = each_chunk_row + rows_to_read % num_chunks;
 
         size_t low = 0;
+        double ins_time = 0;
         for (size_t j = 0; j < num_chunks - 1; ++j) {
-                internal_insert(movies_kdb, low, low + each_chunk_row, movies_csv);
+                ins_time += internal_insert(movies_kdb, low, low + each_chunk_row, movies_csv);
                 low += each_chunk_row;
         }
-        internal_insert(movies_kdb, low, low + main_chunk_row, movies_csv);
+        ins_time += internal_insert(movies_kdb, low, low + main_chunk_row, movies_csv);
+
+        return ins_time;
 }

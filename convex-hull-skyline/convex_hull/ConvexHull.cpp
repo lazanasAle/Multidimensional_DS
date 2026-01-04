@@ -1,20 +1,21 @@
 #include "ConvexHull.hpp"
 #include <cstddef>
 
-vector<movie_point> read_csv(string filename){
+vector<movie_point> read_csv(string &filename, size_t rows){
         vector<movie_point> points;
         rapidcsv::Document doc(filename, rapidcsv::LabelParams(0, -1));
 
         vector<double> budgetV = doc.GetColumn<double>("budget");
         vector<double> popularityV = doc.GetColumn<double>("popularity");
 
+        size_t rows_to_read = (rows < budgetV.size())? rows : budgetV.size();
 
-        for(size_t i=0;i<budgetV.size();i++){
+
+        for(size_t i=0; i<rows_to_read; i++){
                 movie_point point;
                 point.budget=budgetV[i];
                 point.popularity=popularityV[i];
                 points.push_back(point);
-
         }
         return points;
 }

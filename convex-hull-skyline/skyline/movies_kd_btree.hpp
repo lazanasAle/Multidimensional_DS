@@ -18,6 +18,6 @@ rectangle<movie> make_movie_region_rectangle(vector<rectangle<movie> *> &movie_r
 
 rectangle<movie> make_movie_point_rectangle(vector<movie *> &movie_points);
 
-void read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_threads, size_t rows);
+double read_csv(kd_btree<movie, movie_compare> &movies_kdb, size_t num_threads, size_t rows);
 
 #endif /* _MOVIES_KD_BTREE_HPP */

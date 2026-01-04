@@ -49,12 +49,8 @@ int main(int argc, char *argv[]) {
 
         //applying basic operations and counting time
 
-        auto ins_t0 = chrono::system_clock::now();
-        read_csv(movies_kdb, num_chunks, rows);
-        auto ins_t1 = chrono::system_clock::now();
+        double ins_time = read_csv(movies_kdb, num_chunks, rows);
 
-        chrono::duration<double> ins_dur = ins_t1 - ins_t0;
-        double ins_time = ins_dur.count();
 
         movie mv1 = create_default_movie();
         movie mv2 = create_default_movie();

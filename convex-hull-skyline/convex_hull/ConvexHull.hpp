@@ -18,7 +18,7 @@ struct movie_point{
 
 };
 
-vector<movie_point> read_csv(string filename);
+vector<movie_point> read_csv(string &filename, size_t rows);
 int  direction(const movie_point &p0, const movie_point &p1, const movie_point &p2);
 double euclideian_dist(const movie_point &p0, const movie_point &p1);
 vector<movie_point> polar_sorting(vector<movie_point> &points);

@@ -1,6 +1,5 @@
 #ifndef _SWEEP_LINE_HPP
 #define _SWEEP_LINE_HPP
-#include <algorithm>
 #pragma once
 
 #include "rapidcsv.h"
@@ -8,18 +7,17 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#include <boost/heap/fibonacci_heap.hpp>
+#include <set>
 using namespace std;
-namespace fib=boost::heap;
 
 #define EPSILON 1e-9
 
-struct point{
+struct point {
         pair<double,double> cordinates;
         string line_name;
 };
 
-enum event_type:uint8_t{
+enum event_type: uint8_t {
         UPPER,
         LOWER,
         INTERSECT
@@ -27,7 +25,7 @@ enum event_type:uint8_t{
 
 typedef pair<point,point> line;
 
-struct event{
+struct event {
         point p;
         event_type type;
         double current_y;
@@ -36,24 +34,23 @@ struct event{
         line *sline;
 };
 
-struct dataS{
+struct dataS {
         vector<point> points;
         vector<line> lines;
 };
 
-struct type_comparator{
-        bool operator()(const event &e0, const event &e1) const {
+struct type_comparator {
+        bool operator() (const event &e0, const event &e1) const {
                 return e0.type>e1.type;
         }
 };
 
-typedef fib::fibonacci_heap<
-        event,
-        fib::compare<type_comparator>
-> fib_pq;
+typedef multiset<event, type_comparator> queue_type;
 
 dataS prepare_data(string &filename);
-fib_pq InitializeEvents(vector<point> &points, vector<line> &lines);
+queue_type InitializeEvents(vector<point> &points, vector<line> &lines);
+point *intersects(const line *l1, const line *l2);
+event *make_intersection(const line *l1, const line *l2);
+vector<point> sweep_line(queue_type &event_queue);
 
-
-#endif
+#endif /* _SWEEP_LINE_HPP */

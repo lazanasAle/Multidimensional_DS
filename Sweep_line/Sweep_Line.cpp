@@ -1,6 +1,8 @@
 #include "Sweep_Line.hpp"
 #include <algorithm>
 
+double sweep_line::sweepY;
+
 dataS prepare_data(string &filename) {
         dataS input;
         vector<point> points;
@@ -108,7 +110,7 @@ point *intersects(const line *l1, const line *l2) {
 }
 
 
-event *make_intersection(const line *l1, const line *l2) {
+event *make_intersection(line *l1, line *l2) {
         point *is_pt = intersects(l1, l2);
 
         if (is_pt) {
@@ -123,4 +125,69 @@ event *make_intersection(const line *l1, const line *l2) {
                 return is_event;
         }
         return nullptr;
+}
+
+void handle_leftCase(event &e, queue_type &event_queue, status_bst &status_tree, vector<point> &is_points) {
+        auto it = status_tree.insert(e.fline);
+        auto next_it = status_tree.end();
+        auto prev_it = status_tree.end();
+
+        if (it != status_tree.begin())
+                prev_it = prev(it);
+        if (it != prev(status_tree.end()))
+                next_it = next(it);
+
+        //check if prev and next intersect
+        if (prev_it != status_tree.end() && next_it != status_tree.end()) {
+                line *l1 = *prev_it;
+                line *l2 = *next_it;
+
+                event *is_ev = make_intersection(l1, l2);
+                if (is_ev) {
+                        point p_is = is_ev->p;
+                        auto all_eq = event_queue.equal_range(*is_ev);
+                        auto it_er = event_queue.end();
+                        for (auto it = all_eq.first; it != all_eq.second; ++it) {
+                                point p_ev = (*it).p;
+
+                                bool cond = p_is.cordinates.first == p_ev.cordinates.first &&
+                                        p_is.cordinates.second == p_ev.cordinates.second &&
+                                        (*it).type == INTERSECT;
+                                if (cond) {
+                                        it_er = it;
+                                        break;
+                                }
+                        }
+                        //if their intersection already is part of the events report it and erase it from event queue
+                        if (it_er != event_queue.end()) {
+                                is_points.push_back((*it_er).p);
+                                event_queue.erase(it_er);
+                        }
+                        delete(is_ev);
+                }
+        }
+        //if me and prev intersect
+        if (prev_it != status_tree.end()) {
+                line *prev_line = *prev_it;
+                line *curr_line = *it;
+
+                event *is_ev = make_intersection(prev_line, curr_line);
+                //insert the intersection to event-queue
+                if (is_ev) {
+                        event_queue.insert(*is_ev);
+                        delete(is_ev);
+                }
+        }
+        //if me and next intersect
+        if (next_it != status_tree.end()) {
+                line *next_line = *next_it;
+                line *curr_line = *it;
+
+                event *is_ev = make_intersection(next_line, curr_line);
+                //insert the intersection to event-queue
+                if (is_ev) {
+                        event_queue.insert(*is_ev);
+                        delete(is_ev);
+                }
+        }
 }

@@ -1,4 +1,5 @@
 #include "Sweep_Line_impl.hpp"
+#include <print>
 
 dataS prepare_data(string filename){
         dataS input;
@@ -11,42 +12,43 @@ dataS prepare_data(string filename){
         vector<double> y2 = doc.GetColumn<double>("Y2");
         vector<string> line_name = doc.GetColumn<string>("name_of_line");
 
-        vector<line*> lines;
+        vector<line> lines;
 
         for(size_t i=0;i<line_name.size();i++){
-                line* l=new line();
-                l->line_name=line_name[i];
+                line l;
+                l.line_name=line_name[i];
                 point p0={x1[i],y1[i],0,line_name[i]};
                 point p1={x2[i],y2[i],0,line_name[i]};
 
                 if (p0.y_axis > p1.y_axis || (fabs(p0.y_axis - p1.y_axis) < EPSHILON && p0.x_axis < p1.x_axis)) {
-                            l->first_point = p0;  // Encountered first (Upper)
-                            l->second_point = p1; // Encountered second (Lower)
+                            l.first_point = p0;  // Encountered first (Upper)
+                            l.second_point = p1; // Encountered second (Lower)
                             p0.thessi_in_line=0;
                             p1.thessi_in_line=1;
-                        } else {
-                            l->first_point = p1;  // Encountered first (Upper)
-                            l->second_point = p0; // Encountered second (Lower)
+                }
+                else {
+                            l.first_point = p1;  // Encountered first (Upper)
+                            l.second_point = p0; // Encountered second (Lower)
                             p0.thessi_in_line=1;
                             p1.thessi_in_line=0;
                 }
 
                         // Mark positions for the Event Queue logic
-                l->first_point.thessi_in_line = 0;  // UPPER
-                l->second_point.thessi_in_line = 1; // LOWER
-                l->line_name=line_name[i];
+                l.first_point.thessi_in_line = 0;  // UPPER
+                l.second_point.thessi_in_line = 1; // LOWER
+                l.line_name=line_name[i];
                         // Add both points to the points vector for event processing
 
                 lines.push_back(l);
-                points.push_back(l->first_point);
-                points.push_back(l->second_point);
+                points.push_back(l.first_point);
+                points.push_back(l.second_point);
 
         }
 
 
         //sort the points by y axis descending
         sort(points.begin(),points.end(), [](const point& a, const point& b) {
-                if (fabs(a.y_axis - b.y_axis) > EPSHILON) return a.y_axis > b.y_axis;
+                if (abs(a.y_axis - b.y_axis) > EPSHILON) return a.y_axis > b.y_axis;
                 return a.x_axis < b.x_axis; // Leftmost first if on same height
         });
 
@@ -57,7 +59,7 @@ dataS prepare_data(string filename){
 }
 
 //do that second
-priority_queue<event, vector<event>,decltype(sort_y)> InitializeEvents(vector<point> points, vector<line*> lines){
+priority_queue<event, vector<event>,decltype(sort_y)> InitializeEvents(vector<point> &points, vector<line> &lines){
         priority_queue<event,vector<event>,decltype(sort_y)> EventQueue(sort_y);
         for(size_t i=0;i<points.size();i++){
                 size_t firstdig=points[i].line_name.find_first_of("0123456789");
@@ -67,7 +69,7 @@ priority_queue<event, vector<event>,decltype(sort_y)> InitializeEvents(vector<po
                                         int num_val = stoi(num_str);
                                         event current;
                                         current.current_height=points[i].y_axis;
-                                        current.s0=lines[num_val];
+                                        current.s0=&lines[num_val];
                                         current.p=points[i];
                                         if(points[i].thessi_in_line==0){
                                                current.type=event::UPPER;
@@ -148,8 +150,14 @@ point ComputeIntersectionpoint(line& l1,line& l2){
 
 void InsertIntersection(line* first_in_tree,line* second_in_tree,point p,priority_queue<event, vector<event>,decltype(sort_y)>& EventQueue,set<point, PointComparator>& processed,double current_y){
 
-        if (processed.find(p) != processed.end()) return;
-        if (p.y_axis > current_y - EPSHILON) return;
+        if (processed.find(p) != processed.end()) {
+                println("a if print the point {} {}",p.x_axis,p.y_axis);
+                return;
+        }
+        if (p.y_axis > current_y - EPSHILON){
+                println("a if print the point {} {}",p.x_axis,p.y_axis);
+                return;
+        }
 
         event tmp;
         tmp.current_height=p.y_axis;
@@ -163,85 +171,88 @@ void InsertIntersection(line* first_in_tree,line* second_in_tree,point p,priorit
 }
 
 //no compile errors
-set<point, PointComparator> Sweep_Line(priority_queue<event, vector<event>,decltype(sort_y)> EventQueue){
+set<point, PointComparator> Sweep_Line(priority_queue<event, vector<event>,decltype(sort_y)> &EventQueue){
         //create a line stat
         double current_y;
-        CompareToX comp(current_y);
+        CompareToX comp(&current_y);
 
         set<point, PointComparator> processedIntersections;
         set<line*,CompareToX> segment_line(comp);
 
         while(!EventQueue.empty()){
-               event current=EventQueue.top();
-               EventQueue.pop();
-               current_y=current.current_height;
-               if(current.type==event::UPPER){
-                       auto [it,success]=segment_line.insert(current.s0);
-                       if(success){
-                               if(it!=segment_line.begin()){
-                                       auto predeccesor = prev(it);
-                                       if (*predeccesor != nullptr && current.s0 != nullptr && Intersection(*current.s0, **predeccesor)){
-                                               point p;
-                                               p=ComputeIntersectionpoint(*current.s0, **predeccesor);
-                                               InsertIntersection(*predeccesor,current.s0, p, EventQueue, processedIntersections,current.current_height);
-                                       }
-                               }
-                               auto successor=next(it);
-                               if(successor !=segment_line.end()){
-                                       if (*successor!= nullptr && current.s0 != nullptr && Intersection(*current.s0, **successor)){
-                                               point p;
-                                               p=ComputeIntersectionpoint(*current.s0, **successor);
-                                               InsertIntersection(current.s0,*successor ,p, EventQueue, processedIntersections,current.current_height);
-                                       }
-                               }
+                event current=EventQueue.top();
+                EventQueue.pop();
+                current_y=current.current_height;
+                if(current.type==event::UPPER){
+                        auto it=segment_line.insert(current.s0).first;
+                        if(it!=segment_line.end()){
+                                if(it!=segment_line.begin()){
+                                        auto predeccesor = prev(it);
+                                        if (*predeccesor != nullptr && current.s0 != nullptr && Intersection(*current.s0, **predeccesor)){
+                                                point p;
+                                                p=ComputeIntersectionpoint(*current.s0, **predeccesor);
+                                                println("the intersection point is:{} {}",p.x_axis,p.y_axis);
+                                                InsertIntersection(*predeccesor,current.s0, p, EventQueue, processedIntersections,current.current_height);
+                                        }
+                                }
+                                auto successor=next(it);
+                                if(successor !=segment_line.end()){
+                                        if (*successor!= nullptr && current.s0 != nullptr && Intersection(*current.s0, **successor)){
+                                                point p;
+                                                p=ComputeIntersectionpoint(*current.s0, **successor);
+                                                println("the intersection point is:{} {}",p.x_axis,p.y_axis);
+                                                InsertIntersection(current.s0,*successor ,p, EventQueue, processedIntersections,current.current_height);
+                                        }
+                                }
 
-                       }
-               }
-               else if (current.type==event::LOWER) {
-                       auto it = segment_line.find(current.s0);
+                        }
+                }
+                else if (current.type==event::LOWER) {
+                        auto it = segment_line.find(current.s0);
 
-                          if (it != segment_line.end()) {
-                                  if (it != segment_line.begin()) {
-                                  auto predeccesor = std::prev(it);
-                                  auto successor = std::next(it);
-                                  if (successor != segment_line.end()) {
-                                      if (Intersection(**predeccesor, **successor)) {
-                                              point p = ComputeIntersectionpoint(**predeccesor, **successor);
-                                              InsertIntersection(*predeccesor, *successor, p, EventQueue,processedIntersections, current_y);
-                                      }
-                                  }
-                              }
-                              segment_line.erase(it);
-                          }
+                        if (it != segment_line.end()) {
+                                if (it != segment_line.begin()) {
+                                        auto predeccesor = std::prev(it);
+                                        auto successor = std::next(it);
+                                        if (successor != segment_line.end()) {
+                                                if (Intersection(**predeccesor, **successor)) {
+                                                        point p = ComputeIntersectionpoint(**predeccesor, **successor);
+                                                        println("the intersection point is:{} {}",p.x_axis,p.y_axis);
+                                                        InsertIntersection(*predeccesor, *successor, p, EventQueue,processedIntersections, current_y);
+                                                }
+                                        }
+                                }
+                                segment_line.erase(it);
+                        }
+                }
+                else{
+                        segment_line.erase(current.s0);
+                        segment_line.erase(current.s1);
 
+                        current_y=current.p.y_axis+EPSHILON;
 
-               }
-               else{
-                    segment_line.erase(current.s0);
-                    segment_line.erase(current.s1);
+                        auto p =segment_line.insert(current.s1).first;
+                        auto p1 =segment_line.insert(current.s0).first;
 
-                    auto p =segment_line.insert(current.s1).first;
-                    auto p1 =segment_line.insert(current.s0).first;
-
-                    if(p!=segment_line.begin()){
-                            auto neighbour=prev(p);
-                            if (Intersection(*current.s1, **neighbour)) {
-                                    point p;
-                                    p=ComputeIntersectionpoint(*current.s1, **neighbour);
-                                    InsertIntersection(*neighbour,current.s1, p, EventQueue, processedIntersections,current.current_height);
-                            }
-                    }
-                    auto neighbour1=next(p1);
-                    if (neighbour1!=segment_line.end()) {
-                            if (Intersection(*current.s0, **neighbour1))
-                            {       point p;
-                                    p=ComputeIntersectionpoint(*current.s0, **neighbour1);
-                                    InsertIntersection(current.s0,*neighbour1, p, EventQueue, processedIntersections,current.current_height);
-                            }
-                    }
-               }
+                        if(p!=segment_line.begin()){
+                                auto neighbour=prev(p);
+                                if (Intersection(*current.s1, **neighbour)) {
+                                        point p;
+                                        p=ComputeIntersectionpoint(*current.s1, **neighbour);
+                                        println("the intersection point is:{} {}",p.x_axis,p.y_axis);
+                                        InsertIntersection(*neighbour,current.s1, p, EventQueue, processedIntersections,current.current_height);
+                                }
+                        }
+                        auto neighbour1=next(p1);
+                        if (neighbour1!=segment_line.end()) {
+                                if (Intersection(*current.s0, **neighbour1))
+                                {       point p;
+                                        p=ComputeIntersectionpoint(*current.s0, **neighbour1);
+                                        println("the intersection point is:{} {}",p.x_axis,p.y_axis);
+                                        InsertIntersection(current.s0,*neighbour1, p, EventQueue, processedIntersections,current.current_height);
+                                }
+                        }
+                }
         }
         return processedIntersections;
-
-
 }

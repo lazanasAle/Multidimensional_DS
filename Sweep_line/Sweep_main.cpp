@@ -8,6 +8,7 @@ int main(){
 
 
         auto EventQueue=InitializeEvents(input_data.points, input_data.lines);
+        //cout<<"size of event Queue:"<<EventQueue.size()<<"\n";
 
         set<point,PointComparator> testing=Sweep_Line(EventQueue);
 

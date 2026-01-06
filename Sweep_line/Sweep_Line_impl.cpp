@@ -1,5 +1,8 @@
 #include "Sweep_Line_impl.hpp"
+#include <cfloat>
 #include <print>
+
+double sweep_line::sweepY = DBL_MAX;
 
 dataS prepare_data(string filename){
         dataS input;
@@ -59,53 +62,47 @@ dataS prepare_data(string filename){
 }
 
 //do that second
-priority_queue<event, vector<event>,decltype(sort_y)> InitializeEvents(vector<point> &points, vector<line> &lines){
-        priority_queue<event,vector<event>,decltype(sort_y)> EventQueue(sort_y);
+event_queue InitializeEvents(vector<point> &points, vector<line> &lines){
+        event_queue EventQueue(sort_y);
         for(size_t i=0;i<points.size();i++){
                 size_t firstdig=points[i].line_name.find_first_of("0123456789");
-                                if(firstdig!=std::string::npos){
-                                        string prefix = points[i].line_name.substr(0, firstdig);
-                                        string num_str = points[i].line_name.substr(firstdig);
-                                        int num_val = stoi(num_str);
-                                        event current;
-                                        current.current_height=points[i].y_axis;
-                                        current.s0=&lines[num_val];
-                                        current.p=points[i];
-                                        if(points[i].thessi_in_line==0){
-                                               current.type=event::UPPER;
-                                        }
-                                        else {
-                                             current.type=event::LOWER;
-                                        }
-                                        EventQueue.push(current);
-                                }
-
-
-
-
-
+                if(firstdig!=string::npos){
+                        string prefix = points[i].line_name.substr(0, firstdig);
+                        string num_str = points[i].line_name.substr(firstdig);
+                        int num_val = stoi(num_str);
+                        event current;
+                        current.current_height=points[i].y_axis;
+                        current.s0=&lines[num_val];
+                        current.p=points[i];
+                        if(points[i].thessi_in_line==0){
+                                current.type=event::UPPER;
+                        }
+                        else {
+                                 current.type=event::LOWER;
+                        }
+                        EventQueue.push(current);
+                }
         }
         return EventQueue;
 }
 
 //do that third
 
-bool Collinear(point p0,point p1,point p2){
-        return p1.x_axis<= max(p0.x_axis,p2.x_axis) && p1.x_axis>= min(p0.x_axis,p2.x_axis)&&
-               p1.y_axis<= max(p0.y_axis,p2.y_axis) && p1.y_axis>= min(p0.y_axis,p2.y_axis);
+bool Collinear(point &p0, point &p1, point &p2) {
+        return p1.x_axis<= max(p0.x_axis,p2.x_axis) && p1.x_axis>= min(p0.x_axis,p2.x_axis) &&
+                p1.y_axis<= max(p0.y_axis,p2.y_axis) && p1.y_axis>= min(p0.y_axis,p2.y_axis);
 }
 
-int orientation(point p0, point p1,point p2){
+int orientation(point &p0, point &p1, point &p2) {
         double determant=(p1.x_axis - p0.x_axis) * (p2.y_axis - p0.y_axis) -(p1.y_axis - p0.y_axis) * (p2.x_axis - p0.x_axis);
         if(abs(determant)<EPSHILON)
                 return 0;// Collinear
         if(determant>0)
                 return 2;// Clockwise
         else return 1; //Counter-Clockwise
-
 }
 
-bool Intersection(line& l1, line& l2){
+bool Intersection(line &l1, line &l2) {
         point p0=l1.first_point,p1=l1.second_point;
         point p2=l2.first_point,p3=l2.second_point;
 
@@ -128,11 +125,9 @@ bool Intersection(line& l1, line& l2){
         if (d3 == 0 && Collinear(p2, p1, p3)) return true;
 
         return false;
-
-
 }
 
-point ComputeIntersectionpoint(line& l1,line& l2){
+point ComputeIntersectionpoint(line &l1, line &l2) {
         point intersection;
         double x1 = l1.first_point.x_axis,  y1 = l1.first_point.y_axis;
         double x2 = l1.second_point.x_axis, y2 = l1.second_point.y_axis;
@@ -148,41 +143,38 @@ point ComputeIntersectionpoint(line& l1,line& l2){
         return intersection;
 }
 
-void InsertIntersection(line* first_in_tree,line* second_in_tree,point p,priority_queue<event, vector<event>,decltype(sort_y)>& EventQueue,set<point, PointComparator>& processed,double current_y){
+void InsertIntersection(line *first_in_tree, line *second_in_tree, point &p, event_queue &EventQueue,
+        set<point, PointComparator> &processed, double current_y){
 
-        if (processed.find(p) != processed.end()) {
-                println("a if print the point {} {}",p.x_axis,p.y_axis);
-                return;
-        }
-        if (p.y_axis > current_y - EPSHILON){
-                println("a if print the point {} {}",p.x_axis,p.y_axis);
-                return;
-        }
+                if (processed.find(p) != processed.end()) {
+                        println("a if print the point {} {}",p.x_axis,p.y_axis);
+                        return;
+                }
+                if (p.y_axis > current_y - EPSHILON){
+                        println("a if print the point {} {}",p.x_axis,p.y_axis);
+                        return;
+                }
 
-        event tmp;
-        tmp.current_height=p.y_axis;
-        tmp.s0=first_in_tree;
-        tmp.s1=second_in_tree;
-        tmp.p=p;
-        tmp.type=event::INTERSECTION;
+                event tmp;
+                tmp.current_height=p.y_axis;
+                tmp.s0=first_in_tree;
+                tmp.s1=second_in_tree;
+                tmp.p=p;
+                tmp.type=event::INTERSECTION;
 
-        EventQueue.push(tmp);
-        processed.insert(p);
+                EventQueue.push(tmp);
+                processed.insert(p);
 }
 
-//no compile errors
-set<point, PointComparator> Sweep_Line(priority_queue<event, vector<event>,decltype(sort_y)> &EventQueue){
+set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
         //create a line stat
-        double current_y;
-        CompareToX comp(&current_y);
-
         set<point, PointComparator> processedIntersections;
-        set<line*,CompareToX> segment_line(comp);
+        set<line*, RelativeCompareToX> segment_line;
 
         while(!EventQueue.empty()){
                 event current=EventQueue.top();
                 EventQueue.pop();
-                current_y=current.current_height;
+                sweep_line::sweepY=current.current_height;
                 if(current.type==event::UPPER){
                         auto it=segment_line.insert(current.s0).first;
                         if(it!=segment_line.end()){
@@ -218,7 +210,7 @@ set<point, PointComparator> Sweep_Line(priority_queue<event, vector<event>,declt
                                                 if (Intersection(**predeccesor, **successor)) {
                                                         point p = ComputeIntersectionpoint(**predeccesor, **successor);
                                                         println("the intersection point is:{} {}",p.x_axis,p.y_axis);
-                                                        InsertIntersection(*predeccesor, *successor, p, EventQueue,processedIntersections, current_y);
+                                                        InsertIntersection(*predeccesor, *successor, p, EventQueue,processedIntersections, sweep_line::sweepY);
                                                 }
                                         }
                                 }
@@ -229,10 +221,10 @@ set<point, PointComparator> Sweep_Line(priority_queue<event, vector<event>,declt
                         segment_line.erase(current.s0);
                         segment_line.erase(current.s1);
 
-                        current_y=current.p.y_axis+EPSHILON;
+                        sweep_line::sweepY -= EPSHILON;
 
-                        auto p =segment_line.insert(current.s1).first;
-                        auto p1 =segment_line.insert(current.s0).first;
+                        auto p = segment_line.insert(current.s1).first;
+                        auto p1 = segment_line.insert(current.s0).first;
 
                         if(p!=segment_line.begin()){
                                 auto neighbour=prev(p);
@@ -245,8 +237,8 @@ set<point, PointComparator> Sweep_Line(priority_queue<event, vector<event>,declt
                         }
                         auto neighbour1=next(p1);
                         if (neighbour1!=segment_line.end()) {
-                                if (Intersection(*current.s0, **neighbour1))
-                                {       point p;
+                                if (Intersection(*current.s0, **neighbour1)) {
+                                        point p;
                                         p=ComputeIntersectionpoint(*current.s0, **neighbour1);
                                         println("the intersection point is:{} {}",p.x_axis,p.y_axis);
                                         InsertIntersection(current.s0,*neighbour1, p, EventQueue, processedIntersections,current.current_height);

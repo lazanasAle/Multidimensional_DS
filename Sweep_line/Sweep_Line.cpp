@@ -1,7 +1,8 @@
 #include "Sweep_Line.hpp"
 #include <algorithm>
+#include <cfloat>
 
-double sweep_line::sweepY;
+double sweep_line::sweepY = DBL_MAX;
 
 dataS prepare_data(string &filename) {
         dataS input;
@@ -189,5 +190,91 @@ void handle_leftCase(event &e, queue_type &event_queue, status_bst &status_tree,
                         event_queue.insert(*is_ev);
                         delete(is_ev);
                 }
+        }
+}
+
+
+void handle_rightCase(event &e, queue_type &event_queue, status_bst &status_tree) {
+        auto all_eq_lines = status_tree.equal_range(e.fline);
+        auto rem_it = status_tree.end();
+
+        for (auto it = all_eq_lines.first; it != all_eq_lines.second; ++it) {
+                line *line_of_tree = *it;
+                if (line_of_tree == e.fline){
+                        rem_it = it;
+                        break;
+                }
+        }
+        if (rem_it != status_tree.end()) {
+                auto prev_it = status_tree.end();
+                auto next_it = status_tree.end();
+
+                if (rem_it != status_tree.begin())
+                        prev_it = prev(rem_it);
+                if (rem_it != prev(status_tree.end()))
+                        next_it = next(rem_it);
+
+                if (prev_it != status_tree.end() && next_it != status_tree.end()) {
+                        line *prev_line = *prev_it;
+                        line *next_line = *next_it;
+
+                        event *is_ev = make_intersection(prev_line, next_line);
+
+                        if (is_ev) {
+                                event_queue.insert(*is_ev);
+                                delete(is_ev);
+                        }
+                }
+                //remove the segment you found the right endpoint
+                status_tree.erase(rem_it);
+        }
+}
+
+void handle_crossingCase(event &e, queue_type &event_queue, status_bst &status_tree, vector<point> &is_points) {
+        //it is the crossing point we must remove the segments associated with it
+        line *l1 = e.fline;
+        line *l2 = e.sline;
+
+        if (l1 && l2) {
+                //put the point in the is_point vector
+                is_points.push_back(e.p);
+
+                auto one_range = status_tree.equal_range(l1);
+                auto second_range = status_tree.equal_range(l2);
+
+                auto rem1_it = status_tree.end();
+                auto rem2_it = status_tree.end();
+
+                //find first line
+                for (auto it = one_range.first; it != one_range.second; ++it) {
+                        line *line_of_tree = *it;
+                        if (line_of_tree == l1){
+                                rem1_it = it;
+                                break;
+                        }
+                }
+                //erase it
+                if (rem1_it != status_tree.end()) {
+                        status_tree.erase(rem1_it);
+                }
+                //find second line
+                for (auto it = second_range.first; it != second_range.second; ++it) {
+                        line *line_of_tree = *it;
+                        if (line_of_tree == l2){
+                                rem2_it = it;
+                                break;
+                        }
+                }
+                //erase it
+                if (rem2_it != status_tree.end()) {
+                        status_tree.erase(rem2_it);
+                }
+                //move-down the sweep-line
+                sweep_line::sweepY -= EPSILON;
+                //put them again whatever order
+                status_tree.insert(l1);
+                status_tree.insert(l2);
+
+                //swapped them next we must proceeed (talk with stamy).
         }
 }

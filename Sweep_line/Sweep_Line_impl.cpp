@@ -1,6 +1,5 @@
 #include "Sweep_Line_impl.hpp"
 #include <cfloat>
-#include <print>
 
 double sweep_line::sweepY = DBL_MAX;
 
@@ -147,11 +146,9 @@ void InsertIntersection(line *first_in_tree, line *second_in_tree, point &p, eve
         set<point, PointComparator> &processed, double current_y){
 
                 if (processed.find(p) != processed.end()) {
-                        println("a if print the point {} {}",p.x_axis,p.y_axis);
                         return;
                 }
                 if (p.y_axis > current_y - EPSHILON){
-                        println("a if print the point {} {}",p.x_axis,p.y_axis);
                         return;
                 }
 
@@ -183,7 +180,6 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                                         if (*predeccesor != nullptr && current.s0 != nullptr && Intersection(*current.s0, **predeccesor)){
                                                 point p;
                                                 p=ComputeIntersectionpoint(*current.s0, **predeccesor);
-                                                println("the intersection point is:{} {}",p.x_axis,p.y_axis);
                                                 InsertIntersection(*predeccesor,current.s0, p, EventQueue, processedIntersections,current.current_height);
                                         }
                                 }
@@ -192,7 +188,6 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                                         if (*successor!= nullptr && current.s0 != nullptr && Intersection(*current.s0, **successor)){
                                                 point p;
                                                 p=ComputeIntersectionpoint(*current.s0, **successor);
-                                                println("the intersection point is:{} {}",p.x_axis,p.y_axis);
                                                 InsertIntersection(current.s0,*successor ,p, EventQueue, processedIntersections,current.current_height);
                                         }
                                 }
@@ -209,7 +204,6 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                                         if (successor != segment_line.end()) {
                                                 if (Intersection(**predeccesor, **successor)) {
                                                         point p = ComputeIntersectionpoint(**predeccesor, **successor);
-                                                        println("the intersection point is:{} {}",p.x_axis,p.y_axis);
                                                         InsertIntersection(*predeccesor, *successor, p, EventQueue,processedIntersections, sweep_line::sweepY);
                                                 }
                                         }
@@ -231,7 +225,6 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                                 if (Intersection(*current.s1, **neighbour)) {
                                         point p;
                                         p=ComputeIntersectionpoint(*current.s1, **neighbour);
-                                        println("the intersection point is:{} {}",p.x_axis,p.y_axis);
                                         InsertIntersection(*neighbour,current.s1, p, EventQueue, processedIntersections,current.current_height);
                                 }
                         }
@@ -240,7 +233,6 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                                 if (Intersection(*current.s0, **neighbour1)) {
                                         point p;
                                         p=ComputeIntersectionpoint(*current.s0, **neighbour1);
-                                        println("the intersection point is:{} {}",p.x_axis,p.y_axis);
                                         InsertIntersection(current.s0,*neighbour1, p, EventQueue, processedIntersections,current.current_height);
                                 }
                         }

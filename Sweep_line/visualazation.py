@@ -2,21 +2,32 @@ import matplotlib.pyplot as plt
 
 # Line data: (x1, y1, x2, y2, name)
 segments = [
-    (187,184,16,111,"s0"),
-    (92,146,128,145,"s1"),
-    (40,66,9,69,"s2"),
-    (69,154,70,171,"s3"),
-    (0,116,30,59,"s4"),
-    (81,79,35,85,"s5"),
-    (105,63,15,45,"s6"),
-    (186,166,130,13,"s7"),
-
+    (64, 177, 136, 20, "s0"),
+    (188, 164, 23, 186, "s1"),
+    (137, 76, 28, 129, "s2"),
+    (111, 124, 1, 39, "s3"),
+    (194, 91, 177, 74, "s4"),
+    (23, 113, 182, 135, "s5"),
+    (123, 37, 197, 158, "s6"),
+    (149, 179, 162, 126, "s7"),
+    (80, 17, 120, 150, "s8"),
+    (10, 174, 42, 10, "s9"),
+    (8, 186, 56, 155, "s10"),
+    (21, 10, 163, 68, "s11"),
+    (80, 18, 73, 115, "s12"),
+    (184, 36, 166, 120, "s13"),
+    (46, 25, 186, 55, "s14"),
+    (119, 180, 101, 58, "s15"),
+    (31, 172, 91, 116, "s16"),
+    (59, 31, 77, 118, "s17"),
+    (24, 84, 106, 183, "s18"),
+    (82, 149, 117, 84, "s19"),
 ]
 
 plt.figure(figsize=(8, 8))
 
 for x1, y1, x2, y2, name in segments:
-    plt.plot([x1, x2], [y1, y2], marker='o')
+    plt.plot([x1, x2], [y1, y2], marker="o")
     mx, my = (x1 + x2) / 2, (y1 + y2) / 2
     plt.text(mx, my, name, fontsize=9)
 
@@ -24,5 +35,5 @@ plt.xlabel("X")
 plt.ylabel("Y")
 plt.title("Line Segment Visualization")
 plt.grid(True)
-plt.axis("equal")   # VERY important for geometry
+plt.axis("equal")  # VERY important for geometry
 plt.show()

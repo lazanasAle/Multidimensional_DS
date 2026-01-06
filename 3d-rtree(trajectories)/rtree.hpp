@@ -5,28 +5,42 @@
 #include <cmath>
 #include <limits>
 
+//This file implements a 3d R-tree data structure designed for indexing and quering
+//spatio-temporal trajectory data. The R-tree extends the kd_btree implementation with
+//Guttman's quadratic split alg., which is optimised for spatial data with bounding rectangles
+
+//Spatio Temporal Point=STP
+//The STP represents a point in 3D space with cordinates x,y,t and an aircraft identifier
+
 //struct for the 3d spatio-temporal points x,y,t
 struct SpatioTemporalPoint
 {
     int aircraft_id;
     double x,y,t; //x= longitude,y= latitude, t=time
 
+    //initialising to 0
     SpatioTemporalPoint(): aircraft_id(0),x(0), y(0),t(0)
     {}
 
+    //constructor with coordinates only. Creates a point at position (x,y,t) with defualt aircraft_id=0
     SpatioTemporalPoint(double _x, double _y, double _t): aircraft_id(0), x(_x), y(_y), t(_t) {}
     
+    //constructor with full data
     SpatioTemporalPoint(int _id,double _x, double _y, double _t): aircraft_id(_id), x(_x), y(_y), t(_t) {}
 
-    //Spatio Temporal Point=STP
+    //reads the raw bytes and re-interprets them as the appropriate types
+    //reinterpret_cast is the correct cast type for binary I/O ops
     void read(fstream &file)
     {
         file.read(reinterpret_cast<char*>(&aircraft_id),sizeof(int));
+        // read aircraft_id, convert &aircraft_id address to char* and read sizeof(int) bytes. Same with the rest
         file.read(reinterpret_cast<char*>(&x), sizeof(double));
         file.read(reinterpret_cast<char*>(&y), sizeof(double));
         file.read(reinterpret_cast<char*>(&t), sizeof(double));
     }
 
+    // Write to binary file. Serializes a STP to a binary file stream and writes the raw bytes
+    //of each member variable to the file
     void write(fstream &file) const
     {
         file.write(reinterpret_cast<const char*>(&aircraft_id) ,sizeof(int));
@@ -37,8 +51,10 @@ struct SpatioTemporalPoint
     }
 };
 
+//This struct orders STP points in containers
 struct STP_comparator
 {
+    //Comparison. Returns true if point a should come before point b in sorted order
     bool operator()(const SpatioTemporalPoint &a,const SpatioTemporalPoint &b) const
     {
         if(a.x !=b.x) return a.x<b.x;

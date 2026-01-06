@@ -51,18 +51,24 @@ struct event_comparator {
 };
 
 static inline double x_at_y(const line *l, double y) {
-        if (l->first.cordinates.second == l->second.cordinates.second)
-                return min(l->first.cordinates.first, l->second.cordinates.first); //horisontal line
-        double t = (y - l->first.cordinates.second) / (l->second.cordinates.second - l->first.cordinates.second);
-        return l->first.cordinates.first + t * (l->second.cordinates.first - l->first.cordinates.first);
+        if (l) {
+                if (l->first.cordinates.second == l->second.cordinates.second)
+                        return min(l->first.cordinates.first, l->second.cordinates.first); //horisontal line
+                double t = (y - l->first.cordinates.second) / (l->second.cordinates.second - l->first.cordinates.second);
+                return l->first.cordinates.first + t * (l->second.cordinates.first - l->first.cordinates.first);
+        }
+        return -1;
 }
 
 struct status_comp {
         bool operator() (const line *l1, const line *l2) const {
-                if (l1 != l2) {
-                        double xa = x_at_y(l1, sweep_line::sweepY);
-                        double xb = x_at_y(l2, sweep_line::sweepY);
-                        return xa < xb;
+                if (l1 && l2) {
+                        if (l1 != l2) {
+                                double xa = x_at_y(l1, sweep_line::sweepY);
+                                double xb = x_at_y(l2, sweep_line::sweepY);
+                                return xa < xb;
+                        }
+                        return false;
                 }
                 return false;
         }
@@ -75,7 +81,10 @@ dataS prepare_data(string &filename);
 queue_type InitializeEvents(vector<point> &points, vector<line> &lines);
 point *intersects(const line *l1, const line *l2);
 event *make_intersection(line *l1, line *l2);
+
 void handle_leftCase(event &e, queue_type &event_queue, status_bst &status_tree, vector<point> &is_points);
+void handle_rightCase(event &e, queue_type &event_queue, status_bst &status_tree);
+void handle_crossingCase(event &e, queue_type &event_queue, status_bst &status_tree, vector<point> &is_points);
 vector<point> sweep_line(queue_type &event_queue);
 
 #endif /* _SWEEP_LINE_HPP */

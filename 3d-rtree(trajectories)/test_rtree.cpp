@@ -9,8 +9,11 @@
 using namespace std;
 using namespace std::chrono;
 
-//creating rectangles
+//Testing R-tree Test Program for Aircraft trajectory queries. Reads flight data
+// from the CSV and builds 3D Rtree. Then performs spatio-temporal range queries and reports performance metrics
 
+//Creating Minimum bounding rectangle (MBR) from a vector of points. Then 
+// returns a tuple: (lower_bound, center,upper_bound)
 rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &points)
 {
     if(points.empty())
@@ -18,6 +21,7 @@ rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &poi
         return make_tuple(SpatioTemporalPoint(), SpatioTemporalPoint(), SpatioTemporalPoint());
     }
 
+    //initialise min/max with first point's coordinates
     double min_x=points[0]->x, max_x=points[0]->x;
     double min_y=points[0]->y, max_y=points[0]->y;
     double min_t=points[0]->t, max_t=points[0]->t;
@@ -30,8 +34,6 @@ rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &poi
         max_y=max(max_y, p->y);
         min_t=min(min_t, p->t);
         max_t=max(max_t, p->t);
-
-
     }
 
     return make_tuple(
@@ -42,6 +44,7 @@ rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &poi
 
 }
 
+//creates MBR that encloses all given rectangles. It is used for internal Rtree nodes
 rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalPoint>*> &rectangles)
 {
     if(rectangles.empty())
@@ -49,10 +52,12 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
         return make_tuple(SpatioTemporalPoint(), SpatioTemporalPoint(), SpatioTemporalPoint());
     }
 
+    //initialise with first rectangle's bounds
     double min_x=get<0>(*rectangles[0]).x, max_x=get<2>(*rectangles[0]).x;
     double min_y=get<0>(*rectangles[0]).y, max_y=get<2>(*rectangles[0]).y;
     double min_t=get<0>(*rectangles[0]).t, max_t=get<2>(*rectangles[0]).t;
     
+    //expand bounds to include all rectangles
     for(auto r: rectangles)
     {
         min_x=min(min_x, get<0>(*r).x);
@@ -63,12 +68,12 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
         max_t=max(max_t, get<2>(*r).t);
     }
 
+    //return combined MBR
     return make_tuple(
         SpatioTemporalPoint(min_x,min_y,min_t),
         SpatioTemporalPoint((min_x+max_x)/2, (min_y+max_y)/2, (min_t+max_t)/2),
         SpatioTemporalPoint(max_x, max_y, max_t)
     );
-
 }
 
 vector<SpatioTemporalPoint> read_flight_data(const string& filename)
@@ -113,11 +118,11 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
                 double r= stod(values[7]); //r->x
                 double u=stod(values[8]); //u-> y
 
-                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0;
+                //convert datetime to timestamp (total seconds)
+                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0+ year*31536000.0;
                 // 86400 is the #seconds in a day: 24 x 60 x 60 = 86400
                 //2592000 is the #seconds in a month (if 1 month=30days) 24 x 60 x 60 x30=25920000
-
-                //might edit later
+                //31536000 = seconds in a year (365 days * 24 * 60 * 60)
 
                 points.push_back(SpatioTemporalPoint(airfraft_id,r,u,timestamp));
                 count++;
@@ -137,6 +142,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
 
 int main()
 {
+    //define comparison functions for each dimension x,y,t
     auto cmp_x=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
     {
         return a.x-b.x;
@@ -152,12 +158,14 @@ int main()
         return a.t-b.t;
     };
 
+    //create comparator vector for 3D indexing
     cmp_vector<SpatioTemporalPoint> comparators = {cmp_x, cmp_y, cmp_t};
     
-    //Create the 3d R-tree
+    //Initialise 3d R-tree with custom rectangle-making functions
     rtree<SpatioTemporalPoint, STP_comparator> tree(&comparators,make_region_rect,make_point_rect);
     cout<< "3D R-Tree for Spatio-temporal Queries (Flight Data)" <<endl;
 
+    //load trajectory data from CSV
     cout <<"Reading flight data from CSV..."<< endl;
     vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv");
 
@@ -165,6 +173,7 @@ int main()
     double min_u=0, max_u=0;
     double min_t=0, max_t=0;
 
+    //computing data range statistics
     if(!trajectory.empty())
     {
         min_r = trajectory[0].x;
@@ -199,6 +208,7 @@ int main()
         return 1;
     }
 
+    // Build Rtree index
     cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
 
     auto start=high_resolution_clock::now();
@@ -212,12 +222,11 @@ int main()
 
     cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
 
+    //Perform range query
     cout<< "\nSpatio-temporal Range Query"<< endl;
     cout << "Query: Find aircraft in specific spatial area during time interval" << endl;
 
-    //SpatioTemporalPoint lower(min_r+ (max_r-min_r)*0.2, min_u+(max_u-min_u)*0.2, min_t+(max_t-min_t)*0.1);
-    //SpatioTemporalPoint upper(min_r+ (max_r-min_r)*0.4, min_u+(max_u-min_u)*0.4, min_t+(max_t-min_t)*0.3);
-
+    //Define query rectangle: covers 50% of space in each dimension
     SpatioTemporalPoint lower(min_r, min_u, min_t);
     SpatioTemporalPoint upper(min_r + (max_r - min_r) * 0.5, min_u + (max_u - min_u) * 0.5, min_t + (max_t - min_t) * 0.5);
 
@@ -229,6 +238,7 @@ int main()
     cout << "Spatial range (u): [" << lower.y << ", "  << upper.y << "]" << endl;
     cout << "Time range: [" << lower.t << ", " <<  upper.t << "]" <<  endl;
 
+    //execute range query and measure time
     pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query={lower,upper};
     start=high_resolution_clock::now();
     vector<SpatioTemporalPoint> results=tree.range_query(range_query);
@@ -247,19 +257,6 @@ int main()
             << ") | Time: " << p.t <<  endl;
     }
 
-    /*cout<< "\nResults:"<< endl;
-    for(auto &p: results)
-    {
-        cout<< "Position ("<< p.x<< ","<<p.y<< ") at time "<<p.t<< endl;
-    }*/
     return 0;
 
 }
-
-//will make a makefile in next commit
-
-//cd "3d-rtree(trajectories)"
-//g++ -std=gnu++23 -O2 -I../3d-rtree\(trajectories\) test_rtree.cpp -o test_rtree
-// ./test_rtree
-
-//will add commenting soon

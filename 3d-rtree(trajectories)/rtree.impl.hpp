@@ -123,7 +123,7 @@ size_t rtree<T, C>::pick_next_point(vector<point<T>> &remaining,
                         vector<point<T>> &group2)
 {
         double max_diff=-1.0;
-        size_t next_idx;
+        size_t next_idx=0;
 
         for(size_t i=0; i<remaining.size(); i++)
         {
@@ -147,7 +147,7 @@ size_t rtree<T,C>::pick_next_region(vector<region<T>> &remaining,
                         vector<region<T>> &group2)
 {
         double max_diff=-1.0;
-        size_t next_idx;
+        size_t next_idx=0;
 
         for(size_t i=0; i<remaining.size(); i++)
         {

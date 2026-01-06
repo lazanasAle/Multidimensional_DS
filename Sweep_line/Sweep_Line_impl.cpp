@@ -114,8 +114,8 @@ bool Intersection(line &l1, line &l2) {
         if (((d0 == 1 && d1 == 2) || (d0 == 2 && d1 == 1)) &&
                 ((d2 == 1 && d3 == 2) || (d2 == 2 && d3 == 1))) {
 
-                return true;
-            } //intersection
+                        return true;
+        } //intersection
         if (d0 == 0 && Collinear(p0, p2, p1)) return true;
             // Check if p3 lies on segment p0p1
         if (d1 == 0 && Collinear(p0, p3, p1)) return true;

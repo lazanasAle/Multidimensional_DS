@@ -22,7 +22,7 @@ dataS prepare_data(string filename){
                 point p0={x1[i],y1[i],0,line_name[i]};
                 point p1={x2[i],y2[i],0,line_name[i]};
 
-                if (p0.y_axis > p1.y_axis || (fabs(p0.y_axis - p1.y_axis) < EPSHILON && p0.x_axis < p1.x_axis)) {
+                if (p0.y_axis > p1.y_axis || (fabs(p0.y_axis - p1.y_axis) < EPSILON && p0.x_axis < p1.x_axis)) {
                             l.first_point = p0;  // Encountered first (Upper)
                             l.second_point = p1; // Encountered second (Lower)
                             p0.thessi_in_line=0;
@@ -50,7 +50,7 @@ dataS prepare_data(string filename){
 
         //sort the points by y axis descending
         sort(points.begin(),points.end(), [](const point& a, const point& b) {
-                if (abs(a.y_axis - b.y_axis) > EPSHILON) return a.y_axis > b.y_axis;
+                if (abs(a.y_axis - b.y_axis) > EPSILON) return a.y_axis > b.y_axis;
                 return a.x_axis < b.x_axis; // Leftmost first if on same height
         });
 
@@ -94,7 +94,7 @@ bool Collinear(point &p0, point &p1, point &p2) {
 
 int orientation(point &p0, point &p1, point &p2) {
         double determant=(p1.x_axis - p0.x_axis) * (p2.y_axis - p0.y_axis) -(p1.y_axis - p0.y_axis) * (p2.x_axis - p0.x_axis);
-        if(abs(determant)<EPSHILON)
+        if(abs(determant)<EPSILON)
                 return 0;// Collinear
         if(determant>0)
                 return 2;// Clockwise
@@ -134,7 +134,7 @@ point ComputeIntersectionpoint(line &l1, line &l2) {
         double x4 = l2.second_point.x_axis, y4 = l2.second_point.y_axis;
 
         double determinant = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-        if (fabs(determinant) < EPSHILON) return {};
+        if (fabs(determinant) < EPSILON) return {};
         intersection.x_axis=((x1*y2-y1*x2)*(x3-x4)-(x1-x2)*(x3*y4-y3*x4))/determinant;
         intersection.y_axis=((x1*y2-y1*x2)*(y3-y4)-(y1-y2)*(x3*y4-y3*x4))/determinant;
         intersection.thessi_in_line=0;
@@ -148,7 +148,7 @@ void InsertIntersection(line *first_in_tree, line *second_in_tree, point &p, eve
                 if (processed.find(p) != processed.end()) {
                         return;
                 }
-                if (p.y_axis > current_y - EPSHILON){
+                if (p.y_axis > current_y - EPSILON){
                         return;
                 }
 
@@ -215,7 +215,7 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                         segment_line.erase(current.s0);
                         segment_line.erase(current.s1);
 
-                        sweep_line::sweepY -= EPSHILON;
+                        sweep_line::sweepY -= EPSILON;
 
                         auto p = segment_line.insert(current.s1).first;
                         auto p1 = segment_line.insert(current.s0).first;

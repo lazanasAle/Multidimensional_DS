@@ -12,7 +12,7 @@
 #include <set>
 #include <cmath>
 
-#define EPSHILON 1e-7
+#define EPSILON 1e-7
 
 using namespace std;
 
@@ -48,8 +48,8 @@ struct event{
 //comparisson for duplicates
 struct PointComparator {
         bool operator()(const point& a, const point& b) const {
-                if (abs(a.y_axis - b.y_axis) > EPSHILON) return a.y_axis < b.y_axis;
-                if (abs(a.x_axis - b.x_axis) > EPSHILON) return a.x_axis < b.x_axis;
+                if (abs(a.y_axis - b.y_axis) > EPSILON) return a.y_axis < b.y_axis;
+                if (abs(a.x_axis - b.x_axis) > EPSILON) return a.x_axis < b.x_axis;
                 return false;
         }
 };
@@ -59,22 +59,22 @@ struct  RelativeCompareToX {
                 if (a == b) return false;
 
                 auto getX=[](const line* l, double y) {
-                        if (abs(l->second_point.y_axis - l->first_point.y_axis) < EPSHILON)
+                        if (abs(l->second_point.y_axis - l->first_point.y_axis) < EPSILON)
                                 return static_cast<double>(l->first_point.x_axis); // Horizontal line
                         double  t = (y - l->first_point.y_axis) / (l->second_point.y_axis - l->first_point.y_axis);
                         return l->first_point.x_axis + t * (l->second_point.x_axis - l->first_point.x_axis);
                 };
                 double x0=getX(a, sweep_line::sweepY);
                 double x1=getX(b, sweep_line::sweepY);
-                if (abs(x0 - x1) > EPSHILON) return x0 < x1;
+                if (abs(x0 - x1) > EPSILON) return x0 < x1;
                 auto getSlope = [](const line* l) {
                         double dy = l->second_point.y_axis - l->first_point.y_axis;
-                        if (abs(dy) < EPSHILON) return 0.0; // Horizontal lines have 0 slope in this context
+                        if (abs(dy) < EPSILON) return 0.0; // Horizontal lines have 0 slope in this context
                         return (l->second_point.x_axis - l->first_point.x_axis) / dy;
                 };
                 double slopeA = getSlope(a);
                 double slopeB = getSlope(b);
-                if (abs(slopeA - slopeB) > EPSHILON) return slopeA < slopeB;
+                if (abs(slopeA - slopeB) > EPSILON) return slopeA < slopeB;
 
                 return a < b;
         }
@@ -85,7 +85,7 @@ struct  RelativeCompareToX {
 dataS prepare_data(string filename);
 
 inline auto sort_y=[](const event& e0, const event& e1) {
-        if (abs(e0.current_height - e1.current_height) > EPSHILON)
+        if (abs(e0.current_height - e1.current_height) > EPSILON)
                 return e0.current_height < e1.current_height;
 
         if (e0.type != e1.type) {
@@ -94,7 +94,7 @@ inline auto sort_y=[](const event& e0, const event& e1) {
         }
 
 
-        if (abs(e0.p.x_axis - e1.p.x_axis) > EPSHILON)
+        if (abs(e0.p.x_axis - e1.p.x_axis) > EPSILON)
                 return e0.p.x_axis > e1.p.x_axis;
 
         return false;

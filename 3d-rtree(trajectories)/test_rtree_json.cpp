@@ -139,5 +139,28 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
 
 int main()
 {
+    //read json config
+    pt::ptree config;
+
+    try
+    {
+        pt::read_json("rtree_query.json", config);
+    }
+    catch(const exception& e)
+    {
+        cerr<< "Error reading rtree_query.json: " << e.what()<< endl;
+        return 1;
+    }
+    
+    //extract config
+    string csv_path=config.get<string>("csv_path");
+
+    string query_type=config.get<string>("query_type", "range");
+
+    cout <<"---"<<endl;
+    cout<< "3D R-Tree Spatio-Temporal query system"<<endl;
+    cout <<"---"<<endl;
+
+
     return 0;
 }

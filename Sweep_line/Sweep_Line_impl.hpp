@@ -45,8 +45,8 @@ struct event{
         double current_height;
         point p;
         enum Type { UPPER, LOWER, INTERSECTION } type;
-        line* s0;
-        line* s1; //only for intersection
+        line *s0;
+        line *s1; //only for intersection
 };
 
 //comparisson for duplicates
@@ -109,7 +109,7 @@ typedef fib::fibonacci_heap<
 > event_queue;
 
 
-dataS prepare_data(string filename);
+dataS prepare_data(string &filename);
 event_queue InitializeEvents(vector<point> &points, vector<line> &lines);
 bool Collinear(point &p0, point &p1, point &p2);
 int orientation(point &p0, point &p1, point &p2);

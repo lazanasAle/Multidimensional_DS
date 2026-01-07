@@ -3,7 +3,7 @@
 
 double sweep_line::sweepY = DBL_MAX;
 
-dataS prepare_data(string filename){
+dataS prepare_data(string &filename){
         dataS input;
         vector<point> points;
 

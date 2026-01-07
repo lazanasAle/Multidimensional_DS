@@ -62,7 +62,7 @@ dataS prepare_data(string filename){
 
 //do that second
 event_queue InitializeEvents(vector<point> &points, vector<line> &lines){
-        event_queue EventQueue(sort_y);
+        event_queue EventQueue;
         for(size_t i=0;i<points.size();i++){
                 size_t firstdig=points[i].line_name.find_first_of("0123456789");
                 if(firstdig!=string::npos){

@@ -2,12 +2,14 @@
 #define _SWEEP_LINE_IMPL_HPP
 
 #include "rapidcsv.h"
+#include <boost/heap/policies.hpp>
 #include <iostream>
 #include <iterator>
 #include <vector>
 #include <cstddef>
 #include <string>
 #include <algorithm>
+#include <boost/heap/fibonacci_heap.hpp>
 #include <queue>
 #include <set>
 #include <cmath>
@@ -15,6 +17,8 @@
 #define EPSILON 1e-7
 
 using namespace std;
+
+namespace fib = boost::heap;
 
 struct sweep_line {
         static double sweepY;
@@ -78,34 +82,34 @@ struct  RelativeCompareToX {
 
                 return a < b;
         }
-
 };
+
+struct event_comparator {
+        bool operator() (const event &e0, const event &e1) const {
+                if (abs(e0.current_height - e1.current_height) > EPSILON)
+                        return e0.current_height < e1.current_height;
+
+                if (e0.type != e1.type) {
+                        static int priority_map[] = {2, 0, 1};
+                        return priority_map[e0.type] < priority_map[e1.type];
+                }
+
+
+                if (abs(e0.p.x_axis - e1.p.x_axis) > EPSILON)
+                        return e0.p.x_axis > e1.p.x_axis;
+
+                return false;
+        }
+};
+
+
+typedef fib::fibonacci_heap<
+        event,
+        fib::compare<event_comparator>
+> event_queue;
 
 
 dataS prepare_data(string filename);
-
-inline auto sort_y=[](const event& e0, const event& e1) {
-        if (abs(e0.current_height - e1.current_height) > EPSILON)
-                return e0.current_height < e1.current_height;
-
-        if (e0.type != e1.type) {
-                static int priority_map[] = {2, 0, 1};
-                return priority_map[e0.type] < priority_map[e1.type];
-        }
-
-
-        if (abs(e0.p.x_axis - e1.p.x_axis) > EPSILON)
-                return e0.p.x_axis > e1.p.x_axis;
-
-        return false;
-};
-
-typedef priority_queue<
-        event,
-        vector<event>,
-        decltype(sort_y)
-> event_queue;
-
 event_queue InitializeEvents(vector<point> &points, vector<line> &lines);
 bool Collinear(point &p0, point &p1, point &p2);
 int orientation(point &p0, point &p1, point &p2);

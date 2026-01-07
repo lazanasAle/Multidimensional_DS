@@ -18,4 +18,65 @@ def main():
         validate= lambda x: Path(x).exists() or f"File {x} doesn't exist"
     ).execute()
 
+    #query type selection
+    query_type= inquirer.select(
+        message="Select query type:",
+        choices=[
+            {"name": "Range Query", "value": "range"},
+            {"name": "Full Dataset Statistics", "value": "stats"}
+        ]
+    ).execute()
 
+    print(f"\nSelecter query type: {query_type}")
+    if query_type =="stats":
+        config ={
+            "csv_path": csv_path,
+            "query_type": "stats"
+        }
+        print("\nStatistics mode")
+    else:
+        #spatial range (X=Longitude)
+        print("\n----- Spatial X Coordinate (Longitude/r) -----")
+        
+        x_min= float(inquirer.number(
+            message="Enter min X (longitude):",
+            float_allowed= True
+        ).execute())
+
+        x_max= float(inquirer.number(
+            message="Enter max X (longitude):",
+            float_allowed= True,
+            validate=lambda val: float(val) >= x_min or "Max must be >= min"
+        ).execute())
+
+        #spatial range (Y=Latitude)
+        print("\n----- Spatial Y Coordinate (Latitude/u) -----")
+        
+        y_min= float(inquirer.number(
+            message="Enter min Y (longitude):",
+            float_allowed= True
+        ).execute())
+
+        y_max= float(inquirer.number(
+            message="Enter max Y (longitude):",
+            float_allowed= True,
+            validate=lambda val: float(val) >= y_min or "Max must be >= min"
+        ).execute())
+
+
+
+        #Temporal range
+        print("\n----- Time Range (Timestamp) -----")
+        
+        t_min= float(inquirer.number(
+            message="Enter min timestamp:",
+            float_allowed= True
+        ).execute())
+
+        t_max= float(inquirer.number(
+            message="Enter max timestamp:",
+            float_allowed= True,
+            validate=lambda val: float(val) >= t_min or "Max must be >= min"
+        ).execute())
+
+ 

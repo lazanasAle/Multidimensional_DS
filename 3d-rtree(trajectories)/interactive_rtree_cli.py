@@ -35,7 +35,7 @@ def main():
         }
         print("\nStatistics mode")
     else:
-        #spatial range (X=Longitude)
+        #Spatial range (X=Longitude)
         print("\n----- Spatial X Coordinate (Longitude/r) -----")
         
         x_min= float(inquirer.number(
@@ -49,7 +49,7 @@ def main():
             validate=lambda val: float(val) >= x_min or "Max must be >= min"
         ).execute())
 
-        #spatial range (Y=Latitude)
+        #Spatial range (Y=Latitude)
         print("\n----- Spatial Y Coordinate (Latitude/u) -----")
         
         y_min= float(inquirer.number(
@@ -62,8 +62,6 @@ def main():
             float_allowed= True,
             validate=lambda val: float(val) >= y_min or "Max must be >= min"
         ).execute())
-
-
 
         #Temporal range
         print("\n----- Time Range (Timestamp) -----")
@@ -79,4 +77,32 @@ def main():
             validate=lambda val: float(val) >= t_min or "Max must be >= min"
         ).execute())
 
- 
+        max_results=int(inquirer.number(
+            message="Max results to display:",
+            default=10,
+            float_allowed=False
+        ).execute())
+
+        show_stats= inquirer.confirm(
+            message="Show dataset statistics?",
+            default=True
+        ).execute()
+
+        #Build configuration
+        config={
+            "csv_path": csv_path,
+            "query_type": "range",
+            "range_query": {
+                "x": [x_min, x_max],
+                "y": [y_min, y_max],
+                "t": [t_min,t_max]
+            },
+            "options": {
+                "max_results": max_results,
+                "show_stats": show_stats
+            }
+        }
+
+if __name__ == "__main__":
+    main()
+

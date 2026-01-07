@@ -103,6 +103,44 @@ def main():
             }
         }
 
+    #Save configuration
+    config_path=Path("rtree_query.json")
+    config_path.write_text(json.dumps(config, indent=2))
+    print(f"\nConfiguration Saved to {config_path}")
+    print(f"  Config: {json.dumps(config, indent=2)}")
+
+    #execute C++ program
+    print("\n"+ "=" *60) 
+    print("Executing R-Tree Query...")
+    print("=" *60 +"\n")       
+
+try:
+    result= subprocess.run(
+        ["./test_rtree_json"],
+        capture_output=True,
+        text=True,
+        timeout=60
+    )
+
+    #print results
+    print(result.stdout)
+
+    if result.stderr:
+        print("Errors/Warnings:", result.stderr)
+    
+    if result.returncode!=0:
+        print(f"\nProgram exited with code {result.returncode}")
+except FileNotFoundError:
+    print("Error: ./test_rtree_json not found!")
+    print("Please compile the C++ program first:")
+    print("  g++ -o test_rtree_json test_rtree_json.cpp -std=c++17")
+    print(" or")
+    print(" make test_rtree_json")
+except subprocess.TimeoutExpired:
+    print("Error: Query timed out after 1 minute")
+except Exception as e:
+    print(f"Error executing query: {e}")
+
+
 if __name__ == "__main__":
     main()
-

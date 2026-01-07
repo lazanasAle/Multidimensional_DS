@@ -12,3 +12,132 @@ using namespace std;
 using namespace std::chrono;
 namespace pt = boost::property_tree;
 
+//rectangle creation functions
+//everything is same as test_rtree.cpp
+rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &points)
+{
+    if(points.empty())
+    {
+        return make_tuple(SpatioTemporalPoint(), SpatioTemporalPoint(), SpatioTemporalPoint());
+    }
+
+    //initialise min/max with first point's coordinates
+    double min_x=points[0]->x, max_x=points[0]->x;
+    double min_y=points[0]->y, max_y=points[0]->y;
+    double min_t=points[0]->t, max_t=points[0]->t;
+
+    for(auto p: points)
+    {
+        min_x=min(min_x, p->x);
+        max_x=max(max_x, p->x);
+        min_y= min(min_y, p->y);
+        max_y=max(max_y, p->y);
+        min_t=min(min_t, p->t);
+        max_t=max(max_t, p->t);
+    }
+
+    return make_tuple(
+        SpatioTemporalPoint(min_x,min_y,min_t),
+        SpatioTemporalPoint((min_x+max_x)/2, (min_y+max_y)/2, (min_t+max_t)/2),
+        SpatioTemporalPoint(max_x, max_y, max_t)
+    );
+
+}
+
+//creates MBR that encloses all given rectangles. It is used for internal Rtree nodes
+rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalPoint>*> &rectangles)
+{
+    if(rectangles.empty())
+    {
+        return make_tuple(SpatioTemporalPoint(), SpatioTemporalPoint(), SpatioTemporalPoint());
+    }
+
+    //initialise with first rectangle's bounds
+    double min_x=get<0>(*rectangles[0]).x, max_x=get<2>(*rectangles[0]).x;
+    double min_y=get<0>(*rectangles[0]).y, max_y=get<2>(*rectangles[0]).y;
+    double min_t=get<0>(*rectangles[0]).t, max_t=get<2>(*rectangles[0]).t;
+    
+    //expand bounds to include all rectangles
+    for(auto r: rectangles)
+    {
+        min_x=min(min_x, get<0>(*r).x);
+        max_x=max(max_x, get<2>(*r).x);
+        min_y= min(min_y, get<0>(*r).y);
+        max_y=max(max_y, get<2>(*r).y);
+        min_t=min(min_t, get<0>(*r).t);
+        max_t=max(max_t, get<2>(*r).t);
+    }
+
+    //return combined MBR
+    return make_tuple(
+        SpatioTemporalPoint(min_x,min_y,min_t),
+        SpatioTemporalPoint((min_x+max_x)/2, (min_y+max_y)/2, (min_t+max_t)/2),
+        SpatioTemporalPoint(max_x, max_y, max_t)
+    );
+}
+
+vector<SpatioTemporalPoint> read_flight_data(const string& filename)
+{
+    vector<SpatioTemporalPoint> points;
+    ifstream file(filename);
+
+    if(!file.is_open())
+    {
+        cerr<< "Error: Could not open file "<<filename <<endl;
+        return points;
+    }
+
+    string line;
+    getline(file,line);
+    //skip 1st line (header)
+
+    int count=0;
+    while(getline(file,line))
+    {
+        stringstream ss(line);
+        string token;
+        vector<string> values;
+
+        while(getline(ss, token, ','))
+        {
+            values.push_back(token);
+        }
+
+        if (values.size()>=9)
+        {
+            try
+            {
+                int airfraft_id=(int)stod(values[0]);
+                int year=(int)stod(values[1]);
+                int month=(int)stod(values[2]);
+                int day=(int)stod(values[3]);
+                int hour=(int)stod(values[4]);
+                int minute=(int)stod(values[5]);
+                
+                double second=stod(values[6]);
+                double r= stod(values[7]); //r->x
+                double u=stod(values[8]); //u-> y
+
+                //convert datetime to timestamp (total seconds)
+                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0+ year*31536000.0;
+            
+                points.push_back(SpatioTemporalPoint(airfraft_id,r,u,timestamp));
+                count++;
+
+            }
+            catch(const exception& e)
+            {
+                cerr << "Error parsing the line: "<<line<< endl;
+            }
+        }
+    }
+
+    file.close();
+    cout<< "Succesfully loaded "<< count<< " trajectory points from CSV file"<< endl;
+    return points;
+}
+
+int main()
+{
+    return 0;
+}

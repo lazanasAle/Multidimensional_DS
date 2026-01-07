@@ -4,13 +4,16 @@
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <boost/json.hpp>
+#include <boost/json/array.hpp>
+#include <boost/json/object.hpp>
+#include <boost/json/parse.hpp>
+#include <boost/json/value.hpp>
 #include "rtree.hpp"
 
 using namespace std;
 using namespace std::chrono;
-namespace pt = boost::property_tree;
+namespace json = boost::json;
 
 //rectangle creation functions
 //everything is same as test_rtree.cpp
@@ -137,30 +140,9 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
     return points;
 }
 
-int main()
+//rewrite
+int main(int argc, char *argv[])
 {
-    //read json config
-    pt::ptree config;
-
-    try
-    {
-        pt::read_json("rtree_query.json", config);
-    }
-    catch(const exception& e)
-    {
-        cerr<< "Error reading rtree_query.json: " << e.what()<< endl;
-        return 1;
-    }
     
-    //extract config
-    string csv_path=config.get<string>("csv_path");
-
-    string query_type=config.get<string>("query_type", "range");
-
-    cout <<"---"<<endl;
-    cout<< "3D R-Tree Spatio-Temporal query system"<<endl;
-    cout <<"---"<<endl;
-
-
     return 0;
 }

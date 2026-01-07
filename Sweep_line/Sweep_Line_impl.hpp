@@ -2,14 +2,12 @@
 #define _SWEEP_LINE_IMPL_HPP
 
 #include "rapidcsv.h"
-#include <boost/heap/policies.hpp>
 #include <iostream>
 #include <iterator>
 #include <vector>
 #include <cstddef>
 #include <string>
 #include <algorithm>
-#include <boost/heap/fibonacci_heap.hpp>
 #include <queue>
 #include <set>
 #include <cmath>
@@ -17,8 +15,6 @@
 #define EPSILON 1e-7
 
 using namespace std;
-
-namespace fib = boost::heap;
 
 struct sweep_line {
         static double sweepY;
@@ -103,9 +99,10 @@ struct event_comparator {
 };
 
 
-typedef fib::fibonacci_heap<
+typedef priority_queue<
         event,
-        fib::compare<event_comparator>
+        vector<event>,
+        event_comparator
 > event_queue;
 
 

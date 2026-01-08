@@ -14,4 +14,4 @@ rtree_from_json: rtree_from_json.cpp rtree.hpp rtree.impl.hpp ../kd-btree/kd_btr
 	$(CPP) $(CPPFLAGS) -o rtree_from_json rtree_from_json.cpp $(BOOST_LIBS)
 
 clean:
-	rm -rf test_rtree rtree_from_json records.bin rtree_query.json
+	rm -rf test_rtree rtree_from_json

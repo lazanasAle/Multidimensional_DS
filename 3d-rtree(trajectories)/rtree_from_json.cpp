@@ -268,11 +268,11 @@ int main(int argc, char *argv[])
 
     for(auto &p: trajectory)
     {
-        min_r=min(min_r, p.x);
-        max_r=max(max_r, p.x);
+        min_x=min(min_x, p.x);
+        max_x=max(max_x, p.x);
 
-        min_u=min(min_u, p.y);
-        max_u=max(max_u, p.y);
+        min_y=min(min_y, p.y);
+        max_y=max(max_y, p.y);
 
         min_t=min(min_t, p.t);
         max_t=max(max_t, p.t);
@@ -292,6 +292,35 @@ int main(int argc, char *argv[])
 
     auto end=high_resolution_clock::now();
     auto duration=duration_cast<microseconds>(end-start);
+    cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
+
+    pair<SpatioTemporalPoint,SpatioTemporalPoint> query_interval =range_query_routine(range_query_obj, idx_dims, min_x, max_x, min_y, max_y, min_t, max_t);
+
+    cout<< "\n-----"<<endl;
+    cout<<"Executing Range Query"<< endl;
+    cout<< "\n-----"<<endl;
+
+    cout << "Query bounds:" <<  endl;
+    cout << "  r (x): [" << query_interval.first.x << ", " << query_interval.second.x << "]"  << endl;
+    cout << "  u (y): [" << query_interval.first.y<< ", " << query_interval.second.y << "]" <<endl;
+    cout << "  t: [" << query_interval.first.t << ", "  << query_interval.second.t << "]" <<endl;
+
+    start=high_resolution_clock::now();
+    vector<SpatioTemporalPoint> results=tree.range_query(query_interval);
+    end =high_resolution_clock::now();
+    duration=duration_cast<microseconds>(end-start);
+
+
+    cout << "\n=== First 10 Results ===" << endl;
+    int display_count = min(10, (int)results.size());
+    for (int i = 0; i < display_count; i++) 
+    {
+        auto &p = results[i];
+        cout << "Aircraft ID: " << p.aircraft_id  
+            << " | Position (r=" << p.x << ", u=" <<  p.y 
+            << ") | Time: " << p.t <<  endl;
+    }
+
 
     return 0;
 }        

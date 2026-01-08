@@ -206,6 +206,47 @@ int main(int argc, char *argv[])
         idx_dims.push_back(dim);
     }
 
+    cout<< "*****"<<endl;
+    cout<<"R-Tree SpatioTemporal Query System"<< endl;
+    cout<<"*****"<<endl;
+    
+    cout<< "Indexed dimensions: ";
+    vector<string> dim_names={ "r (longitude/x)", "u (latitude/y)", "t (time)"};
+
+    for(size_t dim: idx_dims)
+    {
+        cout<< dim_names[dim]<< " ";
+    }
+    cout<< endl;
+
+    //define comparison functions for each dimension x,y,t
+    //originally from test_rtree.cpp
+    auto cmp_x=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
+    {
+        return a.x-b.x;
+    };
+
+    auto cmp_y=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
+    {
+        return a.y-b.y;
+    };
+
+    auto cmp_t=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
+    {
+        return a.t-b.t;
+    };
+
+    cmp_vector<SpatioTemporalPoint> all_comps={cmp_x, cmp_y, cmp_t};
+    cmp_vector<SpatioTemporalPoint> comps_used;
+
+    for(size_t dim: idx_dims)
+    {
+        comps_used.push_back(all_comps[dim]);
+    }
+
+    rtree<SpatioTemporalPoint, STP_comparator> tree(&comps_used, make_region_rect, make_point_rect);
+
+
     return 0;
 }        
 

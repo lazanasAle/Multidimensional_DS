@@ -173,11 +173,39 @@ pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
 
 }
 
-
-        
-
 int main(int argc, char *argv[])
 {
-    //..
+    if(argc<2)
+    {
+        cerr<< "Usage: "<< argv[0]<< " <number_of_rows>"<<endl;
+        return 1;
+    }
+
+    //read json config
+    ifstream json_file("rtree_query.json");
+
+    if(!json_file.is_open())
+    {
+        cerr<< "Error! Couldn't open rtree_query.json" <<endl;
+        return 1;
+    }
+
+    //parse json
+    json::value root= json::parse(json_file);
+    json::object root_obj=root.as_object();
+
+    //extract config
+    json::array idx_dims_json= root_obj.at("index_dimensions").as_array();
+    json::object range_query_obj= root_obj.at("range_query").as_object();
+
+    //get index dimensions
+    vector<size_t> idx_dims;
+    for(json::value const &v : idx_dims_json)
+    {
+        size_t dim=static_cast<size_t>(v.as_int64());
+        idx_dims.push_back(dim);
+    }
+
     return 0;
-}
+}        
+

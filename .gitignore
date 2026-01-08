@@ -7,5 +7,6 @@ convex-hull-skyline/skyline/records.bin
 interval-segment-tree/segment-tree/dataset.txt
 convex-hull-skyline/skyline/.idea/*
 convex-hull-skyline/skyline/.venv/*
+3d-rtree(trajectories)/records.bin
 
 

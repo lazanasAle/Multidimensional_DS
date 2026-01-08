@@ -236,6 +236,7 @@ int main(int argc, char *argv[])
         return a.t-b.t;
     };
 
+    //build comparator vector with only indexed dimensions
     cmp_vector<SpatioTemporalPoint> all_comps={cmp_x, cmp_y, cmp_t};
     cmp_vector<SpatioTemporalPoint> comps_used;
 
@@ -244,8 +245,53 @@ int main(int argc, char *argv[])
         comps_used.push_back(all_comps[dim]);
     }
 
+    //create rtree with selected comparators
     rtree<SpatioTemporalPoint, STP_comparator> tree(&comps_used, make_region_rect, make_point_rect);
 
+    //read data
+    size_t rows= stol(argv[1]);
+
+    cout<< "\nReading flight data...\n"<<endl;
+    cout<< "(limit: "<< rows<< " rows)"<<endl;
+
+    vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv",rows);
+    
+    if(trajectory.empty())
+    {
+        cerr << "No data loaded. Exit..." <<endl;
+        return 1;
+    }
+
+    double min_x =trajectory[0].x,  max_x = trajectory[0].x;
+    double min_y =trajectory[0].y, max_y = trajectory[0].y;
+    double min_t =trajectory[0].t, max_t = trajectory[0].t;
+
+    for(auto &p: trajectory)
+    {
+        min_r=min(min_r, p.x);
+        max_r=max(max_r, p.x);
+
+        min_u=min(min_u, p.y);
+        max_u=max(max_u, p.y);
+
+        min_t=min(min_t, p.t);
+        max_t=max(max_t, p.t);
+    }
+
+    cout << "\nDataset Statistics:" <<endl;
+    cout << "  r (x) range: [" << min_x << ", "  << max_x << "]" << endl;
+    cout <<"  u (y) range: [" << min_y << ", " << max_y << "]" <<endl;
+    cout << "  t range: [" << min_t << ", " <<  max_t << "]" << endl;
+
+    cout << "Building R-Tree index..."<<endl;
+    auto start=high_resolution_clock::now();
+    for(auto &point: trajectory)
+    {
+        tree.insert(point);
+    }
+
+    auto end=high_resolution_clock::now();
+    auto duration=duration_cast<microseconds>(end-start);
 
     return 0;
 }        

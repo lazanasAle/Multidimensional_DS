@@ -19,13 +19,13 @@ index_dims = inquirer.checkbox(
 
 idx_dims = [dim[0] for dim in index_dims]
 
-# Build the range query
+#build the range query
 range_query = {}
 
 for dim in idx_dims:
     print(f"\n--- Setting bounds for {DIMENSIONS[dim]} ---")
     
-    # All dimensions can be floats (coordinates and time)
+    #dimensions can also be floats (coordinates and time)
     low = float(inquirer.number(
         message=f"Enter lower bound for {DIMENSIONS[dim]}:",
         float_allowed=True
@@ -33,7 +33,7 @@ for dim in idx_dims:
     
     high = float(inquirer.number(
         message=f"Enter upper bound for {DIMENSIONS[dim]}:",
-        float_allowed=True
+        float_allowed= True
     ).execute())
     
     if low > high:
@@ -55,6 +55,6 @@ config_path = Path("rtree_query.json")
 
 config_path.write_text(json.dumps(config))
 
-result = subprocess.run(["./rtree_from_json", f"{data_to_read}"], capture_output=True, text=True)
+result = subprocess.run(["./rtree_from_json", f"{data_to_read}"], capture_output =True, text=True)
 
 print(result.stdout)

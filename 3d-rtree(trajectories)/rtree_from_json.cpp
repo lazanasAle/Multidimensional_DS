@@ -79,23 +79,23 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     );
 }
 
-vector<SpatioTemporalPoint> read_flight_data(const string& filename)
+// FIXED: Added rows parameter with default value
+vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_rows = 0)
 {
     vector<SpatioTemporalPoint> points;
     ifstream file(filename);
 
     if(!file.is_open())
     {
-        cerr<< "Error: Could not open file "<<filename <<endl;
+        cerr << "Error: Could not open file " << filename << endl;
         return points;
     }
 
     string line;
-    getline(file,line);
-    //skip 1st line (header)
+    getline(file, line); // skip header
 
-    int count=0;
-    while(getline(file,line))
+    size_t count = 0;
+    while(getline(file, line) && (max_rows == 0 || count < max_rows))
     {
         stringstream ss(line);
         string token;
@@ -106,11 +106,11 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
             values.push_back(token);
         }
 
-        if (values.size()>=9)
+        if (values.size() >= 9)
         {
             try
             {
-                int airfraft_id=(int)stod(values[0]);
+                 int airfraft_id=(int)stod(values[0]);
                 int year=(int)stod(values[1]);
                 int month=(int)stod(values[2]);
                 int day=(int)stod(values[3]);
@@ -123,26 +123,61 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
 
                 //convert datetime to timestamp (total seconds)
                 double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0+ year*31536000.0;
-            
-                points.push_back(SpatioTemporalPoint(airfraft_id,r,u,timestamp));
-                count++;
 
+                points.push_back(SpatioTemporalPoint(aircraft_id, r, u, timestamp));
+                count++;
             }
             catch(const exception& e)
             {
-                cerr << "Error parsing the line: "<<line<< endl;
+                cerr << "Error parsing line: " << line << endl;
             }
         }
     }
 
     file.close();
-    cout<< "Succesfully loaded "<< count<< " trajectory points from CSV file"<< endl;
+    cout << "Successfully loaded " << count << " trajectory points from CSV file" << endl;
     return points;
 }
 
-//rewrite
+pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
+    json::object& range_query_obj,
+    vector<size_t>&idx_dims,
+    double min_x, double max_x,
+    double min_y, double max_y,
+    double min_t, double max_t)
+{
+    static double coords[2][3];
+    coords[0][0]=min_x; 
+    coords[1][0]=max_x;
+    coords[0][1]=min_y;
+    coords[1][1]=max_y;
+    coords[0][2]=min_t;
+    coords[1][2]=max_t;
+
+    for(size_t& dim: idx_dims)
+    {
+        string_key=to_string(dim);
+
+        if(range_query_obj.contains(key))
+        {
+            json::array range=range_query_obj.at(key).as_array();
+            coords[0][dim]= range.at(0).as_double();
+            coords[1][dim]=range.at(1).as_double();
+        }
+    }
+    SpatioTemporalPoint lower_bound(coords[0][0], coords[0][1], coords[0][2]);
+    SpatioTemporalPoint upper_bound(coords[1][0], coords[1][1], coords[1][2]);
+
+    return make_pair(lower_bound, upper_bound);
+
+
+}
+
+
+        
+
 int main(int argc, char *argv[])
 {
-    
+    //..
     return 0;
 }

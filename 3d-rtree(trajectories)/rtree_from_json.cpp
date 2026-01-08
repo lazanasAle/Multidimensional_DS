@@ -11,10 +11,16 @@
 #include <boost/json/value.hpp>
 #include "rtree.hpp"
 
+//R-Tree implentation for spatio-temporal trajectory queries
+//reads config from JSON and executes range queries on flight data
+//similar to skyline/results_from_json.cpp but adapted for 3D Spatial-temporal data
+
 using namespace std;
 using namespace std::chrono;
 namespace json = boost::json;
 
+//creates Minimum Bounding Rectangle (MBR) for a set of points
+//used for leaf nodes in the R-tree
 //rectangle creation functions
 //everything is same as test_rtree.cpp
 rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &points)
@@ -44,7 +50,6 @@ rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &poi
         SpatioTemporalPoint((min_x+max_x)/2, (min_y+max_y)/2, (min_t+max_t)/2),
         SpatioTemporalPoint(max_x, max_y, max_t)
     );
-
 }
 
 //creates MBR that encloses all given rectangles. It is used for internal Rtree nodes
@@ -79,7 +84,6 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     );
 }
 
-// FIXED: Added rows parameter with default value
 vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_rows = 0)
 {
     vector<SpatioTemporalPoint> points;
@@ -92,7 +96,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_
     }
 
     string line;
-    getline(file, line); // skip header
+    getline(file, line); //skip header
 
     size_t count = 0;
     while(getline(file, line) && (max_rows == 0 || count < max_rows))
@@ -139,6 +143,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_
     return points;
 }
 
+//constructor range query bounds from json config
 pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
     json::object& range_query_obj,
     vector<size_t>&idx_dims,
@@ -146,6 +151,7 @@ pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
     double min_y, double max_y,
     double min_t, double max_t)
 {
+    //static array: coords[0] = lower bounds, coords[1] = upper bounds
     static double coords[2][3];
     coords[0][0]=min_x; 
     coords[1][0]=max_x;
@@ -169,8 +175,6 @@ pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
     SpatioTemporalPoint upper_bound(coords[1][0], coords[1][1], coords[1][2]);
 
     return make_pair(lower_bound, upper_bound);
-
-
 }
 
 int main(int argc, char *argv[])
@@ -294,6 +298,7 @@ int main(int argc, char *argv[])
     auto duration=duration_cast<microseconds>(end-start);
     cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
 
+    //build+execute range query
     pair<SpatioTemporalPoint,SpatioTemporalPoint> query_interval =range_query_routine(range_query_obj, idx_dims, min_x, max_x, min_y, max_y, min_t, max_t);
 
     cout<< "\n-----"<<endl;
@@ -310,6 +315,9 @@ int main(int argc, char *argv[])
     end =high_resolution_clock::now();
     duration=duration_cast<microseconds>(end-start);
 
+    cout << "\nInside the typed interval exist: " << results.size() << " points"  << endl;
+    cout << "Query executed in " << duration.count() / 1000.0 << " ms"<< endl;
+
 
     cout << "\n=== First 10 Results ===" << endl;
     int display_count = min(10, (int)results.size());
@@ -320,8 +328,6 @@ int main(int argc, char *argv[])
             << " | Position (r=" << p.x << ", u=" <<  p.y 
             << ") | Time: " << p.t <<  endl;
     }
-
-
+    
     return 0;
 }        
-

@@ -114,7 +114,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_
         {
             try
             {
-                 int airfraft_id=(int)stod(values[0]);
+                int aircraft_id=(int)stod(values[0]);
                 int year=(int)stod(values[1]);
                 int month=(int)stod(values[2]);
                 int day=(int)stod(values[3]);
@@ -162,7 +162,7 @@ pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
 
     for(size_t& dim: idx_dims)
     {
-        string_key=to_string(dim);
+        string key = to_string(dim);
 
         if(range_query_obj.contains(key))
         {
@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    double min_x =trajectory[0].x,  max_x = trajectory[0].x;
+    double min_x =trajectory[0].x, max_x = trajectory[0].x;
     double min_y =trajectory[0].y, max_y = trajectory[0].y;
     double min_t =trajectory[0].t, max_t = trajectory[0].t;
 
@@ -296,8 +296,8 @@ int main(int argc, char *argv[])
 
     auto end=high_resolution_clock::now();
     auto duration=duration_cast<microseconds>(end-start);
-    cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
-
+    cout << "Inserted " << trajectory.size() << " points in " << duration.count() << " microseconds ("<< duration.count() / 1000.0 << " ms)" << endl;
+    
     //build+execute range query
     pair<SpatioTemporalPoint,SpatioTemporalPoint> query_interval =range_query_routine(range_query_obj, idx_dims, min_x, max_x, min_y, max_y, min_t, max_t);
 
@@ -317,7 +317,6 @@ int main(int argc, char *argv[])
 
     cout << "\nInside the typed interval exist: " << results.size() << " points"  << endl;
     cout << "Query executed in " << duration.count() / 1000.0 << " ms"<< endl;
-
 
     cout << "\n=== First 10 Results ===" << endl;
     int display_count = min(10, (int)results.size());

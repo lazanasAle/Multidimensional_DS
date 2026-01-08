@@ -107,7 +107,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
         {
             try
             {
-                int airfraft_id=(int)stod(values[0]);
+                int aircraft_id=(int)stod(values[0]);
                 int year=(int)stod(values[1]);
                 int month=(int)stod(values[2]);
                 int day=(int)stod(values[3]);
@@ -124,7 +124,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename)
                 //2592000 is the #seconds in a month (if 1 month=30days) 24 x 60 x 60 x30=25920000
                 //31536000 = seconds in a year (365 days * 24 * 60 * 60)
 
-                points.push_back(SpatioTemporalPoint(airfraft_id,r,u,timestamp));
+                points.push_back(SpatioTemporalPoint(aircraft_id,r,u,timestamp));
                 count++;
 
             }

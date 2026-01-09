@@ -35,7 +35,7 @@ rectangle<SpatioTemporalPoint> make_point_rect(vector<SpatioTemporalPoint*> &poi
     double min_y=points[0]->y, max_y=points[0]->y;
     double min_t=points[0]->t, max_t=points[0]->t;
 
-    for(auto p: points)
+    for(auto &p: points)
     {
         min_x=min(min_x, p->x);
         max_x=max(max_x, p->x);
@@ -64,9 +64,9 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     double min_x=get<0>(*rectangles[0]).x, max_x=get<2>(*rectangles[0]).x;
     double min_y=get<0>(*rectangles[0]).y, max_y=get<2>(*rectangles[0]).y;
     double min_t=get<0>(*rectangles[0]).t, max_t=get<2>(*rectangles[0]).t;
-    
+
     //expand bounds to include all rectangles
-    for(auto r: rectangles)
+    for(auto &r: rectangles)
     {
         min_x=min(min_x, get<0>(*r).x);
         max_x=max(max_x, get<2>(*r).x);
@@ -84,7 +84,7 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     );
 }
 
-vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_rows = 0)
+vector<SpatioTemporalPoint> read_flight_data(const string &filename, size_t max_rows = 0)
 {
     vector<SpatioTemporalPoint> points;
     ifstream file(filename);
@@ -120,7 +120,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string& filename, size_t max_
                 int day=(int)stod(values[3]);
                 int hour=(int)stod(values[4]);
                 int minute=(int)stod(values[5]);
-                
+
                 double second=stod(values[6]);
                 double r= stod(values[7]); //r->x
                 double u=stod(values[8]); //u-> y
@@ -153,14 +153,14 @@ pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query_routine(
 {
     //static array: coords[0] = lower bounds, coords[1] = upper bounds
     static double coords[2][3];
-    coords[0][0]=min_x; 
+    coords[0][0]=min_x;
     coords[1][0]=max_x;
     coords[0][1]=min_y;
     coords[1][1]=max_y;
     coords[0][2]=min_t;
     coords[1][2]=max_t;
 
-    for(size_t& dim: idx_dims)
+    for(size_t &dim : idx_dims)
     {
         string key = to_string(dim);
 
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
     cout<< "*****"<<endl;
     cout<<"R-Tree SpatioTemporal Query System"<< endl;
     cout<<"*****"<<endl;
-    
+
     cout<< "Indexed dimensions: ";
     vector<string> dim_names={ "r (longitude/x)", "u (latitude/y)", "t (time)"};
 
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
     cout<< "(limit: "<< rows<< " rows)"<<endl;
 
     vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv",rows);
-    
+
     if(trajectory.empty())
     {
         cerr << "No data loaded. Exit..." <<endl;
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
     auto end=high_resolution_clock::now();
     auto duration=duration_cast<microseconds>(end-start);
     cout << "Inserted " << trajectory.size() << " points in " << duration.count() << " microseconds ("<< duration.count() / 1000.0 << " ms)" << endl;
-    
+
     //build+execute range query
     pair<SpatioTemporalPoint,SpatioTemporalPoint> query_interval =range_query_routine(range_query_obj, idx_dims, min_x, max_x, min_y, max_y, min_t, max_t);
 
@@ -320,13 +320,13 @@ int main(int argc, char *argv[])
 
     cout << "\n=== First 10 Results ===" << endl;
     int display_count = min(10, (int)results.size());
-    for (int i = 0; i < display_count; i++) 
+    for (int i = 0; i < display_count; i++)
     {
         auto &p = results[i];
-        cout << "Aircraft ID: " << p.aircraft_id  
-            << " | Position (r=" << p.x << ", u=" <<  p.y 
+        cout << "Aircraft ID: " << p.aircraft_id
+            << " | Position (r=" << p.x << ", u=" <<  p.y
             << ") | Time: " << p.t <<  endl;
     }
-    
+
     return 0;
-}        
+}

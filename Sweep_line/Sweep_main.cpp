@@ -24,9 +24,9 @@ int main(int argc, char *argv[]) {
                 println("Intersection point in: {} {}", it->x_axis, it->y_axis);
         }
 
-        size_t data_size = input_data.points.size();
+        size_t data_size = input_data.points.size() / 2;
 
         ofstream times_csv;
-        times_csv.open("times.csv");
+        times_csv.open("times.csv", ios::app);
         times_csv<<data_size<<","<<sweep_time<<"\n";
 }

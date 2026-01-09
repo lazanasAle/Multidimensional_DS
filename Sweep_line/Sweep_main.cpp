@@ -1,6 +1,7 @@
 #include "Sweep_Line_impl.hpp"
 #include <print>
 #include <chrono>
+#include <fstream>
 
 
 int main(int argc, char *argv[]) {
@@ -22,4 +23,10 @@ int main(int argc, char *argv[]) {
         for (auto it = is_points.begin(); it != is_points.end(); ++it) {
                 println("Intersection point in: {} {}", it->x_axis, it->y_axis);
         }
+
+        size_t data_size = input_data.points.size();
+
+        ofstream times_csv;
+        times_csv.open("times.csv");
+        times_csv<<data_size<<","<<sweep_time<<"\n";
 }

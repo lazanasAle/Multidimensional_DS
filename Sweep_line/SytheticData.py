@@ -44,7 +44,7 @@ def Collinear(line1, line2):
 
 Size_of_dataset = int(sys.argv[1])
 Upper_bound = int(sys.argv[2])  # the upper bound for thr interval
-intersection_points = []
+intersection_points = set()
 
 lines = []
 
@@ -89,7 +89,7 @@ while len(lines) < Size_of_dataset:
                 break
 
         if valid == True:
-            intersection_points.extend(current_intersections)
+            intersection_points.update(current_intersections)
             lines.append(segment_created)
 
     else:

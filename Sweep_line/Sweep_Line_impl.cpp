@@ -72,6 +72,7 @@ event_queue InitializeEvents(vector<point> &points, vector<line> &lines){
                         event current;
                         current.current_height=points[i].y_axis;
                         current.s0=&lines[num_val];
+                        current.s1=nullptr;
                         current.p=points[i];
                         if(points[i].thessi_in_line==0){
                                 current.type=event::UPPER;

@@ -6,6 +6,7 @@
 #include <iterator>
 #include <vector>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <algorithm>
 #include <queue>
@@ -40,7 +41,7 @@ struct dataS{
 struct event{
         double current_height;
         point p;
-        enum Type { UPPER, LOWER, INTERSECTION } type;
+        enum Type: uint8_t { UPPER, LOWER, INTERSECTION } type;
         line *s0;
         line *s1; //only for intersection
 };

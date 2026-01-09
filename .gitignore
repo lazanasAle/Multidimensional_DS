@@ -1,6 +1,6 @@
 convex-hull-skyline/data_movies_clean.csv
 convex-hull-skyline/skyline/records.bin
-3d-rtree(trajectories)/tartanaviation_adsb_19k_clean.csv
+3d-rtree(trajectories)/tartanaviation_adsb_900k.csv
 3d-rtree(trajectories)/flight_data_readable.csv
 3d-rtree(trajectories)/.venv/*
 3d-rtree(trajectories)/.idea/*

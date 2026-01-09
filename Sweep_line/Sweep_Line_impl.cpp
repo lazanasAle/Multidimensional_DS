@@ -1,5 +1,6 @@
 #include "Sweep_Line_impl.hpp"
 #include <cfloat>
+#include <chrono>
 
 double sweep_line::sweepY = DBL_MAX;
 
@@ -169,6 +170,13 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
         set<point, PointComparator> processedIntersections;
         set<line*, RelativeCompareToX> segment_line;
 
+        using std::chrono::high_resolution_clock;
+        using std::chrono::duration_cast;
+        using std::chrono::duration;
+        using std::chrono::milliseconds;
+
+        auto start= high_resolution_clock::now();
+
         while(!EventQueue.empty()){
                 event current=EventQueue.top();
                 EventQueue.pop();
@@ -239,5 +247,8 @@ set<point, PointComparator> Sweep_Line(event_queue &EventQueue) {
                         }
                 }
         }
+        auto finish =high_resolution_clock::now();
+        duration<double, milli> total_execution_time = finish-start;
+        cout <<"The total executiontime for this experment is:" <<total_execution_time.count() << "ms\n";
         return processedIntersections;
 }

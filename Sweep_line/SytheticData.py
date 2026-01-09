@@ -1,5 +1,6 @@
 import csv
 import random
+import sys
 from dataclasses import fields
 from itertools import combinations
 
@@ -41,8 +42,8 @@ def Collinear(line1, line2):
     return are_collinear(p1, p2, p3) and are_collinear(p1, p2, p4)
 
 
-Size_of_dataset = 20
-Upper_bound = 200  # the upper bound for thr interval
+Size_of_dataset = int(sys.argv[1])
+Upper_bound = int(sys.argv[2])  # the upper bound for thr interval
 intersection_points = []
 
 lines = []

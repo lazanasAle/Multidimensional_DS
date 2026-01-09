@@ -6,9 +6,11 @@ from pyproj import Transformer
 # setup for lat long to x y conversion
 transformer = Transformer.from_crs("epsg:4326", "epsg:3857")
 # csv constants for reading the csv
-const_cols = ["aircraft_id", "year", "month", "day", "hour", "minute", "second"]
+const_cols = ["aircraft_id", "year", "month", "day", "hour", "minute"]
+next_col = "second"
 change_cols = ["latitude", "longitude"]
 keep_cols = const_cols + change_cols
+keep_cols.append(next_col)
 
 df = pd.read_csv("tartanaviation_adsb_900k.csv", usecols=keep_cols)
 n_data = []
@@ -17,7 +19,8 @@ i = 0
 for index, row in df.iterrows():
     n_data.append({})
     for col in const_cols:
-        n_data[i][col] = row[col]
+        n_data[i][col] = int(row[col])
+    n_data[i]["second"] = row["second"]
     lon = row["longitude"]
     lat = row["latitude"]
     x, y = transformer.transform(lon, lat)

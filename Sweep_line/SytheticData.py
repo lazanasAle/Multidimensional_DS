@@ -1,101 +1,91 @@
 import csv
 import random
 import sys
-from dataclasses import fields
-from itertools import combinations
+import time
 
 
-def intersection(line1, line2):
-    x1, y1, x2, y2 = line1[:4]
-    x3, y3, x4, y4 = line2[:4]
+def bbox_overlap(l1, l2):
+    return not (
+        max(l1[0], l1[2]) < min(l2[0], l2[2])
+        or max(l2[0], l2[2]) < min(l1[0], l1[2])
+        or max(l1[1], l1[3]) < min(l2[1], l2[3])
+        or max(l2[1], l2[3]) < min(l1[1], l1[3])
+    )
+
+
+def collinear(l1, l2):
+    x1, y1, x2, y2 = l1[:4]
+    x3, y3, x4, y4 = l2[:4]
+    dx = x2 - x1
+    dy = y2 - y1
+    return dx * (y3 - y1) == dy * (x3 - x1) and dx * (y4 - y1) == dy * (x4 - x1)
+
+
+def intersection(l1, l2):
+    x1, y1, x2, y2 = l1[:4]
+    x3, y3, x4, y4 = l2[:4]
 
     denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
-
-    # Αν ο παρονομαστής είναι 0, οι γραμμές είναι παράλληλες ή ταυτίζονται
     if denom == 0:
         return None
 
-    # Υπολογισμός των παραμέτρων t και u (Cramer's rule)
     t_num = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)
     u_num = (x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)
 
     t = t_num / denom
-    u = -(u_num / denom)
+    u = -u_num / denom
 
-    # Έλεγχος αν το σημείο τομής ανήκει ΚΑΙ ΣΤΑ ΔΥΟ τμήματα
-    # Για τομές μόνο στα εσωτερικά σημεία (όχι άκρα), χρησιμοποιήστε 0 < t < 1
     if 0 <= t <= 1 and 0 <= u <= 1:
-        intersect_x = x1 + t * (x2 - x1)
-        intersect_y = y1 + t * (y2 - y1)
-        return (intersect_x, intersect_y)
-
+        return (x1 + t * (x2 - x1), y1 + t * (y2 - y1))
     return None
 
 
-def are_collinear(p1, p2, p3):
-    return (p2[0] - p1[0]) * (p3[1] - p1[1]) == (p2[1] - p1[1]) * (p3[0] - p1[0])
-
-
-def Collinear(line1, line2):
-    p1, p2 = (line1[0], line1[1]), (line1[2], line1[3])
-    p3, p4 = (line2[0], line2[1]), (line2[2], line2[3])
-    return are_collinear(p1, p2, p3) and are_collinear(p1, p2, p4)
-
-
 Size_of_dataset = int(sys.argv[1])
-Upper_bound = int(sys.argv[2])  # the upper bound for thr interval
-intersection_points = set()
+Upper_bound = int(sys.argv[2])
 
 lines = []
-
-# the checking for the algorithm
+intersection_points = set()
+start = time.perf_counter()
 while len(lines) < Size_of_dataset:
-    x1, y1 = int(random.uniform(0, Upper_bound)), int(random.uniform(0, Upper_bound))
-    x2, y2 = int(random.uniform(0, Upper_bound)), int(random.uniform(0, Upper_bound))
-    name = f"s{len(lines)}"
-    segment_created = [x1, y1, x2, y2, name]
-    current_intersections = []
+    x1 = random.randrange(Upper_bound)
+    y1 = random.randrange(Upper_bound)
+    x2 = random.randrange(Upper_bound)
+    y2 = random.randrange(Upper_bound)
+
     if x1 == x2 and y1 == y2:
         continue
-    # check for collinearity
+
+    # reject if endpoint already used as intersection
+    if (x1, y1) in intersection_points or (x2, y2) in intersection_points:
+        continue
+
+    segment = [x1, y1, x2, y2, f"s{len(lines)}"]
     valid = True
-    if len(lines) >= 1:
-        it = len(lines) - 1
+    new_intersections = []
 
-        for point in intersection_points:
-            # Έλεγχος αν το άκρο (x1, y1) ή το (x2, y2) ταυτίζεται με υπάρχουσα τομή
-            if (abs(x1 - point[0]) < 1e-9 and abs(y1 - point[1]) < 1e-9) or (
-                abs(x2 - point[0]) < 1e-9 and abs(y2 - point[1]) < 1e-9
-            ):
+    for other in lines:
+        if not bbox_overlap(segment, other):
+            continue
+
+        if collinear(segment, other):
+            valid = False
+            break
+
+        p = intersection(segment, other)
+        if p:
+            key = (round(p[0], 9), round(p[1], 9))
+            if key in intersection_points:
                 valid = False
                 break
+            new_intersections.append(key)
 
-        for j in range(len(lines)):
-            if not (Collinear(segment_created, lines[j])):
-                # no three line intersect at a single point
-                interpoint = intersection(segment_created, lines[j])
-                if interpoint:
-                    if any(
-                        abs(interpoint[0] - p[0]) < 1e-9
-                        and abs(interpoint[1] - p[1]) < 1e-9
-                        for p in intersection_points
-                    ):
-                        valid = False
-                        break
-                    else:
-                        current_intersections.append(interpoint)
-            else:
-                valid = False
-                break
-
-        if valid == True:
-            intersection_points.update(current_intersections)
-            lines.append(segment_created)
-
-    else:
-        lines.append(segment_created)  # first point inserted
+    if valid:
+        lines.append(segment)
+        intersection_points.update(new_intersections)
 
 
+end = time.perf_counter()
+print(f"Total time: {end - start:.4f} seconds")
 fields = ["X1", "Y1", "X2", "Y2", "name_of_line"]
 with open("Swip_line_Data.csv", "w", newline="") as f:
     writer = csv.writer(f)

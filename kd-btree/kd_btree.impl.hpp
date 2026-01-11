@@ -160,6 +160,9 @@ kd_bnode<T> *point_kd_bnode<T>::split_node() {
         //now split from the median
         vector<point<T>> new_left(this->points.begin(), median_it + 1);
         vector<point<T>> new_right(median_it + 1, this->points.end());
+        //moving ownership
+        this->points.clear();
+        this->points.shrink_to_fit();
         this->points = move(new_left);
         point_kd_bnode<T> *new_node = new point_kd_bnode<T>(this->comparators, this->make_rectangle);
         new_node->points = move(new_right);
@@ -212,6 +215,9 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
         //split from the median
         vector<region<T>> left_regions(this->regions.begin(), median_it + 1);
         vector<region<T>> right_regions(median_it + 1, this->regions.end());
+        //moving ownership
+        this->regions.clear();
+        this->regions.shrink_to_fit();
         this->regions = move(left_regions);
         region_kd_bnode<T> *new_node = new region_kd_bnode<T>(this->comparators, this->make_rectangle);
         new_node->regions = move(right_regions);

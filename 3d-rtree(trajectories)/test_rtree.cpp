@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include "rtree.hpp"
+#include "rapidcsv.h"
 
 using namespace std;
 //using namespace std::chrono;
@@ -76,9 +77,39 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     );
 }
 
-vector<SpatioTemporalPoint> read_flight_data(const string &filename)
+vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_rows = 0)
 {
-    vector<SpatioTemporalPoint> points;
+   
+
+        vector<SpatioTemporalPoint> points;
+
+        rapidcsv::Document doc(filename, rapidcsv::LabelParams(0,-1));
+        
+        vector<int> aircraft_ids = doc.GetColumn<int>("aircraft_id");
+        vector<int> years= doc.GetColumn<int>("year");
+        vector<int> months= doc.GetColumn<int>("month");
+        vector<int> days = doc.GetColumn<int>("day");
+        vector<int> hours =doc.GetColumn<int>("hour");
+        vector<int> minutes =doc.GetColumn<int>("minute");
+        vector<double> seconds = doc.GetColumn<double>("second");
+        vector<double> r_values = doc.GetColumn<double>("r");
+        vector<double> u_values =doc.GetColumn<double>("u");
+
+        size_t rows_to_read=(max_rows==0)? aircraft_ids.size(): min(max_rows,aircraft_ids.size());
+        for(size_t i=0; i<rows_to_read; ++i)
+        {
+                //convert datetime to timestamp -total seconds
+                double timestamp=seconds[i]+minutes[i]*60.0 + hours[i]*3600.0+ days[i]*86400.0+ months[i]*2592000.0 + years[i]*31536000.0;
+                points.push_back(SpatioTemporalPoint(aircraft_ids[i], r_values[i], u_values[i], timestamp));
+
+        }
+    
+    cout << "Successfully loaded " << points.size() << " trajectory points from CSV file" << endl;
+    
+    return points;
+
+
+    /*vector<SpatioTemporalPoint> points;
     ifstream file(filename);
 
     if(!file.is_open())
@@ -137,7 +168,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename)
 
     file.close();
     cout<< "Succesfully loaded "<< count<< " trajectory points from CSV file"<< endl;
-    return points;
+    return points;*/
 }
 
 int main()

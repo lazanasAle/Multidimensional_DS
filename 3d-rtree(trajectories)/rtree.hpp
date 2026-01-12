@@ -1,7 +1,7 @@
 #ifndef _RTREE_HPP
 #define _RTREE_HPP
 
-#include "../kd-btree/kd_btree.hpp"
+#include <kd-btree/kd_btree.hpp>
 #include <cmath>
 #include <limits>
 

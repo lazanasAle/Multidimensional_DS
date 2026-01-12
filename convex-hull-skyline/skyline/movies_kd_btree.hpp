@@ -2,8 +2,8 @@
 #define _MOVIES_KD_BTREE_HPP
 
 #include <rapidcsv.h>
-#include "../../kd-btree/kd_btree.hpp"
-#include "../movie_utils.hpp"
+#include <kd-btree/kd_btree.hpp>
+#include <movie_utils.hpp>
 #include <cstdint>
 
 using std::uint64_t;

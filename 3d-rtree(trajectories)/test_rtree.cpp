@@ -107,12 +107,12 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename)
         {
             try
             {
-                int aircraft_id=(int)stod(values[0]);
-                int year=(int)stod(values[1]);
-                int month=(int)stod(values[2]);
-                int day=(int)stod(values[3]);
-                int hour=(int)stod(values[4]);
-                int minute=(int)stod(values[5]);
+                int aircraft_id=stoi(values[0]);
+                int year=stoi(values[1]);
+                int month=stoi(values[2]);
+                int day=stoi(values[3]);
+                int hour=stoi(values[4]);
+                int minute=stoi(values[5]);
 
                 double second=stod(values[6]);
                 double r= stod(values[7]); //r->x

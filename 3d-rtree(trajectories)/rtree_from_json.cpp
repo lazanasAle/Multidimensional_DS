@@ -112,66 +112,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename, size_t max_
     
     cout << "Successfully loaded " << points.size() << " trajectory points from CSV file" << endl;
     
-    return points;
-
-    //ifstream file(filename);
-
-    /*if(!file.is_open())
-    {
-        cerr << "Error: Could not open file " << filename << endl;
-        return points;
-    }
-
-    string line;
-    getline(file, line); //skip header
-
-    size_t count = 0;*/
-
-    /*while(getline(file, line) && (max_rows == 0 || count < max_rows))
-    {
-        stringstream ss(line);
-        string token;
-        vector<string> values;
-
-        while(getline(ss, token, ','))
-        {
-            values.push_back(token);
-        }
-
-        if (values.size() >= 9)
-        {
-            try
-            {
-                int aircraft_id=stoi(values[0]);
-                int year=stoi(values[1]);
-                int month=stoi(values[2]);
-                int day=stoi(values[3]);
-                int hour=stoi(values[4]);
-                int minute=stoi(values[5]);
-
-                double second=stod(values[6]);
-                double r= stod(values[7]); //r->x
-                double u=stod(values[8]); //u-> y
-
-                //convert datetime to timestamp (total seconds)
-                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0+ year*31536000.0;
-
-                points.push_back(SpatioTemporalPoint(aircraft_id, r, u, timestamp));
-                count++;
-            }
-            catch(const exception& e)
-            {
-                cerr << "Error parsing line: " << line << endl;
-            }
-        }
-    }
-
-    file.close();
-    cout << "Successfully loaded " << count << " trajectory points from CSV file" << endl;
-    return points;*/
-
-
-       
+    return points;       
 }
 
 //constructor range query bounds from json config

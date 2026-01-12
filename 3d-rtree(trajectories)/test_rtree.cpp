@@ -79,10 +79,7 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
 
 vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_rows = 0)
 {
-   
-
         vector<SpatioTemporalPoint> points;
-
         rapidcsv::Document doc(filename, rapidcsv::LabelParams(0,-1));
         
         vector<int> aircraft_ids = doc.GetColumn<int>("aircraft_id");
@@ -108,67 +105,6 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_r
     
     return points;
 
-
-    /*vector<SpatioTemporalPoint> points;
-    ifstream file(filename);
-
-    if(!file.is_open())
-    {
-        cerr<< "Error: Could not open file "<<filename <<endl;
-        return points;
-    }
-
-    string line;
-    getline(file,line);
-    //skip 1st line (header)
-
-    int count=0;
-    while(getline(file,line))
-    {
-        stringstream ss(line);
-        string token;
-        vector<string> values;
-
-        while(getline(ss, token, ','))
-        {
-            values.push_back(token);
-        }
-
-        if (values.size()>=9)
-        {
-            try
-            {
-                int aircraft_id=stoi(values[0]);
-                int year=stoi(values[1]);
-                int month=stoi(values[2]);
-                int day=stoi(values[3]);
-                int hour=stoi(values[4]);
-                int minute=stoi(values[5]);
-
-                double second=stod(values[6]);
-                double r= stod(values[7]); //r->x
-                double u=stod(values[8]); //u-> y
-
-                //convert datetime to timestamp (total seconds)
-                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0+ year*31536000.0;
-                // 86400 is the #seconds in a day: 24 x 60 x 60 = 86400
-                //2592000 is the #seconds in a month (if 1 month=30days) 24 x 60 x 60 x30=25920000
-                //31536000 = seconds in a year (365 days * 24 * 60 * 60)
-
-                points.push_back(SpatioTemporalPoint(aircraft_id,r,u,timestamp));
-                count++;
-
-            }
-            catch(const exception& e)
-            {
-                cerr << "Error parsing the line: "<<line<< endl;
-            }
-        }
-    }
-
-    file.close();
-    cout<< "Succesfully loaded "<< count<< " trajectory points from CSV file"<< endl;
-    return points;*/
 }
 
 int main()

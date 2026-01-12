@@ -7,7 +7,7 @@
 #include "rtree.hpp"
 
 using namespace std;
-using namespace std::chrono;
+//using namespace std::chrono;
 
 //Testing R-tree Test Program for Aircraft trajectory queries. Reads flight data
 // from the CSV and builds 3D Rtree. Then performs spatio-temporal range queries and reports performance metrics
@@ -211,14 +211,14 @@ int main()
     // Build Rtree index
     cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
 
-    auto start=high_resolution_clock::now();
+    auto start=chrono::high_resolution_clock::now();
     for(auto &point: trajectory)
     {
         tree.insert(point);
     }
 
-    auto end=high_resolution_clock::now();
-    auto duration=duration_cast<microseconds>(end-start);
+    auto end=chrono::high_resolution_clock::now();
+    auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
 
     cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
 
@@ -240,11 +240,11 @@ int main()
 
     //execute range query and measure time
     pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query={lower,upper};
-    start=high_resolution_clock::now();
+    start=chrono::high_resolution_clock::now();
     vector<SpatioTemporalPoint> results=tree.range_query(range_query);
-    end =high_resolution_clock::now();
+    end =chrono::high_resolution_clock::now();
 
-    duration=duration_cast<microseconds>(end-start);
+    duration=chrono::duration_cast<chrono::microseconds>(end-start);
     cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;
 
     cout << "\n=== First 10 Results ===" << endl;

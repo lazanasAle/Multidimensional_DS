@@ -16,7 +16,7 @@
 //similar to skyline/results_from_json.cpp but adapted for 3D Spatial-temporal data
 
 using namespace std;
-using namespace std::chrono;
+//using namespace std::chrono;
 namespace json = boost::json;
 
 //creates Minimum Bounding Rectangle (MBR) for a set of points
@@ -288,14 +288,14 @@ int main(int argc, char *argv[])
     cout << "  t range: [" << min_t << ", " <<  max_t << "]" << endl;
 
     cout << "Building R-Tree index..."<<endl;
-    auto start=high_resolution_clock::now();
+    auto start=chrono::high_resolution_clock::now();
     for(auto &point: trajectory)
     {
         tree.insert(point);
     }
 
-    auto end=high_resolution_clock::now();
-    auto duration=duration_cast<microseconds>(end-start);
+    auto end=chrono::high_resolution_clock::now();
+    auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
     cout << "Inserted " << trajectory.size() << " points in " << duration.count() << " microseconds ("<< duration.count() / 1000.0 << " ms)" << endl;
 
     //build+execute range query
@@ -310,10 +310,10 @@ int main(int argc, char *argv[])
     cout << "  u (y): [" << query_interval.first.y<< ", " << query_interval.second.y << "]" <<endl;
     cout << "  t: [" << query_interval.first.t << ", "  << query_interval.second.t << "]" <<endl;
 
-    start=high_resolution_clock::now();
+    start=chrono::high_resolution_clock::now();
     vector<SpatioTemporalPoint> results=tree.range_query(query_interval);
-    end =high_resolution_clock::now();
-    duration=duration_cast<microseconds>(end-start);
+    end =chrono::high_resolution_clock::now();
+    duration=chrono::duration_cast<chrono::microseconds>(end-start);
 
     cout << "\nInside the typed interval exist: " << results.size() << " points"  << endl;
     cout << "Query executed in " << duration.count() / 1000.0 << " ms"<< endl;

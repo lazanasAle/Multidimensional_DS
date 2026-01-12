@@ -5,7 +5,7 @@
 #include <sstream>
 #include <string>
 #include "rtree.hpp"
-#include "rapidcsv.h"
+#include <rapidcsv.h>
 
 using namespace std;
 //using namespace std::chrono;
@@ -81,7 +81,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_r
 {
         vector<SpatioTemporalPoint> points;
         rapidcsv::Document doc(filename, rapidcsv::LabelParams(0,-1));
-        
+
         vector<int> aircraft_ids = doc.GetColumn<int>("aircraft_id");
         vector<int> years= doc.GetColumn<int>("year");
         vector<int> months= doc.GetColumn<int>("month");
@@ -100,9 +100,9 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_r
                 points.push_back(SpatioTemporalPoint(aircraft_ids[i], r_values[i], u_values[i], timestamp));
 
         }
-    
+
     cout << "Successfully loaded " << points.size() << " trajectory points from CSV file" << endl;
-    
+
     return points;
 
 }

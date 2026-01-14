@@ -2,7 +2,7 @@
 #define _CONVEXHULL_HPP
 
 //SOS Download the rapidcsv before executing the code
-#include "rapidcsv.h"
+#include <rapidcsv.h>
 #include <iostream>
 #include <stack>
 #include <vector>

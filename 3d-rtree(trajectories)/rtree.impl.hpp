@@ -3,7 +3,7 @@
 //Implementing spatial-aware node splitting that minimizes MBR overlap
 
 template <typename T, typename C>
-rtree<T,C>::rtree(cmp_vector<T> *cmp_vec, 
+rtree<T,C>::rtree(cmp_vector<T> *cmp_vec,
         function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
         function<rectangle<T> (vector<T *> &)> point_rectangle_fn)
         : kd_btree<T,C>(cmp_vec, region_rectangle_fn, point_rectangle_fn)
@@ -23,7 +23,7 @@ double rtree<T,C>::area_increase(vector<point<T>> &group, point<T> &entry)
         old_points.push_back(&p.location);
     }
 
-    rectangle<T> old_mbr = this->make_point_rectangle(old_points); 
+    rectangle<T> old_mbr = this->make_point_rectangle(old_points);
     double old_area = rect_area(old_mbr, this->comparators);
 
     //Get MBR with new entry added
@@ -52,7 +52,7 @@ double rtree<T,C>::area_increase(vector<region<T>> &group, region<T> &entry)
 
     rectangle<T> old_mbr=this->make_region_rectangle(old_rectangles);
     double old_area= rect_area(old_mbr, this->comparators);
-    
+
     //Get MBR with new entry added
     vector<rectangle<T>*> new_rectangles=old_rectangles;
     new_rectangles.push_back(&entry.region_rec);
@@ -81,10 +81,10 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_points(vector<point<T>> &entries)
 
                         rectangle<T> mbr=this->make_point_rectangle(combined);
                         double area_mbr=rect_area(mbr, this->comparators);
-                        
+
                         //for points area=0 obviously. So that waste=area(MBR)
                         //we need the most 'distant' points
-                        double waste=area_mbr; 
+                        double waste=area_mbr;
 
                         if(waste>max_waste)
                         {
@@ -110,7 +110,7 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
                 {
                         //create MBR that has both entries
                         vector<rectangle<T>*> combined={&entries[i].region_rec, &entries[j].region_rec};
-                          
+
                         rectangle<T> mbr = this->make_region_rectangle(combined);
                         double area_i = rect_area(entries[i].region_rec, this->comparators);
                         double area_j = rect_area(entries[j].region_rec, this->comparators);
@@ -118,7 +118,7 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
 
                         //waste is the area of MBR minus the area of entry_i minus the area of entry_j
                         //waste=area(MBR(i,j))-area(i)-area(j)
-                        double waste=area_mbr- area_i-area_j; 
+                        double waste=area_mbr- area_i-area_j;
 
                         if(waste>max_waste)
                         {
@@ -128,7 +128,7 @@ pair<size_t,size_t> rtree<T,C>::pick_seeds_regions(vector<region<T>> &entries)
                 }
         }
 
-        return seeds; //returning pair of indices representing the 2 seeds  
+        return seeds; //returning pair of indices representing the 2 seeds
 }
 
 //Picking next point to distribute during split
@@ -193,7 +193,7 @@ size_t rtree<T,C>::pick_next_region(vector<region<T>> &remaining,
 
 //decide which group to assign a point entry
 // min area increase -> min area -> min size
-//returns true for group1 and false for group2 
+//returns true for group1 and false for group2
 
 template <typename T, typename C>
 bool rtree<T,C>::assign_to_group1(vector<point<T>> &group1,
@@ -216,7 +216,7 @@ bool rtree<T,C>::assign_to_group1(vector<point<T>> &group1,
                 //compare resulting areas
                 rectangle<T> temp_rect1 = this->make_point_rectangle(g1_points);
                 double area1 = rect_area(temp_rect1, this->comparators);
-                
+
                 rectangle<T> temp_rect2 = this->make_point_rectangle(g2_points);
                 double area2 = rect_area(temp_rect2, this->comparators);
 
@@ -230,12 +230,12 @@ bool rtree<T,C>::assign_to_group1(vector<point<T>> &group1,
                 return area1<area2;
         }
 
-        return d1<d2; 
+        return d1<d2;
 }
 
 //Decide which group to assign a region entry
 // min area increase -> min area -> min size
-//returns true for group1 and false for group2 
+//returns true for group1 and false for group2
 
 template <typename T, typename C>
 bool rtree<T,C>::assign_to_group1(vector<region<T>> &group1,
@@ -287,7 +287,7 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
         {
                 //point node -leaf
                 point_kd_bnode<T> *pnode=static_cast<point_kd_bnode<T> *>(node);
-                vector<point<T>> all_points= pnode->points;
+                vector<point<T>> all_points=move(pnode->points);
 
                 size_t m=pnode->minimum_fill; //min entries per node
 
@@ -349,7 +349,7 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
         else
         {
                 region_kd_bnode<T> *rnode=static_cast<region_kd_bnode<T> *>(node);
-                vector<region<T>> all_regions=rnode->regions;
+                vector<region<T>> all_regions=move(rnode->regions);
 
                 size_t m=rnode->minimum_fill;
 
@@ -409,7 +409,7 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
                 new_node->level=node->level;
 
                 return new_node;
-        }       
+        }
 }
 
 

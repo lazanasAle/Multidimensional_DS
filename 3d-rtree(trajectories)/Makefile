@@ -1,9 +1,13 @@
 CPP = g++
-CPPFLAGS = -Wall -O2 -std=gnu++23 -I..
+CPPFLAGS = -Wall -O2 -std=gnu++23
 BOOST_LIBS = -lboost_json
 
 PROG = test_rtree
 PROG_JSON = rtree_from_json
+
+PROJ_ROOT := $(abspath ..)
+
+CPPFLAGS += -I$(PROJ_ROOT)
 
 all: $(PROG) $(PROG_JSON)
 

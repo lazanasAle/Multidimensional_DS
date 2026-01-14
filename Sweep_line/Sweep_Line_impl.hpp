@@ -1,7 +1,7 @@
 #ifndef _SWEEP_LINE_IMPL_HPP
 #define _SWEEP_LINE_IMPL_HPP
 
-#include "rapidcsv.h"
+#include <rapidcsv.h>
 #include <iostream>
 #include <iterator>
 #include <vector>

@@ -1,7 +1,7 @@
 #ifndef _RTREE_HPP
 #define _RTREE_HPP
 
-#include "../kd-btree/kd_btree.hpp"
+#include <kd-btree/kd_btree.hpp>
 #include <cmath>
 #include <limits>
 
@@ -24,7 +24,7 @@ struct SpatioTemporalPoint
 
     //constructor with coordinates only. Creates a point at position (x,y,t) with defualt aircraft_id=0
     SpatioTemporalPoint(double _x, double _y, double _t): aircraft_id(0), x(_x), y(_y), t(_t) {}
-    
+
     //constructor with full data
     SpatioTemporalPoint(int _id,double _x, double _y, double _t): aircraft_id(_id), x(_x), y(_y), t(_t) {}
 
@@ -66,10 +66,10 @@ struct STP_comparator
 template <typename T, typename C>
 class rtree: public kd_btree<T,C>
 {
-    private: 
+    private:
         double area_increase(vector<point<T>> &group, point<T> &entry);
         double area_increase(vector<region<T>> &group, region<T> &entry);
-        
+
         //picking seeds. finds the entries with the most spatial waste
         pair<size_t,size_t> pick_seeds_points(vector<point<T>> &entries);
         pair<size_t,size_t> pick_seeds_regions(vector<region<T>> &entries);
@@ -78,7 +78,7 @@ class rtree: public kd_btree<T,C>
         size_t pick_next_point(vector<point<T>> &remaining,
                         vector<point<T>> &group1,
                         vector<point<T>> &group2);
-                        
+
         size_t pick_next_region(vector<region<T>> &remaining,
                         vector<region<T>> &group1,
                         vector<region<T>> &group2);

@@ -3,6 +3,12 @@ CFLAGS = -Wall -O2 -std=gnu++23
 LDFLAGS = -lboost_json
 TARGET = kdbtree from_json
 
+PROJ_ROOT := $(abspath ../..)
+QUESTION_ROOT := $(abspath ..)
+
+CFLAGS += -I$(QUESTION_ROOT)
+CFLAGS += -I$(PROJ_ROOT)
+
 all: $(TARGET)
 
 kdbtree: kd_btree_test.cpp

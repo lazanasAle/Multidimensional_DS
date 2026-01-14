@@ -160,6 +160,9 @@ kd_bnode<T> *point_kd_bnode<T>::split_node() {
         //now split from the median
         vector<point<T>> new_left(this->points.begin(), median_it + 1);
         vector<point<T>> new_right(median_it + 1, this->points.end());
+        //moving ownership
+        this->points.clear();
+        this->points.shrink_to_fit();
         this->points = move(new_left);
         point_kd_bnode<T> *new_node = new point_kd_bnode<T>(this->comparators, this->make_rectangle);
         new_node->points = move(new_right);
@@ -212,6 +215,9 @@ kd_bnode<T> *region_kd_bnode<T>::split_node() {
         //split from the median
         vector<region<T>> left_regions(this->regions.begin(), median_it + 1);
         vector<region<T>> right_regions(median_it + 1, this->regions.end());
+        //moving ownership
+        this->regions.clear();
+        this->regions.shrink_to_fit();
         this->regions = move(left_regions);
         region_kd_bnode<T> *new_node = new region_kd_bnode<T>(this->comparators, this->make_rectangle);
         new_node->regions = move(right_regions);
@@ -622,11 +628,13 @@ void kd_btree<T, C>::store_neighbour_after_split(region_kd_bnode<T> *neighbour, 
                 neighbour->my_offset = this->coffset;
                 store_node(this->coffset, neighbour);
                 //determine who is the father, then store it acordingly
-                bool in_me = binary_search(par_node->regions.begin(), par_node->regions.end(), splitted_parent,
-                        [this, dlen, par_node] (const region<T> &a, const region<T> &b) {
-                                int res = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(b.region_rec));
-                                return (res < 0);
-                        });
+                bool in_me = find_if(par_node->regions.begin(), par_node->regions.end(),
+                        [this, dlen, par_node, &splitted_parent] (const region<T> &a) {
+                                int res_low = (*this->comparators)[par_node->level % dlen](get<0>(a.region_rec), get<0>(splitted_parent.region_rec));
+                                int res_mid = (*this->comparators)[par_node->level % dlen](get<1>(a.region_rec), get<1>(splitted_parent.region_rec));
+                                int res_high = (*this->comparators)[par_node->level % dlen](get<2>(a.region_rec), get<2>(splitted_parent.region_rec));
+                                return (res_low == 0) && (res_mid == 0) && (res_high == 0);
+                        }) != par_node->regions.end();
                 splitted_node->parent_offset = (in_me)? par_node->my_offset : neighbour->my_offset;
                 //in its children change the father offset (to inform them for the change of the father)
                 for (region<T> &reg : par_node->regions) {

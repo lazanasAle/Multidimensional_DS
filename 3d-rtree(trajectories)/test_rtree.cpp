@@ -5,9 +5,10 @@
 #include <sstream>
 #include <string>
 #include "rtree.hpp"
+#include <rapidcsv.h>
 
 using namespace std;
-using namespace std::chrono;
+//using namespace std::chrono;
 
 //Testing R-tree Test Program for Aircraft trajectory queries. Reads flight data
 // from the CSV and builds 3D Rtree. Then performs spatio-temporal range queries and reports performance metrics
@@ -76,68 +77,34 @@ rectangle<SpatioTemporalPoint> make_region_rect(vector<rectangle<SpatioTemporalP
     );
 }
 
-vector<SpatioTemporalPoint> read_flight_data(const string &filename)
+vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_rows = 0)
 {
-    vector<SpatioTemporalPoint> points;
-    ifstream file(filename);
+        vector<SpatioTemporalPoint> points;
+        rapidcsv::Document doc(filename, rapidcsv::LabelParams(0,-1));
 
-    if(!file.is_open())
-    {
-        cerr<< "Error: Could not open file "<<filename <<endl;
-        return points;
-    }
+        vector<int> aircraft_ids = doc.GetColumn<int>("aircraft_id");
+        vector<int> years= doc.GetColumn<int>("year");
+        vector<int> months= doc.GetColumn<int>("month");
+        vector<int> days = doc.GetColumn<int>("day");
+        vector<int> hours =doc.GetColumn<int>("hour");
+        vector<int> minutes =doc.GetColumn<int>("minute");
+        vector<double> seconds = doc.GetColumn<double>("second");
+        vector<double> r_values = doc.GetColumn<double>("r");
+        vector<double> u_values =doc.GetColumn<double>("u");
 
-    string line;
-    getline(file,line);
-    //skip 1st line (header)
-
-    int count=0;
-    while(getline(file,line))
-    {
-        stringstream ss(line);
-        string token;
-        vector<string> values;
-
-        while(getline(ss, token, ','))
+        size_t rows_to_read=(max_rows==0)? aircraft_ids.size(): min(max_rows,aircraft_ids.size());
+        for(size_t i=0; i<rows_to_read; ++i)
         {
-            values.push_back(token);
+                //convert datetime to timestamp -total seconds
+                double timestamp=seconds[i]+minutes[i]*60.0 + hours[i]*3600.0+ days[i]*86400.0+ months[i]*2592000.0 + years[i]*31536000.0;
+                points.push_back(SpatioTemporalPoint(aircraft_ids[i], r_values[i], u_values[i], timestamp));
+
         }
 
-        if (values.size()>=9)
-        {
-            try
-            {
-                int aircraft_id=(int)stod(values[0]);
-                int year=(int)stod(values[1]);
-                int month=(int)stod(values[2]);
-                int day=(int)stod(values[3]);
-                int hour=(int)stod(values[4]);
-                int minute=(int)stod(values[5]);
+    cout << "Successfully loaded " << points.size() << " trajectory points from CSV file" << endl;
 
-                double second=stod(values[6]);
-                double r= stod(values[7]); //r->x
-                double u=stod(values[8]); //u-> y
-
-                //convert datetime to timestamp (total seconds)
-                double timestamp=second+minute*60.0+ hour* 3600.0 + day* 86400.0 + month * 2592000.0+ year*31536000.0;
-                // 86400 is the #seconds in a day: 24 x 60 x 60 = 86400
-                //2592000 is the #seconds in a month (if 1 month=30days) 24 x 60 x 60 x30=25920000
-                //31536000 = seconds in a year (365 days * 24 * 60 * 60)
-
-                points.push_back(SpatioTemporalPoint(aircraft_id,r,u,timestamp));
-                count++;
-
-            }
-            catch(const exception& e)
-            {
-                cerr << "Error parsing the line: "<<line<< endl;
-            }
-        }
-    }
-
-    file.close();
-    cout<< "Succesfully loaded "<< count<< " trajectory points from CSV file"<< endl;
     return points;
+
 }
 
 int main()
@@ -211,14 +178,14 @@ int main()
     // Build Rtree index
     cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
 
-    auto start=high_resolution_clock::now();
+    auto start=chrono::high_resolution_clock::now();
     for(auto &point: trajectory)
     {
         tree.insert(point);
     }
 
-    auto end=high_resolution_clock::now();
-    auto duration=duration_cast<microseconds>(end-start);
+    auto end=chrono::high_resolution_clock::now();
+    auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
 
     cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
 
@@ -240,11 +207,11 @@ int main()
 
     //execute range query and measure time
     pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query={lower,upper};
-    start=high_resolution_clock::now();
+    start=chrono::high_resolution_clock::now();
     vector<SpatioTemporalPoint> results=tree.range_query(range_query);
-    end =high_resolution_clock::now();
+    end =chrono::high_resolution_clock::now();
 
-    duration=duration_cast<microseconds>(end-start);
+    duration=chrono::duration_cast<chrono::microseconds>(end-start);
     cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;
 
     cout << "\n=== First 10 Results ===" << endl;

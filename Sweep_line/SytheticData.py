@@ -2,6 +2,7 @@ import csv
 import random
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 
 def bbox_overlap(l1, l2):
@@ -40,52 +41,73 @@ def intersection(l1, l2):
     return None
 
 
+# this outside parallel
+def Check_each_generated_line(Size_of_dataset, Upper_bound):
+    lines = []
+    intersection_points = set()
+
+    while len(lines) < Size_of_dataset:
+        x1 = random.randrange(Upper_bound)
+        y1 = random.randrange(Upper_bound)
+        x2 = random.randrange(Upper_bound)
+        y2 = random.randrange(Upper_bound)
+
+        if x1 == x2 and y1 == y2:
+            continue
+
+        # reject if endpoint already used as intersection
+        if (x1, y1) in intersection_points or (x2, y2) in intersection_points:
+            continue
+
+        segment = [x1, y1, x2, y2, f"s{len(lines)}"]
+        valid = True
+        new_intersections = []
+
+        for other in lines:
+            if not bbox_overlap(segment, other):
+                continue
+
+            if collinear(segment, other):
+                valid = False
+                break
+
+            p = intersection(segment, other)
+            if p:
+                key = (round(p[0], 9), round(p[1], 9))
+                if key in intersection_points:
+                    valid = False
+                    break
+                new_intersections.append(key)
+
+        if valid:
+            lines.append(segment)
+            intersection_points.update(new_intersections)
+
+    return lines
+
+
+# main section
+
 Size_of_dataset = int(sys.argv[1])
 Upper_bound = int(sys.argv[2])
 
-lines = []
-intersection_points = set()
+# thread Pool
+
+num_threads = 6
+chunk = Size_of_dataset // num_threads
 start = time.perf_counter()
-while len(lines) < Size_of_dataset:
-    x1 = random.randrange(Upper_bound)
-    y1 = random.randrange(Upper_bound)
-    x2 = random.randrange(Upper_bound)
-    y2 = random.randrange(Upper_bound)
-
-    if x1 == x2 and y1 == y2:
-        continue
-
-    # reject if endpoint already used as intersection
-    if (x1, y1) in intersection_points or (x2, y2) in intersection_points:
-        continue
-
-    segment = [x1, y1, x2, y2, f"s{len(lines)}"]
-    valid = True
-    new_intersections = []
-
-    for other in lines:
-        if not bbox_overlap(segment, other):
-            continue
-
-        if collinear(segment, other):
-            valid = False
-            break
-
-        p = intersection(segment, other)
-        if p:
-            key = (round(p[0], 9), round(p[1], 9))
-            if key in intersection_points:
-                valid = False
-                break
-            new_intersections.append(key)
-
-    if valid:
-        lines.append(segment)
-        intersection_points.update(new_intersections)
+with ThreadPoolExecutor(max_workers=num_threads) as executor:
+    futures = []
+    for i in range(num_threads):
+        f = executor.submit(Check_each_generated_line, chunk, Upper_bound)
+        futures.append(f)
+    results = [f.result() for f in futures]
+    lines = [item for sublist in results for item in sublist]
 
 
 end = time.perf_counter()
 print(f"Total time: {end - start:.4f} seconds")
+
 fields = ["X1", "Y1", "X2", "Y2", "name_of_line"]
 with open("Swip_line_Data.csv", "w", newline="") as f:
     writer = csv.writer(f)

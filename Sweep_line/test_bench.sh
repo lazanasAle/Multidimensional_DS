@@ -35,7 +35,7 @@ do
         if [ "$NOGIL_PRESENT" -ne 0 ]; then
                 PYTHON_GIL=0 "$PYTHON" SytheticData.py "$i" "$upper_bound_segment"
         else
-             "$PYTHON" SytheticData.py "$i" "$upper_bound_segment"
+                "$PYTHON" SytheticData.py "$i" "$upper_bound_segment"
         fi
         ./SweepLine >> /tmp/tmp_txt.txt
         echo "Experiment $i finished."

@@ -5,16 +5,6 @@ static long end_pos(fstream &file) {
         return end_p;
 }
 
-template <typename T, typename U>
-
-vector<T> get_map_keys(map<T, U> &mapper) {
-        vector<T> keys;
-
-        for (auto it = mapper.begin(); it != mapper.end(); ++it)
-                keys.push_back((*it).first);
-        return keys;
-}
-
 template <typename T>
 
 void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {

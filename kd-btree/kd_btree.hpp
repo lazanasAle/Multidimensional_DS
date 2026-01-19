@@ -1,6 +1,7 @@
 #ifndef _KD_BTREE_HPP
 #define _KD_BTREE_HPP
 
+#include <cstdint>
 #include <functional>
 #include <algorithm>
 #include <utility>
@@ -9,7 +10,7 @@
 #include <vector>
 #include <cstdlib>
 #include <set>
-#include <map>
+#include <unordered_map>
 #include <tuple>
 #include <cmath>
 #include <stack>
@@ -23,10 +24,17 @@
 #define EIGHT 8
 #define MAX_CACHED 512
 
+#define HASH_SHIFT_F 30
+#define HASH_SHIFT_S 27
+#define HASH_SHIFT_T 31
+
+#define HASH_MUL_F UINT64_C(0xbf58476d1ce4e5b9)
+#define HASH_MUL_S UINT64_C(0x94d049bb133111eb)
+
 using   std::fstream, std::ios, std::string, std::vector,
         std::function, std::pair, std::tuple, std::stable_sort, std::get,
         std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::find_if, std::stack, std::set, std::map;
+        std::find_if, std::stack, std::set, std::unordered_map;
 
 
 static inline void null_func(){}
@@ -147,6 +155,44 @@ public:
         kd_bnode<T> *split_node() override;
 };
 
+
+static inline uint64_t split_mix_hash(uint64_t x) {
+        x = (x ^ (x >> HASH_SHIFT_F)) * HASH_MUL_F;
+        x = (x ^ (x >> HASH_SHIFT_S)) * HASH_MUL_S;
+        x ^= (x >> HASH_SHIFT_T);
+        return x;
+}
+
+
+struct split_mix_hasher {
+        size_t operator ()(const long &key) const {
+                return split_mix_hash(static_cast<uint64_t>(key));
+        }
+};
+
+template <typename T>
+
+using point_hash_map = unordered_map<
+        long,
+        point_kd_bnode<T>,
+        split_mix_hasher
+>;
+
+template <typename T>
+
+using region_hash_map = unordered_map<
+        long,
+        region_kd_bnode<T>,
+        split_mix_hasher
+>;
+
+using size_hash_map = unordered_map<
+        long,
+        size_t,
+        split_mix_hasher
+>;
+
+
 // r-tree (1st question must) inherit this class
 template <typename T, typename C>
 
@@ -159,10 +205,10 @@ protected:
         long coffset, next_offset, root_offset;
         size_t nitems, max_cached_pnodes, max_cached_rnodes, recent_cnt;
 
-        map<long, point_kd_bnode<T>> pnodes_cached;
-        map<long, region_kd_bnode<T>> rnodes_cached;
-        map<long, size_t> off_cnt_points;
-        map<long, size_t> off_cnt_regions;
+        point_hash_map<T> pnodes_cached;
+        region_hash_map<T> rnodes_cached;
+        size_hash_map off_cnt_points;
+        size_hash_map off_cnt_regions;
         stack<pair<long, bool>> eliminated_stack;
 
         kd_bnode<T> *load_file_node(long node_offset);

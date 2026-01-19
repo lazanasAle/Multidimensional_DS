@@ -4,8 +4,8 @@
 
 template <typename T, typename C>
 rtree<T,C>::rtree(cmp_vector<T> *cmp_vec,
-        function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
-        function<rectangle<T> (vector<T *> &)> point_rectangle_fn)
+        rectangle<T> (*region_rectangle_fn)(vector<rectangle<T> *> &),
+        rectangle<T> (*point_rectangle_fn)(vector<T *> &))
         : kd_btree<T,C>(cmp_vec, region_rectangle_fn, point_rectangle_fn)
         {}
 

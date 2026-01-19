@@ -92,8 +92,8 @@ class rtree: public kd_btree<T,C>
         //overriding the split node with Guttman's quadratic split algorithm
 
     public:
-        rtree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
-        function<rectangle<T> (vector<T *> &)> point_rectangle_fn);
+        rtree(cmp_vector<T> *cmp_vec, rectangle<T> (*region_rectangle_fn)(vector<rectangle<T> *> &),
+        rectangle<T> (*point_rectangle_fn)(vector<T *> &));
         ~rtree(){}
 };
 

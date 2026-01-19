@@ -126,7 +126,7 @@ void kd_bnode<T>::read_common(fstream &file, long node_offset) {
 
 template <typename T>
 
-point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<T *> &)> make_rectangle_fn):
+point_kd_bnode<T>::point_kd_bnode(cmp_vector<T> *cmp_vec, rectangle<T>  (*make_rectangle_fn)(vector<T *> &)):
 kd_bnode<T>(cmp_vec) {
         this->tag = false;
         this->maximum_fill = BLC_LEN / sizeof(point<T>);
@@ -181,7 +181,7 @@ bool into_rectangle(pair<T, T> &rect, point<T> &point, cmp_vector<T> *cmp_vec) {
 
 template <typename T>
 
-region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> make_rectangle_fn):
+region_kd_bnode<T>::region_kd_bnode(cmp_vector<T> *cmp_vec, rectangle<T>  (*make_rectangle_fn)(vector<rectangle<T> *> &)):
 kd_bnode<T>(cmp_vec) {
         this->tag = true;
         this->maximum_fill = BLC_LEN / sizeof(region<T>);
@@ -238,8 +238,8 @@ bool into_rectangle(pair<T, T> &rect, region<T> &reg, cmp_vector<T> *cmp_vec) {
 
 template <typename T, typename C>
 
-kd_btree<T, C>::kd_btree(cmp_vector<T> *cmp_vec, function<rectangle<T> (vector<rectangle<T> *> &)> region_rectangle_fn,
-function<rectangle<T> (vector<T *> &)> point_rectangle_fn) {
+kd_btree<T, C>::kd_btree(cmp_vector<T> *cmp_vec, rectangle<T> (*region_rectangle_fn)(vector<rectangle<T> *> &),
+        rectangle<T> (*point_rectangle_fn)(vector<T *> &)) {
         this->nitems = 0;
         this->comparators = cmp_vec;
         this->make_region_rectangle = region_rectangle_fn;
@@ -725,7 +725,7 @@ void kd_btree<T, C>::insert(T &data) {
 
 template <typename T>
 
-static inline bool point_dimention_domination(const point<T> &p1, const point<T> &p2, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool point_dimention_domination(const point<T> &p1, const point<T> &p2, double (*cmp)(const T &, const T &), best_t best_dim) {
         double res = cmp(p1.location, p2.location);
         bool value = (best_dim == MAXIMIZE)? (res > 0) : (res < 0);
         return value;
@@ -749,7 +749,7 @@ bool dominates(const point<T> &p1, const point<T> &p2, cmp_vector<T> *cmp_vec, v
 
 template <typename T>
 
-static inline bool region_dimention_domination(const region<T> &r1, const region<T> &r2, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool region_dimention_domination(const region<T> &r1, const region<T> &r2, double (*cmp)(const T &, const T &), best_t best_dim) {
         T r1_low = get<0>(r1.region_rec);
         T r1_high = get<2>(r1.region_rec);
 
@@ -781,7 +781,7 @@ bool dominates(const region<T> &r1, const region<T> &r2, cmp_vector<T> *cmp_vec,
 
 template <typename T>
 
-static inline bool region_point_dimention_domination(const region<T> &r, const point<T> &p, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool region_point_dimention_domination(const region<T> &r, const point<T> &p, double (*cmp)(const T &, const T &), best_t best_dim) {
         T r_low = get<0>(r.region_rec);
         T r_high = get<2>(r.region_rec);
 
@@ -794,7 +794,7 @@ static inline bool region_point_dimention_domination(const region<T> &r, const p
 
 template <typename T>
 
-static inline bool point_region_dimention_domination(const point<T> &p, const region<T> &r, function<double (const T &, const T &)> cmp, best_t best_dim) {
+static inline bool point_region_dimention_domination(const point<T> &p, const region<T> &r, double (*cmp)(const T &, const T &), best_t best_dim) {
         T r_low = get<0>(r.region_rec);
         T r_high = get<2>(r.region_rec);
 

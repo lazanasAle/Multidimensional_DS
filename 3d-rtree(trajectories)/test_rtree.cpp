@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -107,8 +108,11 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_r
 
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+        size_t max_rows = 0;
+        if (argc > 1)
+                max_rows = stol(argv[1]);
     //define comparison functions for each dimension x,y,t
     auto cmp_x=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
     {
@@ -134,7 +138,7 @@ int main()
 
     //load trajectory data from CSV
     cout <<"Reading flight data from CSV..."<< endl;
-    vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv");
+    vector<SpatioTemporalPoint> trajectory=read_flight_data("flight_data_readable.csv", max_rows);
 
     double min_r=0, max_r=0;
     double min_u=0, max_u=0;

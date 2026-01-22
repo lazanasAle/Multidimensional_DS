@@ -182,13 +182,13 @@ int main(int argc, char *argv[])
     // Build Rtree index
     cout<< "Inserting "<< trajectory.size()<< " trajectory points..." << endl;
 
-    auto start=chrono::high_resolution_clock::now();
+    auto start=chrono::system_clock::now();
     for(auto &point: trajectory)
     {
         tree.insert(point);
     }
 
-    auto end=chrono::high_resolution_clock::now();
+    auto end=chrono::system_clock::now();
     auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
 
     cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
@@ -211,9 +211,9 @@ int main(int argc, char *argv[])
 
     //execute range query and measure time
     pair<SpatioTemporalPoint, SpatioTemporalPoint> range_query={lower,upper};
-    start=chrono::high_resolution_clock::now();
+    start=chrono::system_clock::now();
     vector<SpatioTemporalPoint> results=tree.range_query(range_query);
-    end =chrono::high_resolution_clock::now();
+    end =chrono::system_clock::now();
 
     duration=chrono::duration_cast<chrono::microseconds>(end-start);
     cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;

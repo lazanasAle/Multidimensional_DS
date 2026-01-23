@@ -145,11 +145,6 @@ void test_csv()
     auto start_build= chrono::system_clock::now();
     tree.build(intervals); //use build method instead of loop
 
-    /*for (auto &inter: intervals)
-    {
-        tree.insert(inter);
-    }*/
-
     auto end_build=chrono::system_clock::now();
     auto build_time=chrono:: duration_cast<chrono::milliseconds>(end_build-start_build);
 
@@ -215,11 +210,6 @@ void performance_test(size_t num_of_data)
     auto start = chrono::system_clock::now();
     tree.build(intervals);
 
-    /*for(auto &inter : intervals)
-    {
-        tree.insert(inter);
-    }*/
-
     auto end= chrono::system_clock::now();
     chrono::duration<double> build_dur = end - start;
     double build_time = build_dur.count();
@@ -258,7 +248,6 @@ void performance_test(size_t num_of_data)
     times_csv.open("times.csv", ios::app);
     times_csv<<tree.size()<<","<<build_time<<","<<query_time<<"\n";
     times_csv.close();
-
 }
 
 int main(int argc, char *argv[])

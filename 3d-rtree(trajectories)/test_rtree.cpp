@@ -104,9 +104,7 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_r
         }
 
     cout << "Successfully loaded " << points.size() << " trajectory points from CSV file" << endl;
-
     return points;
-
 }
 
 int main(int argc, char *argv[])
@@ -168,7 +166,6 @@ int main(int argc, char *argv[])
         }
 
         cout << "\nData Statistics"<< endl;
-
         cout << "r (x) range: [" << min_r  << ", " <<  max_r << "]" << endl;
         cout << "u (y) range: [" <<  min_u << ", " <<  max_u << "]" << endl;
         cout << "t range: ["  << min_t << ", " <<    max_t << "]" <<   endl;
@@ -190,15 +187,9 @@ int main(int argc, char *argv[])
     }
 
     auto end=chrono::system_clock::now();
-    auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
-    //double insert_time_ms = duration.count() / 1000.0;
-    double insert_time_s = duration.count() / 1000000.0;
-
-    //cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
-    //cout<< trajectory.size()<< ","<< duration.count()/1000.0;
-
+    chrono::duration<double> duration = end - start;
+    double insert_time_s = duration.count();
     cout<< trajectory.size()<< ","<< insert_time_s<<endl;
-
 
     //Perform range query
     cout<< "\nSpatio-temporal Range Query"<< endl;
@@ -222,12 +213,8 @@ int main(int argc, char *argv[])
     vector<SpatioTemporalPoint> results=tree.range_query(range_query);
     end =chrono::system_clock::now();
 
-    duration=chrono::duration_cast<chrono::microseconds>(end-start);
-    double query_time_s = duration.count() / 1000000.0;
-
-    //cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;
-    //cout<< ","<< duration.count()/1000.0<< endl;
-
+    chrono::duration<double> query_duration = end - start;
+    double query_time_s = query_duration.count();
     cout<< query_time_s<< endl;
 
     ofstream csv_file("times.csv", ios::app);
@@ -249,7 +236,5 @@ int main(int argc, char *argv[])
             << " | Position (r=" << p.x << ", u=" <<  p.y
             << ") | Time: " << p.t <<  endl;
     }
-
     return 0;
-
 }

@@ -1,6 +1,8 @@
 #include "ConvexHull.hpp"
 #include <cstddef>
 
+using namespace std;
+
 vector<movie_point> read_csv(string &filename, size_t rows){
         vector<movie_point> points;
         rapidcsv::Document doc(filename, rapidcsv::LabelParams(0, -1));

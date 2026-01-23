@@ -15,7 +15,7 @@
 
 #define EPSILON 1e-7
 
-using namespace std;
+using std::priority_queue, std::set, std::vector, std::abs, std::string;
 
 struct sweep_line {
         static double sweepY;

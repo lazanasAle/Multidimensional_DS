@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <list> // maybe i dont need
 
-using namespace std;
+using std::string, std::vector;
 
 struct movie_point{
         double budget; //the x axis

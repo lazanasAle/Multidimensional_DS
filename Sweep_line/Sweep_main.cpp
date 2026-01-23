@@ -3,6 +3,7 @@
 #include <chrono>
 #include <fstream>
 
+using namespace std;
 
 int main(int argc, char *argv[]) {
         string filename="Swip_line_Data.csv";

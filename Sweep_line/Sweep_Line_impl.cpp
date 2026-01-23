@@ -1,6 +1,8 @@
 #include "Sweep_Line_impl.hpp"
 #include <cfloat>
 
+using namespace std;
+
 double sweep_line::sweepY = DBL_MAX;
 
 dataS prepare_data(string &filename){

@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <iomanip>
 #include "rtree.hpp"
 #include <rapidcsv.h>
 
@@ -110,9 +111,9 @@ vector<SpatioTemporalPoint> read_flight_data(const string &filename,size_t max_r
 
 int main(int argc, char *argv[])
 {
-        size_t max_rows = 0;
-        if (argc > 1)
-                max_rows = stol(argv[1]);
+    size_t max_rows = 0;
+    if (argc > 1)
+        max_rows = stol(argv[1]);
     //define comparison functions for each dimension x,y,t
     auto cmp_x=[](const SpatioTemporalPoint &a, const SpatioTemporalPoint &b)
     {
@@ -190,8 +191,14 @@ int main(int argc, char *argv[])
 
     auto end=chrono::system_clock::now();
     auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
+    //double insert_time_ms = duration.count() / 1000.0;
+    double insert_time_s = duration.count() / 1000000.0;
 
-    cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
+    //cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
+    //cout<< trajectory.size()<< ","<< duration.count()/1000.0;
+
+    cout<< trajectory.size()<< ","<< insert_time_s;
+
 
     //Perform range query
     cout<< "\nSpatio-temporal Range Query"<< endl;
@@ -216,7 +223,22 @@ int main(int argc, char *argv[])
     end =chrono::system_clock::now();
 
     duration=chrono::duration_cast<chrono::microseconds>(end-start);
-    cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;
+    double query_time_s = duration.count() / 1000000.0;
+
+    //cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;
+    //cout<< ","<< duration.count()/1000.0<< endl;
+
+    cout<< ","<< query_time_s<< endl;
+
+    ofstream csv_file("times.csv", ios::app);
+    if (csv_file.is_open()) 
+    { 
+        csv_file << fixed << setprecision(6);
+        csv_file << trajectory.size() << "," 
+                 << insert_time_s << ","  
+                 << query_time_s << endl; 
+        csv_file.close();
+    }
 
     cout << "\n=== First 10 Results ===" << endl;
     int display_count = min(10, (int)results.size());

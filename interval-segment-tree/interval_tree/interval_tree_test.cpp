@@ -194,7 +194,6 @@ void performance_test(size_t num_of_data)
 {
     cout << "\n---- Performance Test ----" << "\n";
     vector<interval<int>> intervals= load_intervals_from_csv("Interval_Data.csv", num_of_data);
-    //wrong name was here: Interval_Segmnet.csv"
 
     if(intervals.empty())
     {

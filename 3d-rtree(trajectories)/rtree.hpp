@@ -86,7 +86,6 @@ class rtree: public kd_btree<T,C>
         bool assign_to_group1(vector<point<T>> &group1, vector<point<T>> &group2, point<T> &entry);
         bool assign_to_group1(vector<region<T>> &group1, vector<region<T>> &group2, region<T> &entry);
 
-
     protected:
         kd_bnode<T> *split_node(kd_bnode<T> *node) override;
         //overriding the split node with Guttman's quadratic split algorithm

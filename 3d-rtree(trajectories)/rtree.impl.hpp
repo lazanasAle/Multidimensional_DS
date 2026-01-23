@@ -32,7 +32,6 @@ double rtree<T,C>::area_increase(vector<point<T>> &group, point<T> &entry)
 
     rectangle<T> new_mbr = this->make_point_rectangle(new_points);
     double new_area = rect_area(new_mbr, this->comparators);
-
     return new_area-old_area;
 }
 
@@ -411,6 +410,3 @@ kd_bnode<T> *rtree<T,C>::split_node(kd_bnode<T> *node)
                 return new_node;
         }
 }
-
-
-//will add commenting soon

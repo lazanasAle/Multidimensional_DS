@@ -1,4 +1,3 @@
-//headers
 #ifndef _INTERVAL_TREE_HPP
 #define _INTERVAL_TREE_HPP
 
@@ -34,7 +33,7 @@ class interval_node
     public:
         interval<T> *inter; //Pointer to the interval stored inside this node
         T max_end; // max endpoint in this subtree (θα ειναι χρησιμο για το κλάδεμα)
-        int32_t height; //might change later (AVL..)
+        int32_t height;
 
         interval_node(interval<T> *i); //constructor with interval pointer
         int32_t balance_factor(); //left-right height
@@ -50,7 +49,7 @@ class interval_node
         void right_rotation(); 
         void left_right_rotation();
         void right_left_rotation();
-        //The rotations are useful for balanc
+        //The rotations are useful for balancing
         //will implement these functionms inside interval_tree.impl,hpp file 
         
         ~interval_node(); //destructor to clean up memory
@@ -61,7 +60,6 @@ class interval_node_iterator //this is a useful class for traversing the interva
 {
     private:
         interval_node<T> *node; //pointer to the current node
-    
 
     public:
         interval_node_iterator(interval_node<T> *n); //constructor with a node pointer
@@ -106,10 +104,6 @@ class interval_tree
     ~interval_tree(); //destructor to clean the tree memory
 
 };
-
-// Run it as:
-//g++ -std=c++17 test_interval_tree.cpp -o interval_test
-//./interval_test
 
 #include "interval_tree.impl.hpp" //including the implementation file
 #endif /* _INTERVAL_TREE_HPP*/ //end of header

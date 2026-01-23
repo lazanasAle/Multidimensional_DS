@@ -551,8 +551,4 @@ interval_tree<T>::~interval_tree()
         delete(root);
 }
 
-
-
-//comments
-
 // will add comments to make it clear what each piece of code represents.

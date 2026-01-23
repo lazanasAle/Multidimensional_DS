@@ -1,5 +1,5 @@
 #include "Sweep_Line_impl.hpp"
-#include <print>
+#include <iostream>
 #include <chrono>
 #include <fstream>
 
@@ -19,10 +19,10 @@ int main(int argc, char *argv[]) {
         chrono::duration<double> sweep_dur = end - start;
         double sweep_time = sweep_dur.count();
 
-        println("execution time needed: {}", sweep_time);
-        println("we have: {} intersection points", is_points.size());
+        cout<<"execution time needed: "<<sweep_time<<"\n";
+        cout<<"we have: "<<is_points.size()<<" intersection points"<<"\n";
         for (auto it = is_points.begin(); it != is_points.end(); ++it) {
-                println("Intersection point in: {} {}", it->x_axis, it->y_axis);
+                cout<<"Intersection point in: "<<it->x_axis<<" "<<it->y_axis<<"\n";
         }
 
         size_t data_size = input_data.points.size() / 2;

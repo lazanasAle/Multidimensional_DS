@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
     //cout <<"Inserted "<< tree.n_items()<<" points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)"  << endl;
     //cout<< trajectory.size()<< ","<< duration.count()/1000.0;
 
-    cout<< trajectory.size()<< ","<< insert_time_s;
+    cout<< trajectory.size()<< ","<< insert_time_s<<endl;
 
 
     //Perform range query
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     //cout<< "Found "<<results.size()<< " points in "<< duration.count()<< " microseconds (" << duration.count() / 1000.0 << " ms)" << endl;
     //cout<< ","<< duration.count()/1000.0<< endl;
 
-    cout<< ","<< query_time_s<< endl;
+    cout<< query_time_s<< endl;
 
     ofstream csv_file("times.csv", ios::app);
     if (csv_file.is_open()) 

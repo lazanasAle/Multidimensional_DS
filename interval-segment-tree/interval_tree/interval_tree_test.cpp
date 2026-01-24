@@ -17,9 +17,7 @@ int int_compare(int &a, int &b)
     return 0;
 }
 
-//Will import data from Stamatia's synthetic dataset
-
-//this function is loading intervals from the CSV file
+//This function is loading intervals from the CSV file
 vector<interval<int>> load_intervals_from_csv(const string &filename, size_t num_of_data)
 {
     vector<interval<int>> intervals;
@@ -91,7 +89,7 @@ void test_basic_ops() //testing basic operations
     tree.insert(i6);
     cout<< "Inserted 6 intervals"<<"\n";
 
-    interval<int> query(14,16); //just testing. will delete these numbers soon
+    interval<int> query(14,16); 
     cout << "\nInterval Search for [14,16]:" <<"\n";
     vector<interval<int>> result= tree.interval_search(query);
 
@@ -187,7 +185,6 @@ void test_csv()
     {
         cout << "[" << stab_result[i].low << ", " << stab_result[i].high<<"]"<< "\n";
     }
-
 }
 
 void performance_test(size_t num_of_data)
@@ -264,5 +261,3 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-//comments to explain what the code actually does

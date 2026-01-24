@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
 
     auto end=chrono::high_resolution_clock::now();
     auto duration=chrono::duration_cast<chrono::microseconds>(end-start);
-    cout << "Inserted " << trajectory.size() << " points in " << duration.count() << " microseconds ("<< duration.count() / 1000.0 << " ms)" << endl;
+    cout << "Inserted " << trajectory.size() << " points in " << duration.count() / 1000000.0 << " seconds" << endl;
 
     //build+execute range query
     pair<SpatioTemporalPoint,SpatioTemporalPoint> query_interval =range_query_routine(range_query_obj, idx_dims, min_x, max_x, min_y, max_y, min_t, max_t);
@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
     duration=chrono::duration_cast<chrono::microseconds>(end-start);
 
     cout << "\nInside the typed interval exist: " << results.size() << " points"  << endl;
-    cout << "Query executed in " << duration.count() / 1000.0 << " ms"<< endl;
+    cout << "Query executed in " << duration.count() / 1000000.0 << " seconds"<< endl;
 
     cout << "\n=== First 10 Results ===" << endl;
     int display_count = min(10, (int)results.size());

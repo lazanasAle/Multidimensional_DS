@@ -32,6 +32,8 @@ interval_node<T>::interval_node(interval<T> *i)
 template<typename T>
 int32_t interval_node<T>:: balance_factor()
 {
+    //Returns the difference in height between left and right subtrees
+    //Positive= left heavy, negative=right heavy
     int32_t left_height=(this->left)? this->left->height:-1;
     int32_t right_height=(this->right)? this->right->height:-1;
     return (left_height-right_height);
@@ -40,17 +42,18 @@ int32_t interval_node<T>:: balance_factor()
 template<typename T>
 void interval_node<T>::update_height()
 {
+    //Re-computes the node's height based on its children
     int32_t left_height=(this->left)? this->left->height:-1;
     //if this->left: this->left->hegiht. otherwise return -1
     
     int32_t right_height=(this->right)? this->right->height: -1;
     this->height =max(left_height,right_height)+1;
-    // +++
 }
 
 template<typename T>
 void interval_node<T>::update_max_end()
 {
+    //max_end stores the highest 'high' value in the subtree 
     T left_max=(this->left)? this->left->max_end: this->inter->high;   
     T right_max=(this->right)? this->right->max_end: this->inter->high;
     this->max_end= max(this->inter->high, max(left_max,right_max));   
@@ -59,6 +62,7 @@ void interval_node<T>::update_max_end()
 template<typename T>
 void interval_node<T>::left_rotation()
 {
+    //Standard AVL left rotation
     //safety check first (can't rotate left if there is no child to pivot in)
     if(this->right ==nullptr)
         return;
@@ -159,6 +163,7 @@ void interval_node<T>::right_left_rotation()
 template <typename T>
 interval_node<T>::~interval_node()
 {
+    //Recursive destructor. It ensures the entire subtree and the interval data are freed
     if(this->left)
         delete(this->left);
     if(this->right)
@@ -171,26 +176,32 @@ interval_node<T>::~interval_node()
 template <typename T>
 interval_node_iterator<T>::interval_node_iterator(interval_node<T> *n)
 {
+    //initializes the iterator with a pointer to a specific tree node
     this->node=n;
 }
 
 template <typename T>
 bool interval_node_iterator<T>::is_null()
 {
+    //checks if the iterator has moved past the bounds of the tree
     return (this->node==nullptr);
 }
 
 template <typename T>
 interval<T> *interval_node_iterator<T>::context() 
 {
+    //accesses the interval data stored within the current node
 	return this->node->inter;
 }
 
 template <typename T>
 interval_node_iterator<T> interval_node_iterator<T>::next()
 {
+    //if the iterator is already at the end, return null
     if(this->is_null())
         return interval_node_iterator<T>(nullptr);
+
+    //if there is a right subtree, the successor is the leftmost node of that subtre
     if(this->node->right)
     {
         interval_node<T> *next_node=this->node->right;
@@ -201,13 +212,13 @@ interval_node_iterator<T> interval_node_iterator<T>::next()
         return interval_node_iterator<T>(next_node);
     }
 
+    //if no right subtree, climb up the tree to find the 1st ancestor where the current node is in the left subtree
     interval_node<T> *rn =this->node;
     while((rn->parent) && (rn->parent->right==rn))
     {
         rn=rn->parent;
     }
     return interval_node_iterator<T>(rn->parent);
-
 }
 
 //same logic as next
@@ -270,6 +281,7 @@ interval_node<T> *&interval_tree<T>::search(interval<T> &inter, interval_node<T>
 template <typename T>
 void interval_tree<T>::update_max_end_up(interval_node<T> *node)
 {
+    //Propagates max_end changes up the tree after a node is inserted or modifed
     while (node!= nullptr)
     {
         node->update_max_end();
@@ -277,6 +289,7 @@ void interval_tree<T>::update_max_end_up(interval_node<T> *node)
     }
 }
 
+//AVL balancing
 template <typename T>
 void interval_tree<T>::avl_balance(interval_node<T> *&node)
 {
@@ -296,7 +309,6 @@ void interval_tree<T>::avl_balance(interval_node<T> *&node)
         else
             node->left_rotation();
     }
-
 }
 
 template <typename T>
@@ -424,8 +436,10 @@ void interval_tree<T>::interval_search_rec(interval<T> &inter,vector<interval<T>
         return;
     if(subtree_root ->inter->overlaps(inter))
         result.push_back(*subtree_root->inter);
+    //pruning: if left child's max_end is less than the target low, no interval in the left subtree can overlap
     if(subtree_root->left && subtree_root->left->max_end >= inter.low)
         interval_search_rec(inter,result, subtree_root->left);
+    //pruning: if current node's low is greater than target high,no interval in the right subtree can overlap
     if(subtree_root-> right && subtree_root ->inter->low <= inter.high)
         interval_search_rec(inter, result, subtree_root->right);
 }
@@ -438,7 +452,9 @@ vector<interval<T>> interval_tree<T>::interval_search(interval<T> &inter)
     return result;
 }
 
-//stabbing query
+//Stabbing query
+// Finds all intervals that contain the given point with complexity O(k*logn)
+// where k is the number of intervals found
 template<typename T>
 void interval_tree<T>::stabbing_query_rec(T point, vector<interval<T>> &result, interval_node<T> *subtree_root)
 {
@@ -522,8 +538,6 @@ void interval_tree<T>:: update_rec(interval<T> &old_inter, interval<T> &new_inte
         update_rec(old_inter, new_inter, subtree_root->left);
     else
         update_rec(old_inter, new_inter, subtree_root->right);
-
- 
 }
 
 template<typename T>
@@ -550,5 +564,3 @@ interval_tree<T>::~interval_tree()
     if(root)
         delete(root);
 }
-
-// will add comments to make it clear what each piece of code represents.

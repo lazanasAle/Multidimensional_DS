@@ -22,7 +22,6 @@ It includes implementations of classic and advanced data structures, geometric a
   - **Interval Tree**
   - **Segment Tree**
 - Efficient handling of interval-based queries
-- Suitable for both static and dynamic datasets
 - Used as standalone structures for comparative evaluation
 
 ---

@@ -1,10 +1,13 @@
 #! /bin/sh
 
+cd convex-hull-skyline
+unzip data_movies_clean.zip
+cd ..
 
-unzip convex-hull-skyline/data_movies_clean.zip
+cd 3d-rtree\(trajectories\)
+unzip tartanaviation_adsb_900k.zip
 
-unzip 3d-rtree\(trajectories\)/tartanaviation_adsb_900k.zip
-
-python 3d-rtree\(trajectories\)/generate-readable.py
+python generate-readable.py
+cd ..
 
 make

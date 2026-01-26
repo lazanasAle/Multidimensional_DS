@@ -82,5 +82,5 @@ The following components provide an interactive **Terminal User Interface**:
 
 ## Usage and Setup
 
-- To use  you can clone this repo run the top-level Makefile unzip the datasets wherever needed and test the executables.
+- To use  you can clone this repo execute the script init.sh (or run the top-level Makefile unzip the datasets wherever needed) and test the executables.
   

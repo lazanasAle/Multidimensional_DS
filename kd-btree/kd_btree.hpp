@@ -20,7 +20,6 @@
 #define INV_OFF -1
 #define BLC_LEN 4096
 #define MIN_PERC 0.35
-#define EIGHT 8
 #define MAX_CACHED 512
 
 #define HASH_SHIFT_F 30

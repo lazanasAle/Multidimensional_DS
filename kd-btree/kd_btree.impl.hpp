@@ -11,7 +11,7 @@ void read_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         long off = file.tellg();
         if (off >= 0) {
                 size_t vec_len;
-                if (file.read((char *)&vec_len, sizeof(size_t))) {
+                if (file.read(reinterpret_cast<char *>(&vec_len), sizeof(size_t))) {
                         vec.resize(vec_len);
                         for (size_t j = 0; j < vec_len; ++j)
                                 vec[j].read(file);
@@ -28,7 +28,7 @@ void write_vector(fstream &file, vector<T> &vec, size_t it_in_blc) {
         long off = file.tellp();
         if (off >= 0) {
                 size_t vec_len = vec.size();
-                file.write((char *)&vec_len, sizeof(size_t));
+                file.write(reinterpret_cast<char *>(&vec_len), sizeof(size_t));
                 for (size_t j = 0; j < vec_len; ++j)
                         vec[j].write(file);
                 T inv;
@@ -95,14 +95,14 @@ region<T>::region(rectangle<T> &reg) {
 template <typename T>
 
 void region<T>::read(fstream &file) {
-        file.read((char *)&this->child_offset, sizeof(long));
+        file.read(reinterpret_cast<char *>(&this->child_offset), sizeof(long));
         read_rectangle(this->region_rec, file);
 }
 
 template <typename T>
 
 void region<T>::write(fstream &file) {
-        file.write((char *)&this->child_offset, sizeof(long));
+        file.write(reinterpret_cast<char *>(&this->child_offset), sizeof(long));
         write_rectangle(this->region_rec, file);
 }
 
@@ -118,9 +118,9 @@ kd_bnode<T>::kd_bnode(cmp_vector<T> *cmp_vec) {
 template <typename T>
 
 void kd_bnode<T>::read_common(fstream &file, long node_offset) {
-        file.read((char *)&this->parent_offset, sizeof(long));
+        file.read(reinterpret_cast<char *>(&this->parent_offset), sizeof(long));
         this->my_offset = node_offset;
-        file.read((char *)&this->level, sizeof(size_t));
+        file.read(reinterpret_cast<char *>(&this->level), sizeof(size_t));
 }
 // point node functions
 
@@ -264,7 +264,7 @@ kd_bnode<T> *kd_btree<T, C>::load_file_node(long node_offset) {
         if (this->file.is_open() && node_offset >= 0) {
                 this->file.seekg(node_offset, ios::beg);
                 bool t;
-                this->file.read((char *)&t, sizeof(bool));
+                this->file.read(reinterpret_cast<char *>(&t), sizeof(bool));
                 // here i cannot do it (read the common and then differentiate) it is unsafe
                 kd_bnode<T> *loaded;
                 if (!t) {
@@ -293,9 +293,9 @@ bool kd_btree<T, C>::store_file_node(long node_offset, kd_bnode<T> *node) {
                 node->my_offset = node_offset;
                 //write the common fields
                 this->file.seekp(node_offset, ios::beg);
-                this->file.write((char *)&node->tag, sizeof(bool));
-                this->file.write((char *)&node->parent_offset, sizeof(long));
-                this->file.write((char *)&node->level, sizeof(size_t));
+                this->file.write(reinterpret_cast<char *>(&node->tag), sizeof(bool));
+                this->file.write(reinterpret_cast<char *>(&node->parent_offset), sizeof(long));
+                this->file.write(reinterpret_cast<char *>(&node->level), sizeof(size_t));
                 //diferentiate
                 if (!node->tag) {
                         point_kd_bnode<T> *pnode = static_cast<point_kd_bnode<T> *>(node);

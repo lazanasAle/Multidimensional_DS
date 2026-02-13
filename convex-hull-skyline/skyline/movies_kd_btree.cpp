@@ -11,14 +11,6 @@ cmp_vector<movie> movie_comp = {
         compare_vote_avg, compare_runtime, compare_vote_count
 };
 
-
-
-template<size_t corner, typename field>
-
-field get_field(rectangle<movie> *r, field movie:: *member) {
-        return (get<corner>(*r).*member);
-}
-
 template<typename field>
 
 pair<field, field> compute_min_max(vector<rectangle<movie> *> &movie_regions, field movie:: *member) {

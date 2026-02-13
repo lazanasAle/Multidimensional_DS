@@ -6,7 +6,6 @@
 #include <movie_utils.hpp>
 #include <cstdint>
 
-using std::uint64_t;
 
 struct movie_compare {
         bool operator ()(const movie &m1, const movie &m2) const {

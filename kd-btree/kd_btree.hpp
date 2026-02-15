@@ -200,7 +200,7 @@ protected:
         rectangle<T> (*make_region_rectangle)(vector<rectangle<T> *> &);
         rectangle<T> (*make_point_rectangle)(vector<T *> &);
         fstream file;
-        long coffset, next_offset, root_offset;
+        long coffset, root_offset;
         size_t nitems, max_cached_pnodes, max_cached_rnodes, recent_cnt;
 
         point_hash_map<T> pnodes_cached;

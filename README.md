@@ -75,7 +75,7 @@ The following components provide an interactive **Terminal User Interface**:
 
 - CSV datasets included in the repository (compressed as ZIP files)
 - Mix of:
-  - Real-world data (e.g., airplane trajectories)
+  - Real-world data (e.g., 19k first airplane trajectories (from 900k total, the rest are synthetic), 900k movies dataset)
   - Synthetic data for benchmarking
 
 ---

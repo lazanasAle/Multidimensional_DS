@@ -999,7 +999,7 @@ void kd_btree<T, C>::eliminate_node(kd_bnode<T> *node, region_kd_bnode<T> *paren
                         }
                 }
                 auto pregion_it = parent->regions.begin() + chld_off;
-                (chld_off >= 0)? parent->regions.erase(pregion_it) : null_func();
+                if (chld_off >= 0) parent->regions.erase(pregion_it);
                 //reflect the changes of the parent to the file
                 store_node(parent->my_offset, parent);
         }
@@ -1032,7 +1032,7 @@ void kd_btree<T, C>::erase(T &data) {
                         //erase the entry from the leaf
                         long to_erase = compare_all(leaf->points, data, this->comparators);
                         auto erase_it = leaf->points.begin() + to_erase;
-                        (to_erase >= 0)? leaf->points.erase(erase_it) : null_func();
+                        if (to_erase >= 0) leaf->points.erase(erase_it);
                         store_node(leaf->my_offset, leaf);
                         //update the parental region
                         region<T> par_reg = make_parent_region(leaf);

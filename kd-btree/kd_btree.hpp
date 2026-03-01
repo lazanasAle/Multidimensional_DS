@@ -31,11 +31,10 @@
 
 using   std::fstream, std::ios, std::string, std::vector,
         std::pair, std::tuple, std::stable_sort, std::get,
-        std::move, std::abs, std::min_element, std::distance, std::make_pair, std::make_tuple,
-        std::find_if, std::stack, std::set, std::unordered_map;
-
-
-static inline void null_func(){}
+        std::move, std::abs, std::min_element, std::distance,
+        std::make_pair, std::make_tuple, std::find_if, std::stack,
+        std::set, std::unordered_map
+;
 
 enum best_t: bool {MINIMIZE, MAXIMIZE};
 

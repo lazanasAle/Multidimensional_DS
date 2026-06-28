@@ -1,1 +1,1 @@
-{"index_dimensions": [0, 2, 4], "range_query": {"0": [10000.9996, 40000.9999], "2": [2.0, 7.5], "4": [2, 5]}, "skyline_query": ["min", "max", "min"]}
+{"index_dimensions": [0, 2, 4], "range_query": {"0": [30000.0, 100000.0], "2": [20.0, 45.0], "4": [7, 10]}, "skyline_query": ["min", "max", "min"]}
